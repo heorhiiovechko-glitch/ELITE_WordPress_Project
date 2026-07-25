@@ -7,13 +7,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.6.88' );
+define( 'ELITE_SHIPPING_VERSION', '1.7.39' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 
 $elite_product_cards = ELITE_SHIPPING_DIR . '/inc/product-cards.php';
 if ( file_exists( $elite_product_cards ) ) {
 	require_once $elite_product_cards;
+}
+$elite_single_summary = ELITE_SHIPPING_DIR . '/inc/single-product-summary.php';
+if ( file_exists( $elite_single_summary ) ) {
+	require_once $elite_single_summary;
 }
 $elite_single_product = ELITE_SHIPPING_DIR . '/inc/single-product-hooks.php';
 if ( file_exists( $elite_single_product ) ) {
@@ -226,7 +230,7 @@ function elite_shipping_loop_per_page( $per_page ) {
 		return $per_page;
 	}
 
-	$allowed = array( 9, 12, 18, 24 );
+	$allowed = array( 12, 24, 36, 48 );
 	if ( isset( $_GET['per_page'] ) ) {
 		$requested = absint( wp_unslash( $_GET['per_page'] ) );
 		if ( in_array( $requested, $allowed, true ) ) {

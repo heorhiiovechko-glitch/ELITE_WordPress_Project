@@ -76,7 +76,7 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 		</div>
 		<div class="elite-container apex-footer-bar">
 			<span class="apex-footer-copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> Elite Shipping Containers Ltd. All Rights Reserved.</span>
-			<?php get_template_part( 'template-parts/payment', 'icons' ); ?>
+			<?php get_template_part( 'template-parts/footer', 'payments' ); ?>
 		</div>
 	</footer>
 </div>

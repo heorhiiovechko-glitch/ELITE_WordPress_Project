@@ -1,3 +1,34 @@
+(function () {
+  function patchFlexsliderDirectionNav() {
+    var $ = window.jQuery;
+    if (!$ || !$.fn.flexslider || $.fn.flexslider.__eliteNoDirectionNav) {
+      return !!($ && $.fn.flexslider && $.fn.flexslider.__eliteNoDirectionNav);
+    }
+
+    var original = $.fn.flexslider;
+    $.fn.flexslider = function (options) {
+      if (this.hasClass('woocommerce-product-gallery')) {
+        if (typeof options === 'object' && options !== null) {
+          options = $.extend({}, options, { directionNav: false });
+        }
+      }
+
+      return original.apply(this, arguments);
+    };
+    $.fn.flexslider.__eliteNoDirectionNav = true;
+    return true;
+  }
+
+  if (!patchFlexsliderDirectionNav()) {
+    var patchAttempts = 0;
+    var patchTimer = window.setInterval(function () {
+      if (patchFlexsliderDirectionNav() || ++patchAttempts > 80) {
+        window.clearInterval(patchTimer);
+      }
+    }, 50);
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', function () {
   var chat = document.querySelector('.elite-chat-launcher');
   if (chat) {
@@ -441,14 +472,493 @@ document.addEventListener('DOMContentLoaded', function () {
     return gallery.querySelector('.flex-viewport') || gallery.querySelector(':scope > .woocommerce-product-gallery__wrapper');
   }
 
+  function getGalleryTrack(gallery) {
+    var frame = getGalleryFrame(gallery);
+    if (!frame) {
+      return null;
+    }
+
+    if (
+      frame.classList.contains('woocommerce-product-gallery__wrapper') ||
+      frame.classList.contains('slides')
+    ) {
+      return frame;
+    }
+
+    return frame.querySelector('.woocommerce-product-gallery__wrapper') || frame.querySelector('.slides');
+  }
+
   function getGallerySlides(gallery) {
-    if (!gallery) {
+    var track = getGalleryTrack(gallery);
+    if (!track) {
       return [];
     }
 
-    return gallery.querySelectorAll(
-      '.flex-viewport .woocommerce-product-gallery__image, .flex-viewport .slides > li, :scope > .woocommerce-product-gallery__wrapper > .woocommerce-product-gallery__image'
-    );
+    return Array.prototype.slice.call(
+      track.querySelectorAll(':scope > .woocommerce-product-gallery__image, :scope > li')
+    ).filter(function (slide) {
+      if (slide.classList.contains('clone')) {
+        return false;
+      }
+
+      return slide.querySelector('img:not(.zoomImg), a img:not(.zoomImg)');
+    });
+  }
+
+  function getGallerySlideWidth(gallery) {
+    if (gallery && gallery.dataset.slideWidth) {
+      var cached = parseFloat(gallery.dataset.slideWidth, 10);
+      if (!isNaN(cached) && cached > 0) {
+        return cached;
+      }
+    }
+
+    var frame = getGalleryFrame(gallery);
+    if (frame) {
+      var measured = Math.round(frame.getBoundingClientRect().width);
+      if (measured > 0) {
+        return measured;
+      }
+    }
+
+    return 0;
+  }
+
+  function getActiveSlideIndex(gallery) {
+    if (gallery && gallery.dataset.activeSlide) {
+      var stored = parseInt(gallery.dataset.activeSlide, 10);
+      if (!isNaN(stored)) {
+        return stored;
+      }
+    }
+
+    var slides = getGallerySlides(gallery);
+    var activeIndex = slides.findIndex(function (slide) {
+      return slide.classList.contains('flex-active-slide');
+    });
+
+    if (activeIndex >= 0) {
+      return activeIndex;
+    }
+
+    var frame = getGalleryFrame(gallery);
+    var width = getGallerySlideWidth(gallery);
+    if (frame && width > 0) {
+      return Math.min(slides.length - 1, Math.max(0, Math.round(frame.scrollLeft / width)));
+    }
+
+    return resolveGallerySlideIndex(gallery, getActiveThumbIndex(gallery));
+  }
+
+  function getActiveThumbIndex(gallery) {
+    var items = getGalleryThumbItems(gallery);
+    var activeIndex = items.findIndex(function (item) {
+      return item.classList.contains('apex-thumb-active') || item.classList.contains('flex-active');
+    });
+
+    return activeIndex >= 0 ? activeIndex : 0;
+  }
+
+  function getSlideCount(gallery) {
+    return getGallerySlides(gallery).length || getGalleryThumbItems(gallery).length;
+  }
+
+  function setGalleryThumbActive(gallery, activeIndex) {
+    var items = getGalleryThumbItems(gallery);
+    if (!items.length) {
+      return;
+    }
+
+    if (activeIndex < 0) {
+      activeIndex = 0;
+    }
+    if (activeIndex >= items.length) {
+      activeIndex = items.length - 1;
+    }
+
+    items.forEach(function (item, itemIndex) {
+      var isActive = itemIndex === activeIndex;
+      item.classList.toggle('apex-thumb-active', isActive);
+      item.classList.toggle('flex-active', isActive);
+    });
+  }
+
+  function getGalleryThumbSrc(thumbItem) {
+    var img = thumbItem ? thumbItem.querySelector('img') : null;
+    if (!img) {
+      return '';
+    }
+
+    return img.currentSrc || img.src || img.getAttribute('src') || '';
+  }
+
+  function getGallerySlideSrc(slide) {
+    var img = slide ? slide.querySelector('img:not(.zoomImg)') : null;
+    if (img) {
+      return img.currentSrc || img.src || img.getAttribute('src') || '';
+    }
+
+    var link = slide ? slide.querySelector('a') : null;
+    return link ? link.href || '' : '';
+  }
+
+  function normalizeGallerySrc(src) {
+    if (!src) {
+      return '';
+    }
+
+    try {
+      var url = new URL(src, window.location.href);
+      return url.pathname + url.search;
+    } catch (error) {
+      return src.split('?')[0];
+    }
+  }
+
+  function resolveGallerySlideIndex(gallery, thumbIndex) {
+    var slides = getGallerySlides(gallery);
+    var thumbs = getGalleryThumbItems(gallery);
+    if (!slides.length || !thumbs.length) {
+      return 0;
+    }
+
+    if (thumbIndex < 0) {
+      return 0;
+    }
+    if (thumbIndex >= thumbs.length) {
+      thumbIndex = thumbs.length - 1;
+    }
+    if (slides.length === thumbs.length) {
+      return thumbIndex;
+    }
+
+    var thumbSrc = normalizeGallerySrc(getGalleryThumbSrc(thumbs[thumbIndex]));
+    for (var i = 0; i < slides.length; i++) {
+      if (normalizeGallerySrc(getGallerySlideSrc(slides[i])) === thumbSrc) {
+        return i;
+      }
+    }
+
+    return Math.min(thumbIndex, slides.length - 1);
+  }
+
+  function resolveGalleryThumbIndex(gallery, slideIndex) {
+    var slides = getGallerySlides(gallery);
+    var thumbs = getGalleryThumbItems(gallery);
+    if (!slides.length || !thumbs.length) {
+      return 0;
+    }
+
+    if (slideIndex < 0) {
+      return 0;
+    }
+    if (slideIndex >= slides.length) {
+      slideIndex = slides.length - 1;
+    }
+    if (slides.length === thumbs.length) {
+      return slideIndex;
+    }
+
+    var slideSrc = normalizeGallerySrc(getGallerySlideSrc(slides[slideIndex]));
+    for (var i = 0; i < thumbs.length; i++) {
+      if (normalizeGallerySrc(getGalleryThumbSrc(thumbs[i])) === slideSrc) {
+        return i;
+      }
+    }
+
+    return Math.min(slideIndex, thumbs.length - 1);
+  }
+
+  function setGallerySlideIndex(gallery, index, animate, thumbIndex) {
+    var slides = getGallerySlides(gallery);
+    var track = getGalleryTrack(gallery);
+    var frame = getGalleryFrame(gallery);
+    if (!slides.length || !track || !frame) {
+      return;
+    }
+
+    var width = getGallerySlideWidth(gallery);
+    if (width <= 0) {
+      layoutGalleryTrack(gallery);
+      width = getGallerySlideWidth(gallery);
+      if (width <= 0) {
+        return;
+      }
+    }
+
+    var count = slides.length;
+    var targetIndex = ((index % count) + count) % count;
+    var activeThumbIndex = typeof thumbIndex === 'number'
+      ? thumbIndex
+      : resolveGalleryThumbIndex(gallery, targetIndex);
+    var left = targetIndex * width;
+
+    gallery.dataset.activeSlide = String(targetIndex);
+    track.style.marginLeft = '0';
+    track.style.transform = 'none';
+
+    if (animate && typeof frame.scrollTo === 'function') {
+      frame.scrollTo({ left: left, behavior: 'smooth' });
+    } else {
+      frame.scrollLeft = left;
+    }
+
+    slides.forEach(function (slide, slideIndex) {
+      slide.classList.toggle('flex-active-slide', slideIndex === targetIndex);
+      slide.style.visibility = 'visible';
+      slide.style.opacity = '1';
+    });
+
+    setGalleryThumbActive(gallery, activeThumbIndex);
+    updateGalleryThumbStrip(gallery);
+  }
+
+  function bindGalleryImageLoad(gallery) {
+    if (!gallery || gallery.dataset.apexImageLoadBound === '1') {
+      return;
+    }
+
+    gallery.dataset.apexImageLoadBound = '1';
+    gallery.querySelectorAll('.woocommerce-product-gallery__image img:not(.zoomImg)').forEach(function (image) {
+      if (image.complete) {
+        return;
+      }
+
+      image.addEventListener('load', function () {
+        layoutGalleryTrack(gallery);
+      }, { once: true });
+    });
+  }
+
+  function layoutGalleryTrack(gallery) {
+    var frame = getGalleryFrame(gallery);
+    var track = getGalleryTrack(gallery);
+    var slides = getGallerySlides(gallery);
+    if (!gallery || !frame || !track || !slides.length) {
+      return;
+    }
+
+    var shell = getGalleryMainShell(gallery);
+    var maxWidth = getGalleryMaxWidth();
+    var shellWidth = shell ? shell.offsetWidth : gallery.offsetWidth;
+    var width = Math.min(shellWidth || maxWidth, maxWidth);
+
+    if (width <= 0) {
+      window.requestAnimationFrame(function () {
+        layoutGalleryTrack(gallery);
+      });
+      return;
+    }
+
+    var height = Math.round(width * 2 / 3);
+
+    gallery.dataset.slideWidth = String(width);
+    gallery.classList.add('apex-gallery-ready');
+
+    frame.style.width = width + 'px';
+    frame.style.height = height + 'px';
+    frame.style.maxWidth = width + 'px';
+    frame.style.overflowX = 'hidden';
+    frame.style.overflowY = 'hidden';
+
+    track.style.display = 'flex';
+    track.style.flexDirection = 'row';
+    track.style.flexWrap = 'nowrap';
+    track.style.alignItems = 'stretch';
+    track.style.height = height + 'px';
+    track.style.width = (width * slides.length) + 'px';
+    track.style.marginLeft = '0';
+    track.style.transform = 'none';
+    track.style.transition = 'none';
+
+    slides.forEach(function (slide) {
+      slide.style.flex = '0 0 ' + width + 'px';
+      slide.style.width = width + 'px';
+      slide.style.minWidth = width + 'px';
+      slide.style.maxWidth = width + 'px';
+      slide.style.height = height + 'px';
+      slide.style.float = 'none';
+      slide.style.display = 'block';
+      slide.style.visibility = 'visible';
+      slide.style.opacity = '1';
+      slide.style.position = 'relative';
+    });
+
+    setGallerySlideIndex(gallery, getActiveSlideIndex(gallery), false);
+  }
+
+  function removeFlexsliderDirectionNav(gallery) {
+    var scopes = [];
+
+    if (gallery) {
+      scopes.push(gallery);
+      var imagesWrap = gallery.closest('.images');
+      var product = gallery.closest('.product');
+      if (imagesWrap) {
+        scopes.push(imagesWrap);
+      }
+      if (product) {
+        scopes.push(product);
+      }
+    }
+
+    scopes.push(document.querySelector('.elite-single-product'));
+
+    scopes.forEach(function (scope) {
+      if (!scope) {
+        return;
+      }
+
+      scope.querySelectorAll('.flex-direction-nav').forEach(function (nav) {
+        nav.remove();
+      });
+
+      scope.querySelectorAll('a.flex-prev, a.flex-next').forEach(function (link) {
+        if (link.closest('.apex-gallery-main-arrow, .apex-gallery-thumb-arrow')) {
+          return;
+        }
+        link.remove();
+      });
+    });
+  }
+
+  function watchGalleryDirectionNav(gallery) {
+    if (!gallery || gallery.dataset.apexNavWatch === '1') {
+      return;
+    }
+
+    gallery.dataset.apexNavWatch = '1';
+
+    var scopes = [gallery];
+    var imagesWrap = gallery.closest('.images');
+    if (imagesWrap) {
+      scopes.push(imagesWrap);
+    }
+
+    var observer = new MutationObserver(function () {
+      removeFlexsliderDirectionNav(gallery);
+    });
+
+    scopes.forEach(function (scope) {
+      observer.observe(scope, { childList: true, subtree: true });
+    });
+  }
+
+  function disableFlexsliderNavigation(gallery) {
+    if (!window.jQuery) {
+      return;
+    }
+
+    var galleryApi = window.jQuery(gallery).data('product_gallery');
+    if (!galleryApi || !galleryApi.flexslider) {
+      return;
+    }
+
+    var slider = galleryApi.flexslider;
+    if (typeof slider.stop === 'function') {
+      slider.stop();
+    }
+
+    slider.resize = function () {};
+    slider.setProps = function () {};
+    slider.flexAnimate = function (target) {
+      setGallerySlideIndex(gallery, target, false);
+    };
+
+    window.jQuery(gallery).find('.flex-control-nav li').off('click');
+    window.jQuery(gallery).find('.flex-control-nav li img').css('opacity', '');
+    removeFlexsliderDirectionNav(gallery);
+  }
+
+  function handleGalleryThumbClick(event) {
+    var item = event.target.closest('.flex-control-nav li');
+    if (!item) {
+      return;
+    }
+
+    var nav = item.closest('.flex-control-nav');
+    var gallery = nav ? nav.closest('.woocommerce-product-gallery') : null;
+    if (!gallery || !gallery.closest('.elite-single-product')) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    var items = getGalleryThumbItems(gallery);
+    var thumbIndex = items.indexOf(item);
+    if (thumbIndex < 0) {
+      return;
+    }
+
+    setGalleryThumbActive(gallery, thumbIndex);
+    setGallerySlideIndex(gallery, resolveGallerySlideIndex(gallery, thumbIndex), false, thumbIndex);
+  }
+
+  function bindGalleryThumbClicks(gallery) {
+    if (!gallery) {
+      return;
+    }
+
+    var nav = gallery.querySelector('.flex-control-nav');
+    if (!nav || nav.dataset.apexThumbBound === '1') {
+      return;
+    }
+
+    nav.dataset.apexThumbBound = '1';
+    nav.addEventListener('click', handleGalleryThumbClick, true);
+  }
+
+  function stepGallerySlide(gallery, direction) {
+    var count = getSlideCount(gallery);
+    if (count <= 1 || !direction) {
+      return;
+    }
+
+    setGallerySlideIndex(gallery, getActiveSlideIndex(gallery) + direction, true);
+  }
+
+  function goToGallerySlide(gallery, index) {
+    setGallerySlideIndex(gallery, index, false);
+  }
+
+  function activateGalleryThumb(gallery, index) {
+    goToGallerySlide(gallery, index);
+  }
+
+  function navigateGallerySlide(gallery, direction) {
+    stepGallerySlide(gallery, direction);
+  }
+
+  function syncSingleProductGallery() {
+    var gallery = document.querySelector('.elite-single-product .woocommerce-product-gallery');
+    var frame = getGalleryFrame(gallery);
+    if (!gallery || !frame) {
+      return;
+    }
+
+    unwrapGalleryLayout(gallery);
+
+    var shell = ensureGalleryMainShell(gallery, frame);
+    initGalleryMainArrows(gallery, shell);
+    initGalleryThumbStrip(gallery);
+    ensureGalleryOverlays(gallery, shell);
+    bindGalleryImageLoad(gallery);
+    disableFlexsliderNavigation(gallery);
+    removeFlexsliderDirectionNav(gallery);
+    watchGalleryDirectionNav(gallery);
+    bindGalleryThumbClicks(gallery);
+    layoutGalleryTrack(gallery);
+    syncGalleryThumbVisualState(gallery);
+  }
+
+  function syncGalleryThumbVisualState(gallery) {
+    if (!gallery) {
+      return;
+    }
+
+    var slideIndex = getActiveSlideIndex(gallery);
+    setGalleryThumbActive(gallery, resolveGalleryThumbIndex(gallery, slideIndex));
   }
 
   function getGalleryThumbItems(gallery) {
@@ -462,15 +972,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     return Array.prototype.slice.call(nav.querySelectorAll('li'));
-  }
-
-  function getActiveThumbIndex(gallery) {
-    var items = getGalleryThumbItems(gallery);
-    var activeIndex = items.findIndex(function (item) {
-      return item.classList.contains('flex-active');
-    });
-
-    return activeIndex >= 0 ? activeIndex : 0;
   }
 
   function getThumbMetrics(gallery) {
@@ -544,20 +1045,81 @@ document.addEventListener('DOMContentLoaded', function () {
     layout.remove();
   }
 
+  function getGalleryMainShell(gallery) {
+    if (!gallery) {
+      return null;
+    }
+
+    var shells = gallery.querySelectorAll(':scope > .apex-gallery-main');
+    var index;
+    for (index = 0; index < shells.length; index++) {
+      if (shells[index].querySelector('.flex-viewport, .woocommerce-product-gallery__wrapper')) {
+        return shells[index];
+      }
+    }
+
+    return shells[0] || null;
+  }
+
+  function cleanupDuplicateGalleryMainShells(gallery, keepShell) {
+    if (!gallery) {
+      return;
+    }
+
+    gallery.querySelectorAll(':scope > .apex-gallery-main').forEach(function (shell) {
+      if (shell === keepShell) {
+        return;
+      }
+
+      Array.prototype.slice.call(shell.children).forEach(function (child) {
+        if (
+          child.classList.contains('flex-viewport') ||
+          child.classList.contains('woocommerce-product-gallery__wrapper')
+        ) {
+          keepShell.insertBefore(child, keepShell.firstChild);
+          return;
+        }
+
+        if (child.classList.contains('apex-gallery-overlays') && !keepShell.querySelector('.apex-gallery-overlays')) {
+          keepShell.appendChild(child);
+          return;
+        }
+
+        if (child.classList.contains('apex-gallery-main-arrow')) {
+          var direction = child.classList.contains('apex-gallery-main-arrow--prev') ? 'prev' : 'next';
+          if (!keepShell.querySelector('.apex-gallery-main-arrow--' + direction)) {
+            keepShell.appendChild(child);
+          }
+        }
+      });
+
+      shell.remove();
+    });
+  }
+
   function ensureGalleryMainShell(gallery, frame) {
     if (!gallery || !frame) {
       return null;
     }
 
-    if (frame.closest('.apex-gallery-main')) {
-      return frame.closest('.apex-gallery-main');
+    var activeShell = frame.closest('.apex-gallery-main');
+    if (activeShell) {
+      cleanupDuplicateGalleryMainShells(gallery, activeShell);
+      return activeShell;
+    }
+
+    var primaryShell = getGalleryMainShell(gallery);
+    if (primaryShell) {
+      primaryShell.insertBefore(frame, primaryShell.firstChild);
+      cleanupDuplicateGalleryMainShells(gallery, primaryShell);
+      return primaryShell;
     }
 
     var shell = document.createElement('div');
     shell.className = 'apex-gallery-main';
-    frame.parentNode.insertBefore(shell, frame);
+    gallery.insertBefore(shell, frame);
     shell.appendChild(frame);
-
+    cleanupDuplicateGalleryMainShells(gallery, shell);
     return shell;
   }
 
@@ -597,6 +1159,7 @@ document.addEventListener('DOMContentLoaded', function () {
     unwrapGalleryThumbRail(gallery);
 
     if (gallery.querySelector('.apex-gallery-thumb-strip')) {
+      bindGalleryThumbClicks(gallery);
       updateGalleryThumbStrip(gallery);
       return;
     }
@@ -638,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     setGalleryThumbOffset(gallery, 0);
+    bindGalleryThumbClicks(gallery);
     updateGalleryThumbStrip(gallery);
   }
 
@@ -693,49 +1257,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function goToGallerySlide(gallery, index) {
-    var items = getGalleryThumbItems(gallery);
-    if (!items.length) {
-      return;
-    }
-
-    var targetIndex = ((index % items.length) + items.length) % items.length;
-
-    if (window.jQuery) {
-      var galleryApi = window.jQuery(gallery).data('product_gallery');
-      if (galleryApi && galleryApi.flexslider && typeof galleryApi.flexslider.flexAnimate === 'function') {
-        galleryApi.flexslider.flexAnimate(targetIndex);
-        window.requestAnimationFrame(function () {
-          updateGalleryThumbStrip(gallery);
-        });
-        return;
-      }
-    }
-
-    var targetImg = items[targetIndex].querySelector('img');
-    if (targetImg) {
-      targetImg.click();
-    }
-
-    window.setTimeout(function () {
-      updateGalleryThumbStrip(gallery);
-    }, 60);
-  }
-
-  function activateGalleryThumb(gallery, index) {
-    goToGallerySlide(gallery, index);
-  }
-
-  function navigateGallerySlide(gallery, direction) {
-    var items = getGalleryThumbItems(gallery);
-    if (items.length <= 1) {
-      return;
-    }
-
-    var nextIndex = (getActiveThumbIndex(gallery) + direction + items.length) % items.length;
-    goToGallerySlide(gallery, nextIndex);
-  }
-
   function scrollGalleryThumbStrip(gallery, direction) {
     var items = getGalleryThumbItems(gallery);
     var metrics = getThumbMetrics(gallery);
@@ -744,11 +1265,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     offset = Math.max(0, Math.min(maxOffset, offset));
     setGalleryThumbOffset(gallery, offset);
-    updateGalleryThumbStrip(gallery);
+    updateGalleryThumbStrip(gallery, { preserveOffset: true });
   }
 
   function updateGalleryMainArrows(gallery) {
-    var shell = gallery ? gallery.querySelector('.apex-gallery-main') : null;
+    var shell = gallery ? getGalleryMainShell(gallery) : null;
     if (!shell) {
       return;
     }
@@ -770,7 +1291,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function updateGalleryThumbStrip(gallery) {
+  function updateGalleryThumbStrip(gallery, options) {
+    options = options || {};
+
     if (!gallery) {
       return;
     }
@@ -784,19 +1307,29 @@ document.addEventListener('DOMContentLoaded', function () {
     var items = getGalleryThumbItems(gallery);
     var metrics = getThumbMetrics(gallery);
     var maxOffset = Math.max(0, items.length - metrics.visible);
-    var activeIndex = getActiveThumbIndex(gallery);
+    var activeIndex = getActiveSlideIndex(gallery);
     var offset = getGalleryThumbOffset(gallery);
 
-    if (activeIndex < offset) {
-      offset = activeIndex;
-    } else if (activeIndex >= offset + metrics.visible) {
-      offset = activeIndex - metrics.visible + 1;
+    if (!options.preserveOffset) {
+      if (activeIndex < offset) {
+        offset = activeIndex;
+      } else if (activeIndex >= offset + metrics.visible) {
+        offset = activeIndex - metrics.visible + 1;
+      }
+
+      offset = Math.max(0, Math.min(maxOffset, offset));
+      setGalleryThumbOffset(gallery, offset);
     }
 
-    offset = Math.max(0, Math.min(maxOffset, offset));
-    setGalleryThumbOffset(gallery, offset);
-
     nav.style.transform = 'translateX(-' + (offset * (metrics.size + metrics.gap)) + 'px)';
+
+    var viewport = strip.querySelector('.apex-gallery-thumb-viewport');
+    var visibleSlots = items.length > metrics.visible ? metrics.visible : Math.min(items.length, metrics.visible);
+    var viewportWidth = (visibleSlots * metrics.size) + (Math.max(0, visibleSlots - 1) * metrics.gap);
+
+    if (viewport) {
+      viewport.style.width = viewportWidth + 'px';
+    }
 
     var prevBtn = strip.querySelector('.apex-gallery-thumb-arrow--prev');
     var nextBtn = strip.querySelector('.apex-gallery-thumb-arrow--next');
@@ -814,60 +1347,7 @@ document.addEventListener('DOMContentLoaded', function () {
     updateGalleryMainArrows(gallery);
   }
 
-  function syncSingleProductGallery() {
-    var gallery = document.querySelector('.elite-single-product .woocommerce-product-gallery');
-    var frame = getGalleryFrame(gallery);
-    if (!gallery || !frame) {
-      return;
-    }
-
-    unwrapGalleryLayout(gallery);
-
-    var shell = ensureGalleryMainShell(gallery, frame);
-    initGalleryMainArrows(gallery, shell);
-    initGalleryThumbStrip(gallery);
-    ensureGalleryOverlays(gallery, shell);
-
-    var maxWidth = getGalleryMaxWidth();
-    var shellWidth = shell ? shell.offsetWidth : gallery.offsetWidth;
-    var width = Math.min(shellWidth, maxWidth);
-    var height = Math.round(width * 2 / 3);
-
-    frame.style.width = width + 'px';
-    frame.style.height = height + 'px';
-
-    getGallerySlides(gallery).forEach(function (slide) {
-      slide.style.width = width + 'px';
-      slide.style.height = height + 'px';
-      slide.style.display = 'grid';
-      slide.style.placeItems = 'center';
-    });
-
-    updateGalleryThumbStrip(gallery);
-
-    if (window.jQuery) {
-      var galleryApi = window.jQuery(gallery).data('product_gallery');
-      if (galleryApi && galleryApi.flexslider && typeof galleryApi.flexslider.resize === 'function') {
-        galleryApi.flexslider.resize();
-      }
-    }
-  }
-
   function initSingleProductGallery() {
-    var gallery = document.querySelector('.elite-single-product .woocommerce-product-gallery');
-    if (!gallery) {
-      return;
-    }
-
-    var frame = getGalleryFrame(gallery);
-    if (!frame) {
-      return;
-    }
-
-    var shell = ensureGalleryMainShell(gallery, frame);
-    initGalleryMainArrows(gallery, shell);
-    ensureGalleryOverlays(gallery, shell);
-    initGalleryThumbStrip(gallery);
     syncSingleProductGallery();
   }
 
@@ -880,14 +1360,140 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (window.jQuery) {
     window.jQuery(document.body).on('wc-product-gallery-after-init', '.woocommerce-product-gallery', syncSingleProductGallery);
-    window.jQuery(document.body).on('click', '.elite-single-product .flex-control-nav li', function () {
-      var activeGallery = document.querySelector('.elite-single-product .woocommerce-product-gallery');
-      window.setTimeout(function () {
-        updateGalleryThumbStrip(activeGallery);
-      }, 50);
-      window.setTimeout(function () {
-        updateGalleryThumbStrip(activeGallery);
-      }, 250);
+  }
+
+  function parsePaypalAmount(value) {
+    if (typeof value !== 'string') {
+      return 0;
+    }
+
+    var cleaned = value.replace(/[^0-9.,]/g, '').replace(/,/g, '');
+    var amount = parseFloat(cleaned);
+    return isNaN(amount) ? 0 : amount;
+  }
+
+  function formatPaypalMoney(amount) {
+    return '$' + amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  function buildPaypalPlans(amount) {
+    var plans = [
+      { months: 6, factor: 1.0771875 },
+      { months: 12, factor: 1.146356875 },
+      { months: 24, factor: 1.292990625 }
+    ];
+
+    return plans.map(function (plan) {
+      var total = amount * plan.factor;
+      var monthly = total / plan.months;
+      var interest = total - amount;
+
+      return {
+        months: plan.months,
+        monthly: monthly,
+        total: total,
+        interest: interest,
+        apr: amount > 0 ? 26 : 0
+      };
+    });
+  }
+
+  function renderPaypalPlans(container, amount) {
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = buildPaypalPlans(amount).map(function (plan) {
+      return ''
+        + '<div class="apex-paypal-plan">'
+        + '<p class="apex-paypal-plan-headline">' + formatPaypalMoney(plan.monthly) + '/mo. for ' + plan.months + ' months</p>'
+        + '<div class="apex-paypal-plan-meta">'
+        + '<div class="apex-paypal-plan-meta-item"><span class="apex-paypal-plan-meta-label">Est. APR*</span><span class="apex-paypal-plan-meta-value">' + plan.apr + '%</span></div>'
+        + '<div class="apex-paypal-plan-meta-item"><span class="apex-paypal-plan-meta-label">Interest</span><span class="apex-paypal-plan-meta-value">' + formatPaypalMoney(plan.interest) + '</span></div>'
+        + '<div class="apex-paypal-plan-meta-item"><span class="apex-paypal-plan-meta-label">Total</span><span class="apex-paypal-plan-meta-value">' + formatPaypalMoney(plan.total) + '</span></div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  var paypalModal = document.getElementById('apex-paypal-monthly-modal');
+  var paypalOpeners = document.querySelectorAll('[data-paypal-monthly-open]');
+  var paypalAmountInput = paypalModal ? paypalModal.querySelector('[data-paypal-amount-input]') : null;
+  var paypalPlansWrap = paypalModal ? paypalModal.querySelector('[data-paypal-plans]') : null;
+  var paypalLastFocus = null;
+
+  function openPaypalModal() {
+    if (!paypalModal) {
+      return;
+    }
+
+    paypalLastFocus = document.activeElement;
+    paypalModal.hidden = false;
+    paypalModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('apex-paypal-modal-open');
+
+    var amount = paypalAmountInput
+      ? parsePaypalAmount(paypalAmountInput.dataset.paypalAmountRaw || paypalAmountInput.value)
+      : 0;
+
+    if (paypalAmountInput && amount > 0) {
+      paypalAmountInput.value = formatPaypalMoney(amount);
+    }
+
+    renderPaypalPlans(paypalPlansWrap, amount);
+
+    var dialog = paypalModal.querySelector('.apex-paypal-modal-dialog');
+    if (dialog) {
+      dialog.focus();
+    }
+  }
+
+  function closePaypalModal() {
+    if (!paypalModal) {
+      return;
+    }
+
+    paypalModal.hidden = true;
+    paypalModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('apex-paypal-modal-open');
+
+    if (paypalLastFocus && typeof paypalLastFocus.focus === 'function') {
+      paypalLastFocus.focus();
+    }
+  }
+
+  paypalOpeners.forEach(function (button) {
+    button.addEventListener('click', openPaypalModal);
+  });
+
+  if (paypalModal) {
+    paypalModal.querySelectorAll('[data-paypal-modal-close]').forEach(function (node) {
+      node.addEventListener('click', closePaypalModal);
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !paypalModal.hidden) {
+        closePaypalModal();
+      }
+    });
+  }
+
+  if (paypalAmountInput && paypalPlansWrap) {
+    var syncPaypalPlans = function () {
+      var amount = parsePaypalAmount(paypalAmountInput.value);
+      renderPaypalPlans(paypalPlansWrap, amount);
+    };
+
+    paypalAmountInput.addEventListener('input', syncPaypalPlans);
+    paypalAmountInput.addEventListener('blur', function () {
+      var amount = parsePaypalAmount(paypalAmountInput.value);
+      if (amount > 0) {
+        paypalAmountInput.value = formatPaypalMoney(amount);
+      }
+      syncPaypalPlans();
     });
   }
 });

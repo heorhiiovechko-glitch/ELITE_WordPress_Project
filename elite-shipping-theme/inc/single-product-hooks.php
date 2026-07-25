@@ -1,6 +1,6 @@
 <?php
 /**
- * Single product page hooks and helpers.
+ * Single product gallery hooks and helpers.
  *
  * @package Elite_Shipping
  */
@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-add_action( 'after_setup_theme', 'elite_shipping_single_product_setup', 25 );
+add_action( 'woocommerce_init', 'elite_shipping_single_product_setup' );
 add_filter( 'body_class', 'elite_shipping_single_product_body_class' );
 
 /**
@@ -25,7 +25,7 @@ function elite_shipping_single_product_body_class( $classes ) {
 }
 
 /**
- * Configure single product layout hooks.
+ * Configure single product gallery hooks.
  */
 function elite_shipping_single_product_setup() {
 	if ( ! class_exists( 'WooCommerce' ) ) {
@@ -37,33 +37,69 @@ function elite_shipping_single_product_setup() {
 	add_theme_support( 'wc-product-gallery-slider' );
 
 	remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10 );
-	remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_rating', 10 );
-	remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
-
-	add_action( 'woocommerce_single_product_summary', 'elite_shipping_single_product_breadcrumbs', 4 );
 	add_action( 'woocommerce_before_single_product_summary', 'elite_shipping_single_product_sale_badge', 9 );
-	add_action( 'woocommerce_single_product_summary', 'elite_shipping_single_product_actions', 36 );
-	add_action( 'woocommerce_single_product_summary', 'elite_shipping_single_product_category_share', 45 );
 
-	remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
-	add_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 32 );
+	add_filter( 'woocommerce_single_product_carousel_options', 'elite_shipping_disable_gallery_direction_nav', 999 );
+	add_filter( 'woocommerce_get_script_data', 'elite_shipping_disable_gallery_direction_nav_script', 999, 2 );
+	add_action( 'wp_head', 'elite_shipping_gallery_hide_direction_nav_css', 999 );
+
+	remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+	add_action( 'woocommerce_after_single_product_summary', 'elite_shipping_output_related_products', 20 );
 }
 
 /**
- * Breadcrumbs above product title.
+ * Disable WooCommerce Flexslider arrow nav (theme provides its own gallery arrows).
+ *
+ * @param array<string, mixed> $options Flexslider options.
+ * @return array<string, mixed>
  */
-function elite_shipping_single_product_breadcrumbs() {
-	if ( ! function_exists( 'woocommerce_breadcrumb' ) ) {
-		return;
+function elite_shipping_disable_gallery_direction_nav( $options ) {
+	$options['directionNav'] = false;
+
+	return $options;
+}
+
+/**
+ * @param array<string, mixed> $params  Script params.
+ * @param string               $handle Script handle.
+ * @return array<string, mixed>
+ */
+function elite_shipping_disable_gallery_direction_nav_script( $params, $handle ) {
+	if ( 'wc-single-product' === $handle && isset( $params['flexslider'] ) && is_array( $params['flexslider'] ) ) {
+		$params['flexslider']['directionNav'] = false;
 	}
 
-	woocommerce_breadcrumb(
-		array(
-			'wrap_before' => '<nav class="apex-single-breadcrumbs woocommerce-breadcrumb" aria-label="Breadcrumb">',
-			'wrap_after'  => '</nav>',
-			'delimiter'   => ' / ',
-		)
-	);
+	return $params;
+}
+
+/**
+ * Early inline CSS so default Flexslider arrows never show on product pages.
+ */
+function elite_shipping_gallery_hide_direction_nav_css() {
+	if ( ! is_singular( 'product' ) ) {
+		return;
+	}
+	?>
+	<style id="elite-gallery-hide-flex-nav">
+		body.elite-single-product-page .woocommerce-product-gallery .flex-direction-nav,
+		body.elite-single-product-page div.product div.images .flex-direction-nav,
+		body.elite-single-product-page div.product div.images a.flex-prev,
+		body.elite-single-product-page div.product div.images a.flex-next,
+		body.elite-single-product-page div.product div.images .flex-nav-prev,
+		body.elite-single-product-page div.product div.images .flex-nav-next {
+			display: none !important;
+			visibility: hidden !important;
+			opacity: 0 !important;
+			width: 0 !important;
+			height: 0 !important;
+			overflow: hidden !important;
+			pointer-events: none !important;
+			position: absolute !important;
+			left: -9999px !important;
+			top: -9999px !important;
+		}
+	</style>
+	<?php
 }
 
 /**
@@ -76,7 +112,7 @@ function elite_shipping_single_product_sale_badge() {
 		return;
 	}
 
-	$badge = 'SALE';
+	$badge   = 'SALE';
 	$regular = (float) $product->get_regular_price();
 	$sale    = (float) $product->get_sale_price();
 
@@ -88,59 +124,46 @@ function elite_shipping_single_product_sale_badge() {
 }
 
 /**
- * Compare / wishlist links and PayPal note (after add to cart).
+ * Related products grid using shop card layout.
  */
-function elite_shipping_single_product_actions() {
-	?>
-	<p class="apex-single-finance"><?php esc_html_e( 'Flexible payment options available including PayPal checkout on eligible orders.', 'elite-shipping' ); ?></p>
-	<div class="apex-single-secondary-actions">
-		<a class="apex-single-secondary-link" href="#"><?php esc_html_e( 'Add to compare', 'elite-shipping' ); ?></a>
-		<a class="apex-single-secondary-link" href="#"><?php esc_html_e( 'Add to wishlist', 'elite-shipping' ); ?></a>
-	</div>
-	<?php
-}
-
-/**
- * Category line and social share icons.
- */
-function elite_shipping_single_product_category_share() {
+function elite_shipping_output_related_products() {
 	global $product;
 
 	if ( ! $product instanceof WC_Product ) {
 		return;
 	}
 
-	$terms = wp_get_post_terms( $product->get_id(), 'product_cat' );
-	$share = elite_shipping_get_post_share_links( $product->get_id() );
-	?>
-	<div class="apex-single-meta-share">
-		<?php if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) : ?>
-			<p class="apex-single-category">
-				<?php esc_html_e( 'Category:', 'elite-shipping' ); ?>
-				<?php
-				$links = array();
-				foreach ( $terms as $term ) {
-					if ( 'uncategorized' === $term->slug ) {
-						continue;
-					}
-					$link = get_term_link( $term );
-					if ( ! is_wp_error( $link ) ) {
-						$links[] = '<a href="' . esc_url( $link ) . '">' . esc_html( $term->name ) . '</a>';
-					}
-				}
-				echo wp_kses_post( implode( ', ', $links ) );
-				?>
-			</p>
-		<?php endif; ?>
+	$args = apply_filters(
+		'woocommerce_output_related_products_args',
+		array(
+			'posts_per_page' => 4,
+			'columns'        => 4,
+			'orderby'        => 'rand',
+		)
+	);
 
-		<div class="apex-single-share">
-			<span class="apex-single-share-label"><?php esc_html_e( 'Share:', 'elite-shipping' ); ?></span>
-			<?php foreach ( $share as $item ) : ?>
-				<a class="apex-single-share-link apex-single-share-link--<?php echo esc_attr( $item['id'] ); ?>" href="<?php echo esc_url( $item['url'] ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( $item['label'] ); ?>">
-					<?php echo $item['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				</a>
-			<?php endforeach; ?>
-		</div>
-	</div>
-	<?php
+	$related_ids = wc_get_related_products(
+		$product->get_id(),
+		(int) $args['posts_per_page'],
+		array( $product->get_id() )
+	);
+
+	if ( empty( $related_ids ) ) {
+		return;
+	}
+
+	$columns = in_array( (int) $args['columns'], array( 2, 4, 6 ), true ) ? (int) $args['columns'] : 4;
+
+	echo '<section class="related products apex-related-products">';
+	echo '<h2>' . esc_html__( 'Related products', 'elite-shipping' ) . '</h2>';
+	echo '<div class="apex-grid apex-shop-grid apex-shop-grid--cols-' . esc_attr( (string) $columns ) . '">';
+
+	foreach ( $related_ids as $related_id ) {
+		$related_product = wc_get_product( $related_id );
+		if ( function_exists( 'elite_render_shop_product_card' ) ) {
+			elite_render_shop_product_card( $related_product );
+		}
+	}
+
+	echo '</div></section>';
 }

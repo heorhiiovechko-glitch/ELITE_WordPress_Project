@@ -311,6 +311,58 @@ function elite_render_product_grid( $args = array(), $opts = array() ) {
 }
 
 /**
+ * Render a single shop-style product card.
+ *
+ * @param WC_Product $product Product object.
+ */
+function elite_render_shop_product_card( $product ) {
+	if ( ! $product instanceof WC_Product || ! $product->is_visible() ) {
+		return;
+	}
+
+	$url            = get_permalink( $product->get_id() );
+	$title          = $product->get_name();
+	$category_label = elite_get_product_shop_category_label( $product );
+	$img            = $product->get_image(
+		'woocommerce_thumbnail',
+		array(
+			'class' => 'apex-shop-product-img',
+		)
+	);
+	$badge       = '';
+	$badge_class = '';
+
+	if ( $product->is_on_sale() ) {
+		$regular     = (float) $product->get_regular_price();
+		$sale        = (float) $product->get_sale_price();
+		$badge_class = 'apex-shop-product-badge--sale';
+		if ( $regular > 0 && $sale > 0 ) {
+			$badge = '-' . round( ( ( $regular - $sale ) / $regular ) * 100 ) . '%';
+		} else {
+			$badge = 'SALE';
+		}
+	} elseif ( $product->is_featured() ) {
+		$badge       = 'HOT';
+		$badge_class = 'apex-shop-product-badge--hot';
+	}
+	?>
+	<article <?php wc_product_class( 'apex-shop-product-card', $product ); ?>>
+		<a class="apex-shop-product-media" href="<?php echo esc_url( $url ); ?>">
+			<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php if ( $badge ) : ?>
+				<span class="apex-shop-product-badge <?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge ); ?></span>
+			<?php endif; ?>
+		</a>
+		<div class="apex-shop-product-body">
+			<h3 class="apex-shop-product-title"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title ); ?></a></h3>
+			<p class="apex-shop-product-cat"><?php echo esc_html( $category_label ); ?></p>
+			<div class="apex-shop-product-price"><?php echo wp_kses_post( $product->get_price_html() ); ?></div>
+		</div>
+	</article>
+	<?php
+}
+
+/**
  * Render WooCommerce shop/category archive product cards.
  *
  * @param int $columns Grid column count.
@@ -327,50 +379,7 @@ function elite_render_wc_shop_product_loop( $columns = 4 ) {
 	while ( have_posts() ) {
 		the_post();
 		$product = wc_get_product( get_the_ID() );
-		if ( ! $product || ! $product->is_visible() ) {
-			continue;
-		}
-
-		$url            = get_permalink();
-		$title          = $product->get_name();
-		$category_label = elite_get_product_shop_category_label( $product );
-		$img            = $product->get_image(
-			'woocommerce_thumbnail',
-			array(
-				'class' => 'apex-shop-product-img',
-			)
-		);
-		$badge          = '';
-		$badge_class    = '';
-
-		if ( $product->is_on_sale() ) {
-			$regular = (float) $product->get_regular_price();
-			$sale    = (float) $product->get_sale_price();
-			$badge_class = 'apex-shop-product-badge--sale';
-			if ( $regular > 0 && $sale > 0 ) {
-				$badge = '-' . round( ( ( $regular - $sale ) / $regular ) * 100 ) . '%';
-			} else {
-				$badge = 'SALE';
-			}
-		} elseif ( $product->is_featured() ) {
-			$badge       = 'HOT';
-			$badge_class = 'apex-shop-product-badge--hot';
-		}
-		?>
-		<article <?php wc_product_class( 'apex-shop-product-card', $product ); ?>>
-			<a class="apex-shop-product-media" href="<?php echo esc_url( $url ); ?>">
-				<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				<?php if ( $badge ) : ?>
-					<span class="apex-shop-product-badge <?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge ); ?></span>
-				<?php endif; ?>
-			</a>
-			<div class="apex-shop-product-body">
-				<h3 class="apex-shop-product-title"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title ); ?></a></h3>
-				<p class="apex-shop-product-cat"><?php echo esc_html( $category_label ); ?></p>
-				<div class="apex-shop-product-price"><?php echo wp_kses_post( $product->get_price_html() ); ?></div>
-			</div>
-		</article>
-		<?php
+		elite_render_shop_product_card( $product );
 	}
 
 	echo '</div>';
