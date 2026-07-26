@@ -56,9 +56,15 @@ Create and publish:
 - Currency: **GBP (£)**
 
 ### 6. Live chat (Tawk.to)
-1. `Plugins → Add New → Tawk.to Live Chat`
-2. Connect your Tawk account
-3. Orange chat button in theme will open Tawk widget
+The theme loads Tawk.to automatically (same account as the previous site).
+
+1. Ask the client for **Tawk.to login** access
+2. In Tawk dashboard → **Allowed Domains** → add `eliteshippingcontainers.co.uk`
+3. Tawk’s native widget appears bottom-right (green bubble + “We Are Here!” grabber)
+4. No plugin required — embed is built into the theme
+5. To change bubble/grabber text: Tawk dashboard → **Channels → Chat Widget → Appearance**
+
+Property ID: `69e5da87d1bb301c336082a1` · Widget ID: `1jmktre0m`
 
 ### 7. Clear cache
 Click **Purge SG Cache** in WordPress top bar.
@@ -74,7 +80,7 @@ You should see:
 - Hero section like type1.png
 - Product grids from WooCommerce
 - About, modifications, footer
-- Live chat button (bottom-right)
+- Tawk.to live chat widget (bottom-right)
 
 ---
 

@@ -162,12 +162,32 @@ function elite_get_product_shop_category_label( $product ) {
 
 /**
  * Render browse category cards.
+ *
+ * @param int $limit Maximum categories to show. 0 = no limit (uses full display list).
  */
-function elite_render_category_grid() {
-	$shop_url = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
-	$terms    = function_exists( 'elite_shipping_get_product_categories' )
-		? elite_shipping_get_product_categories( array( 'parent' => 0 ) )
+function elite_render_category_grid( $limit = 0 ) {
+	$shop_url  = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' );
+	$uses_list = function_exists( 'elite_shipping_top_picks_uses_display_list' ) && elite_shipping_top_picks_uses_display_list();
+	$limit     = $uses_list ? 0 : max( 1, absint( $limit ) ?: 8 );
+	$terms     = function_exists( 'elite_shipping_get_top_picks_categories' )
+		? elite_shipping_get_top_picks_categories( $limit )
 		: array();
+
+	if ( empty( $terms ) && ! $uses_list && function_exists( 'elite_shipping_get_product_categories' ) ) {
+		$terms = elite_shipping_get_product_categories(
+			array(
+				'parent' => 0,
+				'number' => $limit,
+			)
+		);
+	}
+
+	if ( empty( $terms ) && $uses_list ) {
+		echo '<div id="elite-top-picks-grid" class="apex-grid apex-product-grid">';
+		echo '<p class="apex-empty">' . esc_html__( 'No categories selected. Choose categories in Appearance → Customize → Home → Top Picks for You.', 'elite-shipping' ) . '</p>';
+		echo '</div>';
+		return;
+	}
 
 	if ( empty( $terms ) ) {
 		$fallback = array(
@@ -181,10 +201,10 @@ function elite_render_category_grid() {
 			array( 'name' => '40FT Containers', 'link' => $shop_url, 'image' => 'https://images.unsplash.com/photo-1605745341112-85968b19335b?w=600&q=80' ),
 		);
 
-		echo '<div class="apex-grid apex-product-grid">';
-		foreach ( $fallback as $item ) {
+		echo '<div id="elite-top-picks-grid" class="apex-grid apex-product-grid">';
+		foreach ( array_slice( $fallback, 0, $limit ) as $item ) {
 			?>
-			<article class="apex-product-card">
+			<article class="apex-product-card apex-product-card--category">
 				<a class="apex-product-media" href="<?php echo esc_url( $item['link'] ); ?>">
 					<img class="apex-product-img" src="<?php echo esc_url( $item['image'] ); ?>" alt="<?php echo esc_attr( $item['name'] ); ?>" loading="lazy">
 				</a>
@@ -199,8 +219,9 @@ function elite_render_category_grid() {
 		return;
 	}
 
-	echo '<div class="apex-grid apex-product-grid">';
-	foreach ( $terms as $term ) {
+	echo '<div id="elite-top-picks-grid" class="apex-grid apex-product-grid">';
+	$display_terms = $limit > 0 ? array_slice( $terms, 0, $limit ) : $terms;
+	foreach ( $display_terms as $term ) {
 		$thumb_id = get_term_meta( $term->term_id, 'thumbnail_id', true );
 		$image    = $thumb_id ? wp_get_attachment_image_url( $thumb_id, 'medium' ) : '';
 		if ( ! $image ) {
@@ -211,7 +232,7 @@ function elite_render_category_grid() {
 			$link = $shop_url;
 		}
 		?>
-		<article class="apex-product-card">
+		<article class="apex-product-card apex-product-card--category">
 			<a class="apex-product-media" href="<?php echo esc_url( $link ); ?>">
 				<img class="apex-product-img" src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $term->name ); ?>" loading="lazy">
 			</a>
@@ -329,29 +350,10 @@ function elite_render_shop_product_card( $product ) {
 			'class' => 'apex-shop-product-img',
 		)
 	);
-	$badge       = '';
-	$badge_class = '';
-
-	if ( $product->is_on_sale() ) {
-		$regular     = (float) $product->get_regular_price();
-		$sale        = (float) $product->get_sale_price();
-		$badge_class = 'apex-shop-product-badge--sale';
-		if ( $regular > 0 && $sale > 0 ) {
-			$badge = '-' . round( ( ( $regular - $sale ) / $regular ) * 100 ) . '%';
-		} else {
-			$badge = 'SALE';
-		}
-	} elseif ( $product->is_featured() ) {
-		$badge       = 'HOT';
-		$badge_class = 'apex-shop-product-badge--hot';
-	}
 	?>
 	<article <?php wc_product_class( 'apex-shop-product-card', $product ); ?>>
 		<a class="apex-shop-product-media" href="<?php echo esc_url( $url ); ?>">
 			<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<?php if ( $badge ) : ?>
-				<span class="apex-shop-product-badge <?php echo esc_attr( $badge_class ); ?>"><?php echo esc_html( $badge ); ?></span>
-			<?php endif; ?>
 		</a>
 		<div class="apex-shop-product-body">
 			<h3 class="apex-shop-product-title"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title ); ?></a></h3>
@@ -387,27 +389,11 @@ function elite_render_wc_shop_product_loop( $columns = 4 ) {
 
 /** Add-on accessory cards. */
 function elite_render_addon_cards() {
-	$items = array(
-		array( 'Lock Box', '£150.00', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80' ),
-		array( 'Container Vent', '£45.00', 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=80' ),
-		array( 'Container Corner Castings', '£45.00', 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400&q=80' ),
-	);
+	$items = elite_shipping_get_default_addon_items();
 
 	echo '<div class="apex-grid apex-addon-grid">';
 	foreach ( $items as $item ) {
-		list( $title, $price, $image ) = $item;
-		?>
-		<article class="apex-addon-card">
-			<a class="apex-addon-media" href="#">
-				<img class="apex-addon-img" src="<?php echo esc_url( $image ); ?>" alt="<?php echo esc_attr( $title ); ?>" loading="lazy">
-			</a>
-			<div class="apex-addon-body">
-				<h3 class="apex-addon-name"><?php echo esc_html( $title ); ?></h3>
-				<div class="apex-addon-price"><?php echo esc_html( $price ); ?></div>
-				<a class="apex-addon-link" href="#">VIEW DETAILS →</a>
-			</div>
-		</article>
-		<?php
+		elite_render_addon_card( $item );
 	}
 	echo '</div>';
 }

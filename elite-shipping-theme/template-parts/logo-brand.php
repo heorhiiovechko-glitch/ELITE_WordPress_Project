@@ -22,7 +22,7 @@ if ( 'dark' === $variant ) {
 <img
 	class="<?php echo esc_attr( $classes ); ?>"
 	src="<?php echo esc_url( $logo ); ?>"
-	alt="<?php echo esc_attr( 'Elite Shipping Containers Ltd' ); ?>"
+	alt="<?php echo esc_attr( ELITE_COMPANY_NAME ); ?>"
 	height="<?php echo esc_attr( $height ); ?>"
 	width="auto"
 	loading="eager"

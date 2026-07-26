@@ -90,7 +90,7 @@ get_template_part(
 
 				?>
 
-
+				<?php get_template_part( 'template-parts/shop', 'pagination', array( 'position' => 'top' ) ); ?>
 
 				<div class="apex-shop-products apex-shop-products--cols-<?php echo esc_attr( (string) $grid_cols ); ?>">
 
@@ -100,11 +100,7 @@ get_template_part(
 
 
 
-				<div class="apex-shop-pagination">
-
-					<?php woocommerce_pagination(); ?>
-
-				</div>
+				<?php get_template_part( 'template-parts/shop', 'pagination', array( 'position' => 'bottom' ) ); ?>
 
 			<?php else : ?>
 
@@ -117,5 +113,7 @@ get_template_part(
 	</div>
 
 </section>
+
+<div class="apex-shop-filters-overlay" id="apex-shop-filters-overlay" hidden aria-hidden="true"></div>
 
 

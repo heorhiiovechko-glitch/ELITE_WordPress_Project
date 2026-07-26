@@ -351,7 +351,7 @@ function elite_shipping_single_product_breadcrumbs() {
 }
 
 /**
- * Compare / wishlist links and PayPal note (after add to cart).
+ * Compare / wishlist links (after add to cart and express checkout).
  */
 function elite_shipping_single_product_actions() {
 	global $product;
@@ -359,47 +359,7 @@ function elite_shipping_single_product_actions() {
 	if ( ! $product instanceof WC_Product ) {
 		return;
 	}
-
-	$checkout_url = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : '#';
-	$paypal_url   = add_query_arg(
-		array(
-			'add-to-cart' => $product->get_id(),
-		),
-		$checkout_url
-	);
-	$monthly      = elite_shipping_get_product_financing_monthly( $product );
-	$monthly_html = function_exists( 'wc_price' )
-		? wc_price( $monthly, array( 'decimals' => 2 ) )
-		: '$' . number_format( $monthly, 2 );
-	$paypal_logo  = elite_shipping_get_paypal_logo_url();
 	?>
-	<button
-		type="button"
-		class="apex-single-paypal-note"
-		data-paypal-monthly-open
-		aria-haspopup="dialog"
-		aria-controls="apex-paypal-monthly-modal"
-	>
-		<span class="apex-single-paypal-note-text">
-			<?php
-			echo wp_kses_post(
-				sprintf(
-					/* translators: %s: monthly payment amount */
-					__( 'Starting at %s/mo or as low as 0%% APR with', 'elite-shipping' ),
-					$monthly_html
-				)
-			);
-			?>
-			<img class="apex-single-paypal-inline-logo" src="<?php echo esc_url( $paypal_logo ); ?>" alt="PayPal" width="58" height="15">
-			<span class="apex-single-paypal-note-dot">.</span>
-		</span>
-		<span class="apex-single-paypal-note-more"><?php esc_html_e( 'Learn more', 'elite-shipping' ); ?></span>
-	</button>
-	<a class="apex-single-paypal-btn" href="<?php echo esc_url( $paypal_url ); ?>">
-		<?php esc_html_e( 'Pay with', 'elite-shipping' ); ?>
-		<img class="apex-single-paypal-btn-logo" src="<?php echo esc_url( $paypal_logo ); ?>" alt="PayPal" width="85" height="22">
-	</a>
-	<?php get_template_part( 'template-parts/paypal-monthly', 'modal' ); ?>
 	<div class="apex-single-secondary-actions">
 		<a class="apex-single-secondary-link" href="#">
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/><path d="M3 10h18"/></svg>

@@ -75,7 +75,7 @@ Fixed in v1.1.0:
 | Missing | Fix |
 |---------|-----|
 | Checkout | WooCommerce → Settings → Payments → Enable Stripe/PayPal |
-| Live chat | Install Tawk.to plugin |
+| Live chat | Tawk.to embed in theme (`ELITE_TAWK_PROPERTY_ID` in `functions.php`) |
 | About/Contact pages | Pages → Add New → publish |
 | Logo image | Appearance → Customize → Site Identity → upload logo |
 | UK phone | Edit `template-parts/header-site.php` or ask for update |

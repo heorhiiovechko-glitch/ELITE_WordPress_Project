@@ -146,124 +146,19 @@ $hero_slides = elite_shipping_get_hero_slides();
 </section>
 
 <!-- FEATURED CATEGORIES -->
-<section class="apex-section apex-featured">
-	<div class="elite-container">
-		<div class="apex-section-top apex-section-top--linked">
-			<div class="apex-section-head-copy">
-				<span class="apex-kicker">FEATURED CONTAINERS</span>
-				<h2>Top Picks for You</h2>
-				<p class="apex-section-desc">High-quality containers in stock and ready to ship.</p>
-			</div>
-			<a class="elite-btn elite-btn-navy" href="<?php echo esc_url( $urls['shop'] ); ?>">VIEW ALL PRODUCTS</a>
-		</div>
-		<?php elite_render_category_grid(); ?>
-	</div>
-</section>
+<?php elite_render_home_top_picks_section(); ?>
 
 <!-- ABOUT -->
-<section class="apex-section apex-about">
-	<div class="elite-container apex-about-grid">
-		<div class="apex-about-copy">
-			<span class="apex-kicker">ABOUT ELITE SHIPPING CONTAINERS</span>
-			<h2>Your Trusted Container Partner</h2>
-			<p>
-				Elite Shipping Containers Ltd provides durable, secure, and affordable shipping containers for storage,
-				transport, and special projects. With competitive pricing and exceptional customer service, we deliver
-				quality you can trust across the United Kingdom.
-			</p>
-			<ul class="apex-checklist apex-checklist--about">
-				<li>Wide Range of New &amp; Used Containers</li>
-				<li>Custom Modifications Available</li>
-				<li>UK Nationwide Delivery &amp; Support</li>
-			</ul>
-			<a class="elite-btn elite-btn-outline-orange apex-about-btn" href="<?php echo esc_url( $urls['about'] ); ?>">LEARN MORE ABOUT US →</a>
-		</div>
-		<div class="apex-about-gallery apex-about-gallery--grid" aria-hidden="true">
-			<div class="apex-about-photo apex-about-photo--a"></div>
-			<div class="apex-about-photo apex-about-photo--b"></div>
-			<div class="apex-about-photo apex-about-photo--c"></div>
-			<div class="apex-about-photo apex-about-photo--d"></div>
-		</div>
-	</div>
-</section>
+<?php elite_render_home_about_section(); ?>
 
 <!-- MODIFICATIONS -->
-<section id="modifications" class="apex-section apex-mods">
-	<div class="elite-container">
-		<div class="apex-mods-band">
-			<div class="apex-mods-head">
-				<span class="apex-kicker apex-kicker-light">CONTAINER MODIFICATIONS</span>
-				<h2>Built to Suit Your Needs</h2>
-			</div>
-			<div class="apex-carousel-wrap" data-carousel="mods">
-				<button type="button" class="apex-arrow apex-arrow-prev" aria-label="Previous">‹</button>
-				<div class="apex-mod-track">
-					<article class="apex-mod-card">
-						<div class="img" style="background-image:url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80');"></div>
-						<h3>Office Containers</h3>
-					</article>
-					<article class="apex-mod-card">
-						<div class="img" style="background-image:url('https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=600&q=80');"></div>
-						<h3>Storage Containers</h3>
-					</article>
-					<article class="apex-mod-card">
-						<div class="img" style="background-image:url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=600&q=80');"></div>
-						<h3>Custom Containers</h3>
-					</article>
-					<article class="apex-mod-card">
-						<div class="img" style="background-image:url('https://images.unsplash.com/photo-1605745341112-85968b19335b?auto=format&fit=crop&w=600&q=80');"></div>
-						<h3>Refrigerated Units</h3>
-					</article>
-					<article class="apex-mod-card">
-						<div class="img" style="background-image:url('https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=600&q=80');"></div>
-						<h3>Side Open Containers</h3>
-					</article>
-				</div>
-				<button type="button" class="apex-arrow apex-arrow-next" aria-label="Next">›</button>
-			</div>
-			<div class="apex-dots" aria-hidden="true"></div>
-		</div>
-	</div>
-</section>
+<?php elite_render_home_mods_section(); ?>
 
 <!-- ADD-ONS -->
-<section class="apex-section apex-addons">
-	<div class="elite-container">
-		<div class="apex-addons-head">
-			<span class="apex-kicker">CONTAINER ACCESSORIES</span>
-			<h2>Essential Add-Ons</h2>
-			<p class="apex-addons-desc">Enhance the functionality and security of your container.</p>
-		</div>
-		<?php elite_render_addon_cards(); ?>
-	</div>
-</section>
+<?php elite_render_home_addons_section(); ?>
 
 <!-- POPULAR -->
-<section class="apex-section apex-popular">
-	<div class="elite-container">
-		<div class="apex-section-top apex-section-top--linked">
-			<h2 class="apex-popular-title">POPULAR PRODUCTS</h2>
-			<a class="elite-btn elite-btn-navy" href="<?php echo esc_url( $urls['shop'] ); ?>">VIEW ALL PRODUCTS</a>
-		</div>
-		<div class="apex-carousel-wrap" data-carousel="popular">
-			<button type="button" class="apex-arrow apex-arrow-prev" aria-label="Previous">‹</button>
-			<?php
-			elite_render_product_grid(
-				array(
-					'posts_per_page' => 5,
-					'orderby'        => 'date',
-					'order'          => 'DESC',
-				),
-				array(
-					'mode'       => 'popular',
-					'card_class' => 'apex-popular-track',
-				)
-			);
-			?>
-			<button type="button" class="apex-arrow apex-arrow-next" aria-label="Next">›</button>
-		</div>
-	</div>
-</section>
+<?php elite_render_home_popular_section(); ?>
 
 <!-- TRUST BAR -->
 <section class="apex-trustbar">

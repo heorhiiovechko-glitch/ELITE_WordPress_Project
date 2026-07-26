@@ -114,5 +114,16 @@ foreach ( array( 'orderby', 'order', 'min_price', 'max_price', 'onsale', 'stock_
 		<div class="apex-shop-sort">
 			<?php woocommerce_catalog_ordering(); ?>
 		</div>
+		<button
+			type="button"
+			class="apex-shop-filters-toggle"
+			aria-expanded="false"
+			aria-controls="apex-shop-sidebar"
+			aria-label="<?php esc_attr_e( 'Open filters', 'elite-shipping' ); ?>"
+		>
+			<span class="apex-shop-filters-toggle-icon" aria-hidden="true">
+				<i></i><i></i><i></i>
+			</span>
+		</button>
 	</div>
 </div>

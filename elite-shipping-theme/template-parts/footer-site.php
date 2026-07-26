@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $urls              = elite_shipping_get_urls();
+$contact           = elite_shipping_get_contact_details();
 $footer_categories = elite_shipping_get_footer_product_categories();
 ?>
 	<footer class="apex-footer">
@@ -18,7 +19,27 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 				<a class="elite-logo apex-footer-logo" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 					<?php get_template_part( 'template-parts/logo', 'brand', array( 'variant' => 'dark', 'height' => 46 ) ); ?>
 				</a>
-				<p>Elite Shipping Containers Ltd is a trusted UK supplier of new, used, and modified shipping containers with nationwide delivery.</p>
+				<p><?php echo esc_html( $contact['company_legal_name'] ); ?> is a trusted UK supplier of new, used, and modified shipping containers with nationwide delivery.</p>
+				<ul class="apex-footer-contact">
+					<li>
+						<a href="<?php echo esc_url( $contact['phone_href'] ); ?>">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.2 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1l-2.2 2.2z"/></svg>
+							<?php echo esc_html( $contact['phone'] ); ?>
+						</a>
+					</li>
+					<li>
+						<a href="mailto:<?php echo esc_attr( $contact['email'] ); ?>">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/></svg>
+							<?php echo esc_html( $contact['email'] ); ?>
+						</a>
+					</li>
+					<li>
+						<a href="<?php echo esc_url( $contact['address_url'] ); ?>" target="_blank" rel="noopener noreferrer">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+							<?php echo esc_html( $contact['address'] ); ?>
+						</a>
+					</li>
+				</ul>
 				<div class="apex-social">
 					<a href="#" aria-label="Facebook">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -57,10 +78,11 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 				<h4>SUPPORT</h4>
 				<ul>
 					<li><a href="<?php echo esc_url( $urls['account'] ); ?>">Track Order</a></li>
-					<li><a href="#">FAQ&rsquo;s</a></li>
-					<li><a href="#">Shipping &amp; Delivery</a></li>
-					<li><a href="#">Terms &amp; Conditions</a></li>
-					<li><a href="#">Privacy Policy</a></li>
+					<?php if ( function_exists( 'elite_shipping_get_policy_footer_links' ) ) : ?>
+						<?php foreach ( elite_shipping_get_policy_footer_links() as $policy_link ) : ?>
+							<li><a href="<?php echo esc_url( $policy_link['url'] ); ?>"><?php echo esc_html( $policy_link['label'] ); ?></a></li>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</ul>
 			</div>
 			<div class="apex-footer-col apex-footer-newsletter">
@@ -75,7 +97,7 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 			</div>
 		</div>
 		<div class="elite-container apex-footer-bar">
-			<span class="apex-footer-copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> Elite Shipping Containers Ltd. All Rights Reserved.</span>
+			<span class="apex-footer-copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php echo esc_html( $contact['company_legal_name'] ); ?>. All Rights Reserved.</span>
 			<?php get_template_part( 'template-parts/footer', 'payments' ); ?>
 		</div>
 	</footer>

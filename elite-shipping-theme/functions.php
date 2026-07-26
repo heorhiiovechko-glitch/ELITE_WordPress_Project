@@ -7,9 +7,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.7.39' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.16' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
+define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
+define( 'ELITE_COMPANY_LEGAL_NAME', 'Elite Shipping Containers Ltd' );
+define( 'ELITE_SITE_URL', 'https://eliteshippingcontainers.co.uk' );
+define( 'ELITE_CONTACT_PHONE', '+44 7462 284270' );
+define( 'ELITE_CONTACT_EMAIL', 'sales@eliteshippingcontainers.co.uk' );
+define( 'ELITE_CONTACT_ADDRESS', 'Rainham House, Manor Way, Rainham RM13 8RH' );
 
 $elite_product_cards = ELITE_SHIPPING_DIR . '/inc/product-cards.php';
 if ( file_exists( $elite_product_cards ) ) {
@@ -22,6 +28,50 @@ if ( file_exists( $elite_single_summary ) ) {
 $elite_single_product = ELITE_SHIPPING_DIR . '/inc/single-product-hooks.php';
 if ( file_exists( $elite_single_product ) ) {
 	require_once $elite_single_product;
+}
+$elite_checkout = ELITE_SHIPPING_DIR . '/inc/checkout.php';
+if ( file_exists( $elite_checkout ) ) {
+	require_once $elite_checkout;
+}
+$elite_gateway_bacs = ELITE_SHIPPING_DIR . '/inc/gateway-bacs.php';
+if ( file_exists( $elite_gateway_bacs ) ) {
+	require_once $elite_gateway_bacs;
+}
+$elite_payment_gateways = ELITE_SHIPPING_DIR . '/inc/payment-gateways.php';
+if ( file_exists( $elite_payment_gateways ) ) {
+	require_once $elite_payment_gateways;
+}
+$elite_cart = ELITE_SHIPPING_DIR . '/inc/cart.php';
+if ( file_exists( $elite_cart ) ) {
+	require_once $elite_cart;
+}
+$elite_paypal_express = ELITE_SHIPPING_DIR . '/inc/paypal-express.php';
+if ( file_exists( $elite_paypal_express ) ) {
+	require_once $elite_paypal_express;
+}
+$elite_container_checkout = ELITE_SHIPPING_DIR . '/inc/container-checkout.php';
+if ( file_exists( $elite_container_checkout ) ) {
+	require_once $elite_container_checkout;
+}
+$elite_policy_pages = ELITE_SHIPPING_DIR . '/inc/policy-pages.php';
+if ( file_exists( $elite_policy_pages ) ) {
+	require_once $elite_policy_pages;
+}
+$elite_home_sections = ELITE_SHIPPING_DIR . '/inc/home-sections.php';
+if ( file_exists( $elite_home_sections ) ) {
+	require_once $elite_home_sections;
+}
+$elite_customizer_top_picks = ELITE_SHIPPING_DIR . '/inc/customizer-top-picks-control.php';
+if ( file_exists( $elite_customizer_top_picks ) ) {
+	require_once $elite_customizer_top_picks;
+}
+$elite_customizer_mods = ELITE_SHIPPING_DIR . '/inc/customizer-mods-control.php';
+if ( file_exists( $elite_customizer_mods ) ) {
+	require_once $elite_customizer_mods;
+}
+$elite_customizer = ELITE_SHIPPING_DIR . '/inc/customizer.php';
+if ( file_exists( $elite_customizer ) ) {
+	require_once $elite_customizer;
 }
 if ( ! function_exists( 'elite_render_product_grid' ) ) {
 	// Fallback if inc file missing on server — prevents fatal error.
@@ -144,6 +194,13 @@ function elite_shipping_force_theme_templates( $template ) {
 		}
 	}
 
+	if ( function_exists( 'elite_shipping_get_policy_page_slugs' ) && is_page( elite_shipping_get_policy_page_slugs() ) ) {
+		$policy_page = ELITE_SHIPPING_DIR . '/page-policy.php';
+		if ( file_exists( $policy_page ) ) {
+			return $policy_page;
+		}
+	}
+
 	if ( is_single() && 'post' === get_post_type() ) {
 		$single_post = ELITE_SHIPPING_DIR . '/single.php';
 		if ( file_exists( $single_post ) ) {
@@ -169,6 +226,20 @@ function elite_shipping_force_theme_templates( $template ) {
 		$single_product = ELITE_SHIPPING_DIR . '/woocommerce/single-product.php';
 		if ( file_exists( $single_product ) ) {
 			return $single_product;
+		}
+	}
+
+	if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+		$checkout_page = ELITE_SHIPPING_DIR . '/woocommerce/checkout-page.php';
+		if ( file_exists( $checkout_page ) ) {
+			return $checkout_page;
+		}
+	}
+
+	if ( function_exists( 'is_cart' ) && is_cart() ) {
+		$cart_page = ELITE_SHIPPING_DIR . '/woocommerce/cart-page.php';
+		if ( file_exists( $cart_page ) ) {
+			return $cart_page;
 		}
 	}
 
@@ -241,18 +312,6 @@ function elite_shipping_loop_per_page( $per_page ) {
 	return 12;
 }
 
-add_action( 'wp_footer', 'elite_shipping_live_chat_placeholder' );
-function elite_shipping_live_chat_placeholder() {
-	if ( is_admin() ) {
-		return;
-	}
-	?>
-	<div class="elite-chat-launcher" aria-label="Live chat">
-		<span>Chat</span>
-	</div>
-	<?php
-}
-
 function elite_shipping_wc_wrapper_start() {
 	echo '<main class="elite-wc-main"><div class="elite-container">';
 }
@@ -302,8 +361,61 @@ function elite_shipping_get_urls() {
 		'contact' => elite_shipping_get_page_url( 'contact-us', '/contact-us/' ),
 		'blog'    => elite_shipping_get_page_url( 'our-blog', '/our-blog/' ),
 		'account' => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ),
+		'policies' => function_exists( 'elite_shipping_get_policy_urls' ) ? elite_shipping_get_policy_urls() : array(),
 	);
 }
+
+/**
+ * Core marketing pages required by theme templates and nav links.
+ *
+ * @return array<string, string> slug => title
+ */
+function elite_shipping_get_core_pages_config() {
+	return array(
+		'about-us'    => __( 'About Us', 'elite-shipping' ),
+		'contact-us'  => __( 'Contact Us', 'elite-shipping' ),
+		'our-blog'    => __( 'Our Blog', 'elite-shipping' ),
+		'get-a-quote' => __( 'Get a Quote', 'elite-shipping' ),
+	);
+}
+
+/**
+ * Create core pages (About, Contact, Blog, Quote) if missing.
+ */
+function elite_shipping_ensure_core_pages() {
+	if ( ! function_exists( 'wp_insert_post' ) ) {
+		return;
+	}
+
+	$created = false;
+
+	foreach ( elite_shipping_get_core_pages_config() as $slug => $title ) {
+		$existing = get_page_by_path( $slug );
+		if ( $existing instanceof WP_Post ) {
+			continue;
+		}
+
+		$result = wp_insert_post(
+			array(
+				'post_title'   => $title,
+				'post_name'    => $slug,
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+				'post_content' => '',
+			),
+			true
+		);
+
+		if ( ! is_wp_error( $result ) && $result ) {
+			$created = true;
+		}
+	}
+
+	if ( $created ) {
+		flush_rewrite_rules( false );
+	}
+}
+add_action( 'after_setup_theme', 'elite_shipping_ensure_core_pages', 25 );
 
 /**
  * Map blog post slugs to image filenames in assets/images/blog or uploads.
@@ -750,19 +862,66 @@ function elite_shipping_get_recent_blog_posts( $exclude_id = 0, $limit = 3 ) {
 }
 
 /**
- * Contact details for Contact Us page.
+ * Business identity and contact details used across the theme.
  *
- * @return array{phone: string, phone_href: string, email: string, address: string, address_url: string, map_embed: string}
+ * @return array{
+ *   company_name: string,
+ *   company_legal_name: string,
+ *   website: string,
+ *   website_url: string,
+ *   phone: string,
+ *   phone_href: string,
+ *   whatsapp_href: string,
+ *   email: string,
+ *   address: string,
+ *   address_url: string,
+ *   map_embed: string
+ * }
  */
 function elite_shipping_get_contact_details() {
+	$address   = ELITE_CONTACT_ADDRESS;
+	$map_query = rawurlencode( $address );
+	$phone     = ELITE_CONTACT_PHONE;
+
 	return array(
-		'phone'       => '0800 123 4567',
-		'phone_href'  => 'tel:08001234567',
-		'email'       => 'sales@eliteshippingcontainers.co.uk',
-		'address'     => 'Elite Shipping Containers Ltd — Nationwide UK Delivery',
-		'address_url' => 'https://www.google.com/maps/search/United+Kingdom',
-		'map_embed'   => 'https://maps.google.com/maps?q=United%20Kingdom&t=m&z=6&output=embed&iwloc=near',
+		'company_name'       => ELITE_COMPANY_NAME,
+		'company_legal_name' => ELITE_COMPANY_LEGAL_NAME,
+		'website'            => 'eliteshippingcontainers.co.uk',
+		'website_url'        => ELITE_SITE_URL,
+		'phone'              => $phone,
+		'phone_href'         => 'tel:+447462284270',
+		'whatsapp_href'      => elite_shipping_get_whatsapp_href( $phone ),
+		'email'              => ELITE_CONTACT_EMAIL,
+		'address'            => $address,
+		'address_url'        => 'https://www.google.com/maps/search/?api=1&query=' . $map_query,
+		'map_embed'          => 'https://maps.google.com/maps?q=' . $map_query . '&t=m&z=14&output=embed&iwloc=near',
 	);
+}
+
+/**
+ * Build a WhatsApp chat link from a phone number.
+ *
+ * @param string $phone   E.164-style phone number.
+ * @param string $message Optional pre-filled message.
+ * @return string
+ */
+function elite_shipping_get_whatsapp_href( $phone = '', $message = '' ) {
+	if ( '' === $phone ) {
+		$phone = ELITE_CONTACT_PHONE;
+	}
+
+	$digits = preg_replace( '/\D+/', '', $phone );
+	$url    = 'https://wa.me/' . $digits;
+
+	if ( '' === $message ) {
+		$message = __( 'Hi, I would like to enquire about a shipping container.', 'elite-shipping' );
+	}
+
+	if ( '' !== trim( (string) $message ) ) {
+		$url .= '?text=' . rawurlencode( $message );
+	}
+
+	return $url;
 }
 
 /**
@@ -844,7 +1003,7 @@ function elite_shipping_render_contact_form() {
 		</p>
 		<p>
 			<label for="elite-contact-phone"><?php esc_html_e( 'Phone Number', 'elite-shipping' ); ?> *</label>
-			<input id="elite-contact-phone" type="tel" name="elite_contact_phone" required maxlength="400" placeholder="<?php esc_attr_e( '+44 1234 567890', 'elite-shipping' ); ?>" value="<?php echo esc_attr( $values['phone'] ); ?>">
+			<input id="elite-contact-phone" type="tel" name="elite_contact_phone" required maxlength="400" placeholder="<?php echo esc_attr( ELITE_CONTACT_PHONE ); ?>" value="<?php echo esc_attr( $values['phone'] ); ?>">
 		</p>
 		<p>
 			<label for="elite-contact-location"><?php esc_html_e( 'Delivery Location', 'elite-shipping' ); ?> *</label>
@@ -1182,6 +1341,83 @@ function elite_shipping_get_containers_menu_categories() {
 	}
 
 	return $items;
+}
+
+/**
+ * Min/max catalog prices for the shop price slider.
+ *
+ * @return array{min: float, max: float, step: int}
+ */
+function elite_shipping_get_shop_price_bounds() {
+	global $wpdb;
+
+	$defaults = array(
+		'min'  => 0,
+		'max'  => 50000,
+		'step' => 50,
+	);
+
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return $defaults;
+	}
+
+	$join  = '';
+	$where = " WHERE posts.post_type = 'product' AND posts.post_status = 'publish' AND lookup.min_price > 0 ";
+
+	if ( is_product_category() || is_product_tag() ) {
+		$term = get_queried_object();
+		if ( $term instanceof WP_Term ) {
+			$join  .= " INNER JOIN {$wpdb->term_relationships} tr ON posts.ID = tr.object_id ";
+			$join  .= " INNER JOIN {$wpdb->term_taxonomy} tt ON tr.term_taxonomy_id = tt.term_taxonomy_id ";
+			$where .= $wpdb->prepare(
+				' AND tt.taxonomy = %s AND tt.term_id = %d ',
+				$term->taxonomy,
+				$term->term_id
+			);
+		}
+	}
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	$row = $wpdb->get_row(
+		"
+		SELECT MIN(lookup.min_price) AS min_price, MAX(lookup.max_price) AS max_price
+		FROM {$wpdb->wc_product_meta_lookup} lookup
+		INNER JOIN {$wpdb->posts} posts ON lookup.product_id = posts.ID
+		{$join}
+		{$where}
+		"
+	);
+
+	if ( ! $row || null === $row->min_price || null === $row->max_price ) {
+		return $defaults;
+	}
+
+	$min = floor( (float) $row->min_price );
+	$max = ceil( (float) $row->max_price );
+
+	if ( $max <= $min ) {
+		$max = $min + 100;
+	}
+
+	return array(
+		'min'  => $min,
+		'max'  => $max,
+		'step' => max( 1, (int) round( ( $max - $min ) / 200 ) ),
+	);
+}
+
+/**
+ * Format a plain price amount for the shop slider label.
+ *
+ * @param float $amount Price amount.
+ * @return string
+ */
+function elite_shipping_format_shop_price_amount( $amount ) {
+	if ( function_exists( 'wc_price' ) ) {
+		return html_entity_decode( wp_strip_all_tags( wc_price( $amount, array( 'decimals' => 0 ) ) ) );
+	}
+
+	return '£' . number_format_i18n( $amount, 0 );
 }
 
 /**

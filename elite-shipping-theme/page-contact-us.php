@@ -42,28 +42,43 @@ $hero_img = $media( '2025/07/510631176_23998021113198545_7887283231137689143_n.j
 				<div class="apex-contact-block">
 					<h2 class="apex-contact-heading">Get in touch</h2>
 					<div class="apex-contact-copy">
-						<p>Feel free to talk to our online representative at any time using our Live Chat system on our website.</p>
-						<p>Please be patient while waiting for a response. (24/7 Support!)</p>
 						<p>
-							Phone General Inquiries:
+							<?php
+							printf(
+								/* translators: %s: company name */
+								esc_html__( 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK.', 'elite-shipping' ),
+								esc_html( $contact['company_name'] )
+							);
+							?>
+						</p>
+						<p>
+							<?php esc_html_e( 'Phone:', 'elite-shipping' ); ?>
 							<a href="<?php echo esc_url( $contact['phone_href'] ); ?>"><?php echo esc_html( $contact['phone'] ); ?></a>
+						</p>
+						<p>
+							<?php esc_html_e( 'Email:', 'elite-shipping' ); ?>
+							<a href="mailto:<?php echo esc_attr( $contact['email'] ); ?>"><?php echo esc_html( $contact['email'] ); ?></a>
 						</p>
 					</div>
 				</div>
 
 				<div class="apex-contact-block">
-					<h2 class="apex-contact-heading">Company Address</h2>
+					<h2 class="apex-contact-heading"><?php echo esc_html( $contact['company_name'] ); ?></h2>
 					<div class="apex-contact-copy">
 						<p>
-							Address (UK):
+							<?php esc_html_e( 'Address (UK):', 'elite-shipping' ); ?>
 							<a href="<?php echo esc_url( $contact['address_url'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $contact['address'] ); ?></a>
 						</p>
 						<p>
-							Telephone / WhatsApp:
-							<a href="<?php echo esc_url( $contact['phone_href'] ); ?>"><?php echo esc_html( $contact['phone'] ); ?></a>
+							<?php esc_html_e( 'Website:', 'elite-shipping' ); ?>
+							<a href="<?php echo esc_url( $contact['website_url'] ); ?>"><?php echo esc_html( $contact['website'] ); ?></a>
 						</p>
 						<p>
-							Email:
+							<?php esc_html_e( 'WhatsApp:', 'elite-shipping' ); ?>
+							<a href="<?php echo esc_url( $contact['whatsapp_href'] ); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $contact['phone'] ); ?></a>
+						</p>
+						<p>
+							<?php esc_html_e( 'Email:', 'elite-shipping' ); ?>
 							<a href="mailto:<?php echo esc_attr( $contact['email'] ); ?>"><?php echo esc_html( $contact['email'] ); ?></a>
 						</p>
 					</div>

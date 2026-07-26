@@ -30,15 +30,6 @@
 })();
 
 document.addEventListener('DOMContentLoaded', function () {
-  var chat = document.querySelector('.elite-chat-launcher');
-  if (chat) {
-    chat.addEventListener('click', function () {
-      if (window.Tawk_API && window.Tawk_API.maximize) {
-        window.Tawk_API.maximize();
-      }
-    });
-  }
-
   var hero = document.querySelector('.apex-hero');
   if (hero) {
     var track = hero.querySelector('.apex-hero-bg-track');
@@ -144,7 +135,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function cardsPerPage() {
-      return isModTrack && isModsMobile() ? 2 : 1;
+      if (isModTrack && isModsMobile()) {
+        return 2;
+      }
+      if (isModTrack) {
+        return getModsVisibleCount();
+      }
+      return 1;
+    }
+
+    function getModsVisibleCount() {
+      var card = track.querySelector(cardSelector);
+      if (!card) return 5;
+      var gap = parseFloat(getComputedStyle(track).gap) || 14;
+      var cardWidth = card.getBoundingClientRect().width + gap;
+      if (cardWidth <= 0) return 5;
+      return Math.max(1, Math.floor((track.clientWidth + gap) / cardWidth));
     }
 
     function pageCount() {
@@ -159,6 +165,9 @@ document.addEventListener('DOMContentLoaded', function () {
       var step = card.getBoundingClientRect().width + gap;
       if (isModTrack && isModsMobile()) {
         return step * 2;
+      }
+      if (isModTrack) {
+        return step * getModsVisibleCount();
       }
       return step;
     }
@@ -241,6 +250,21 @@ document.addEventListener('DOMContentLoaded', function () {
         var nextPage = getCurrentPage() + direction;
         nextPage = Math.max(0, Math.min(pageCount() - 1, nextPage));
         scrollToPage(nextPage);
+        return;
+      }
+
+      if (isModTrack) {
+        var cards = getCards();
+        if (!cards.length) return;
+        var visible = getModsVisibleCount();
+        var currentIndex = getActiveCardIndex(cards);
+        var nextIndex = currentIndex + direction * visible;
+        nextIndex = Math.max(0, Math.min(cards.length - 1, nextIndex));
+        cards[nextIndex].scrollIntoView({
+          behavior: 'smooth',
+          inline: 'start',
+          block: 'nearest'
+        });
         return;
       }
 
@@ -414,6 +438,65 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('resize', function () {
       if (window.innerWidth > 1024) {
         closeMobileNav();
+      }
+    });
+  }
+
+  var shopFiltersToggle = document.querySelector('.apex-shop-filters-toggle');
+  var shopSidebar = document.getElementById('apex-shop-sidebar');
+  var shopFiltersOverlay = document.getElementById('apex-shop-filters-overlay');
+  var shopFiltersClose = shopSidebar ? shopSidebar.querySelector('.apex-shop-filters-close') : null;
+
+  function closeShopFilters() {
+    document.body.classList.remove('elite-shop-filters-open');
+    if (shopFiltersToggle) {
+      shopFiltersToggle.setAttribute('aria-expanded', 'false');
+      shopFiltersToggle.setAttribute('aria-label', 'Open filters');
+    }
+    if (shopFiltersOverlay) {
+      shopFiltersOverlay.hidden = true;
+      shopFiltersOverlay.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function openShopFilters() {
+    document.body.classList.add('elite-shop-filters-open');
+    if (shopFiltersToggle) {
+      shopFiltersToggle.setAttribute('aria-expanded', 'true');
+      shopFiltersToggle.setAttribute('aria-label', 'Close filters');
+    }
+    if (shopFiltersOverlay) {
+      shopFiltersOverlay.hidden = false;
+      shopFiltersOverlay.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  if (shopFiltersToggle && shopSidebar) {
+    shopFiltersToggle.addEventListener('click', function () {
+      if (document.body.classList.contains('elite-shop-filters-open')) {
+        closeShopFilters();
+      } else {
+        openShopFilters();
+      }
+    });
+
+    if (shopFiltersClose) {
+      shopFiltersClose.addEventListener('click', closeShopFilters);
+    }
+
+    if (shopFiltersOverlay) {
+      shopFiltersOverlay.addEventListener('click', closeShopFilters);
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && document.body.classList.contains('elite-shop-filters-open')) {
+        closeShopFilters();
+      }
+    });
+
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 768) {
+        closeShopFilters();
       }
     });
   }
@@ -1245,16 +1328,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!overlayLayer.contains(expandBtn)) {
       overlayLayer.appendChild(expandBtn);
     }
-
-    var saleBadge = gallery.parentElement
-      ? gallery.parentElement.querySelector('.apex-single-sale-badge')
-      : null;
-    if (!saleBadge) {
-      saleBadge = document.querySelector('.elite-single-product .apex-single-sale-badge');
-    }
-    if (saleBadge && !overlayLayer.contains(saleBadge)) {
-      overlayLayer.appendChild(saleBadge);
-    }
   }
 
   function scrollGalleryThumbStrip(gallery, direction) {
@@ -1495,5 +1568,296 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       syncPaypalPlans();
     });
+  }
+
+  document.querySelectorAll('.apex-shop-price-filter').forEach(function (form) {
+    var minInput = form.querySelector('input[name="min_price"]');
+    var maxInput = form.querySelector('input[name="max_price"]');
+    var minRange = form.querySelector('.apex-shop-price-slider-min');
+    var maxRange = form.querySelector('.apex-shop-price-slider-max');
+    var rangeFill = form.querySelector('.apex-shop-price-slider-range');
+    var minLabel = form.querySelector('[data-price-min-display]');
+    var maxLabel = form.querySelector('[data-price-max-display]');
+
+    if (!minInput || !maxInput || !minRange || !maxRange || !rangeFill) {
+      return;
+    }
+
+    var floor = parseFloat(form.dataset.priceFloor || minRange.min || '0');
+    var ceiling = parseFloat(form.dataset.priceCeiling || maxRange.max || '0');
+    var step = parseFloat(form.dataset.priceStep || minRange.step || '1');
+    var currency = form.dataset.currencySymbol || '£';
+
+    function formatShopPrice(value) {
+      var amount = Math.round(parseFloat(value) || 0);
+      return currency + ' ' + amount.toLocaleString('en-GB');
+    }
+
+    function clampValues() {
+      var minVal = parseFloat(minRange.value);
+      var maxVal = parseFloat(maxRange.value);
+
+      if (minVal > maxVal - step) {
+        if (form.activeSlider === minRange) {
+          minVal = maxVal - step;
+        } else {
+          maxVal = minVal + step;
+        }
+      }
+
+      minVal = Math.max(floor, Math.min(minVal, ceiling));
+      maxVal = Math.max(floor + step, Math.min(maxVal, ceiling));
+
+      minRange.value = String(minVal);
+      maxRange.value = String(maxVal);
+      return { minVal: minVal, maxVal: maxVal };
+    }
+
+    function syncHiddenInputs(minVal, maxVal) {
+      minInput.value = minVal <= floor ? '' : String(Math.round(minVal));
+      maxInput.value = maxVal >= ceiling ? '' : String(Math.round(maxVal));
+    }
+
+    function updatePriceUI() {
+      var values = clampValues();
+      var span = ceiling - floor || 1;
+      var start = ((values.minVal - floor) / span) * 100;
+      var end = ((values.maxVal - floor) / span) * 100;
+
+      rangeFill.style.left = start + '%';
+      rangeFill.style.width = Math.max(0, end - start) + '%';
+
+      if (minLabel) {
+        minLabel.textContent = formatShopPrice(values.minVal);
+      }
+      if (maxLabel) {
+        maxLabel.textContent = formatShopPrice(values.maxVal);
+      }
+
+      syncHiddenInputs(values.minVal, values.maxVal);
+    }
+
+    minRange.addEventListener('input', function () {
+      form.activeSlider = minRange;
+      updatePriceUI();
+    });
+
+    maxRange.addEventListener('input', function () {
+      form.activeSlider = maxRange;
+      updatePriceUI();
+    });
+
+    minInput.addEventListener('change', function () {
+      if (minInput.value !== '') {
+        minRange.value = minInput.value;
+      } else {
+        minRange.value = String(floor);
+      }
+      updatePriceUI();
+    });
+
+    maxInput.addEventListener('change', function () {
+      if (maxInput.value !== '') {
+        maxRange.value = maxInput.value;
+      } else {
+        maxRange.value = String(ceiling);
+      }
+      updatePriceUI();
+    });
+
+    updatePriceUI();
+  });
+
+  if (document.body.classList.contains('elite-cart-page')) {
+    var cartUpdateTimer = null;
+
+    function submitCartUpdate() {
+      var form = document.querySelector('.apex-cart-form');
+      var updateBtn = form ? form.querySelector('[name="update_cart"]') : null;
+      if (!form || !updateBtn) {
+        return;
+      }
+
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit(updateBtn);
+      } else {
+        updateBtn.click();
+      }
+    }
+
+    function queueCartUpdate() {
+      if (window.innerWidth > 767) {
+        return;
+      }
+
+      window.clearTimeout(cartUpdateTimer);
+      cartUpdateTimer = window.setTimeout(submitCartUpdate, 450);
+    }
+
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest('.apex-cart-qty-btn');
+      if (!button) {
+        return;
+      }
+
+      event.preventDefault();
+      var wrap = button.closest('.apex-checkout-qty-wrap');
+      if (!wrap) {
+        return;
+      }
+
+      var input = wrap.querySelector('.apex-cart-qty');
+      if (!input) {
+        return;
+      }
+
+      var value = parseInt(input.value, 10) || 0;
+      if (button.getAttribute('data-action') === 'minus') {
+        value = Math.max(0, value - 1);
+      } else {
+        value += 1;
+      }
+
+      input.value = String(value);
+      queueCartUpdate();
+    });
+
+    document.addEventListener('change', function (event) {
+      if (!event.target.matches('.apex-cart-qty')) {
+        return;
+      }
+      queueCartUpdate();
+    });
+  }
+
+  if (document.body.classList.contains('elite-checkout-page')) {
+    function eliteKeepPaymentRadiosVisible() {
+      document.querySelectorAll('.apex-checkout-order-card #payment input[name="payment_method"]').forEach(function (input) {
+        input.style.setProperty('display', 'inline-block', 'important');
+        input.style.setProperty('opacity', '1', 'important');
+        input.style.setProperty('visibility', 'visible', 'important');
+      });
+    }
+
+    eliteKeepPaymentRadiosVisible();
+
+    if (window.jQuery) {
+      window.jQuery(document.body).on('updated_checkout init_checkout', eliteKeepPaymentRadiosVisible);
+    }
+  }
+
+  if (document.body.classList.contains('elite-checkout-page') && window.eliteCheckout) {
+    var checkoutQtyTimer = null;
+
+    function syncCheckoutQuantity(input, quantity) {
+      var key = input.getAttribute('data-key');
+      if (!key) {
+        return;
+      }
+
+      window.clearTimeout(checkoutQtyTimer);
+      checkoutQtyTimer = window.setTimeout(function () {
+        var body = new window.FormData();
+        body.append('action', 'elite_checkout_update_qty');
+        body.append('nonce', window.eliteCheckout.nonce);
+        body.append('cart_key', key);
+        body.append('quantity', String(quantity));
+
+        window.fetch(window.eliteCheckout.ajaxUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: body
+        }).then(function (response) {
+          return response.json();
+        }).then(function () {
+          if (window.jQuery) {
+            window.jQuery(document.body).trigger('update_checkout');
+          } else {
+            window.location.reload();
+          }
+        });
+      }, 350);
+    }
+
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest('.apex-checkout-qty-btn');
+      if (!button) {
+        return;
+      }
+
+      event.preventDefault();
+      var wrap = button.closest('.apex-checkout-qty-wrap');
+      if (!wrap) {
+        return;
+      }
+
+      var input = wrap.querySelector('.apex-checkout-qty');
+      if (!input) {
+        return;
+      }
+
+      var value = parseInt(input.value, 10) || 0;
+      if (button.getAttribute('data-action') === 'minus') {
+        value = Math.max(0, value - 1);
+      } else {
+        value += 1;
+      }
+
+      input.value = String(value);
+      syncCheckoutQuantity(input, value);
+    });
+
+    document.addEventListener('change', function (event) {
+      var input = event.target.closest('.apex-checkout-qty');
+      if (!input) {
+        return;
+      }
+
+      var value = parseInt(input.value, 10) || 0;
+      syncCheckoutQuantity(input, value);
+    });
+  }
+
+  if (document.body.classList.contains('elite-single-product-page')) {
+    var expressSelectors = [
+      '.payment_request_button_container',
+      '#wc-stripe-express-checkout-element'
+    ];
+
+    function relocateProductExpressCheckout() {
+      var slot = document.querySelector('[data-express-checkout-slot="true"]');
+      var summary = document.querySelector('.elite-single-product .summary, .summary.entry-summary');
+      if (!slot || !summary) {
+        return;
+      }
+
+      expressSelectors.forEach(function (selector) {
+        summary.querySelectorAll(selector).forEach(function (node) {
+          if (slot.contains(node) || node.closest('.apex-single-trust-box')) {
+            return;
+          }
+          slot.appendChild(node);
+        });
+      });
+    }
+
+    relocateProductExpressCheckout();
+
+    window.setTimeout(relocateProductExpressCheckout, 500);
+    window.setTimeout(relocateProductExpressCheckout, 1500);
+    window.setTimeout(relocateProductExpressCheckout, 3000);
+
+    if (typeof MutationObserver !== 'undefined') {
+      var summary = document.querySelector('.elite-single-product .summary, .summary.entry-summary');
+      if (summary) {
+        var observer = new MutationObserver(function () {
+          relocateProductExpressCheckout();
+        });
+        observer.observe(summary, { childList: true, subtree: true });
+        window.setTimeout(function () {
+          observer.disconnect();
+        }, 8000);
+      }
+    }
   }
 });

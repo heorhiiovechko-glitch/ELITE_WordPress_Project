@@ -37,7 +37,6 @@ function elite_shipping_single_product_setup() {
 	add_theme_support( 'wc-product-gallery-slider' );
 
 	remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10 );
-	add_action( 'woocommerce_before_single_product_summary', 'elite_shipping_single_product_sale_badge', 9 );
 
 	add_filter( 'woocommerce_single_product_carousel_options', 'elite_shipping_disable_gallery_direction_nav', 999 );
 	add_filter( 'woocommerce_get_script_data', 'elite_shipping_disable_gallery_direction_nav_script', 999, 2 );
@@ -103,27 +102,6 @@ function elite_shipping_gallery_hide_direction_nav_css() {
 }
 
 /**
- * Circular sale badge on gallery.
- */
-function elite_shipping_single_product_sale_badge() {
-	global $product;
-
-	if ( ! $product instanceof WC_Product || ! $product->is_on_sale() ) {
-		return;
-	}
-
-	$badge   = 'SALE';
-	$regular = (float) $product->get_regular_price();
-	$sale    = (float) $product->get_sale_price();
-
-	if ( $regular > 0 && $sale > 0 ) {
-		$badge = '-' . round( ( ( $regular - $sale ) / $regular ) * 100 ) . '%';
-	}
-
-	echo '<span class="apex-single-sale-badge">' . esc_html( $badge ) . '</span>';
-}
-
-/**
  * Related products grid using shop card layout.
  */
 function elite_shipping_output_related_products() {
@@ -166,4 +144,13 @@ function elite_shipping_output_related_products() {
 	}
 
 	echo '</div></section>';
+}
+
+/**
+ * Express checkout slot directly below Add to Cart (Stripe, etc.).
+ */
+function elite_shipping_single_product_express_checkout_slot() {
+	echo '<div class="apex-single-express-checkout" data-express-checkout-slot="true">';
+	do_action( 'woocommerce_after_add_to_cart_button' );
+	echo '</div>';
 }
