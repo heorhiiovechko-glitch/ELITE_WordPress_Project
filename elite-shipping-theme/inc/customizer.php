@@ -861,14 +861,25 @@ function elite_shipping_customize_controls_enqueue_scripts() {
 		);
 	}
 
+	$blog_cards_script = ELITE_SHIPPING_DIR . '/assets/js/customizer-blog-cards.js';
+	if ( file_exists( $blog_cards_script ) ) {
+		wp_enqueue_script(
+			'elite-blog-cards-customizer',
+			ELITE_SHIPPING_URI . '/assets/js/customizer-blog-cards.js',
+			array( 'jquery', 'customize-controls', 'media-editor' ),
+			(string) filemtime( $blog_cards_script ),
+			true
+		);
+	}
+
 	wp_add_inline_style(
 		'customize-controls',
-		'.elite-top-picks-list-control__head,.elite-mods-list-control__head,.elite-hero-slides-list-control__head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}'
-		. '.elite-top-picks-list-control__head .customize-control-title,.elite-mods-list-control__head .customize-control-title,.elite-hero-slides-list-control__head .customize-control-title{margin:0;}'
-		. '.elite-hero-slides-add{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:0 8px;height:30px;line-height:1;}'
-		. '.elite-hero-slides-add .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
-		. '.elite-top-picks-list-items,.elite-mods-list-items,.elite-hero-slides-list-items{margin:10px 0 0;padding:0;list-style:none;}'
-		. '.elite-top-picks-list-items__empty,.elite-mods-list-items__empty,.elite-hero-slides-list-items__empty{margin:0;padding:12px 14px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;color:#646970;font-style:italic;font-size:13px;line-height:1.45;}'
+		'.elite-top-picks-list-control__head,.elite-mods-list-control__head,.elite-hero-slides-list-control__head,.elite-blog-cards-list-control__head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}'
+		. '.elite-top-picks-list-control__head .customize-control-title,.elite-mods-list-control__head .customize-control-title,.elite-hero-slides-list-control__head .customize-control-title,.elite-blog-cards-list-control__head .customize-control-title{margin:0;}'
+		. '.elite-hero-slides-add,.elite-blog-cards-add{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:0 8px;height:30px;line-height:1;}'
+		. '.elite-hero-slides-add .dashicons,.elite-blog-cards-add .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
+		. '.elite-top-picks-list-items,.elite-mods-list-items,.elite-hero-slides-list-items,.elite-blog-cards-list-items{margin:10px 0 0;padding:0;list-style:none;}'
+		. '.elite-top-picks-list-items__empty,.elite-mods-list-items__empty,.elite-hero-slides-list-items__empty,.elite-blog-cards-list-items__empty{margin:0;padding:12px 14px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;color:#646970;font-style:italic;font-size:13px;line-height:1.45;}'
 		. '.elite-top-picks-list-item{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:10px 12px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;}'
 		. '.elite-top-picks-list-item__num,.elite-mods-list-item__num{flex:0 0 auto;min-width:1.4em;font-weight:700;color:#1d2327;}'
 		. '.elite-top-picks-list-item__select{flex:1 1 auto;min-width:0;max-width:none;}'
@@ -878,13 +889,36 @@ function elite_shipping_customize_controls_enqueue_scripts() {
 		. '.elite-hero-slides-list-item__num{flex:1 1 auto;min-width:0;font-weight:700;color:#1d2327;}'
 		. '.elite-mods-list-item__title{flex:1 1 auto;min-width:0;margin:0;max-width:none;}'
 		. '.elite-mods-list-item__actions,.elite-hero-slides-list-item__actions{display:flex;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto;}'
-		. '.elite-mods-icon-btn,.elite-hero-slides-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:1px solid #c3c4c7;border-radius:4px;background:#fff;color:#1d2327;cursor:pointer;box-shadow:none;}'
-		. '.elite-mods-icon-btn .dashicons,.elite-hero-slides-icon-btn .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
-		. '.elite-mods-icon-btn:hover,.elite-mods-icon-btn:focus,.elite-hero-slides-icon-btn:hover,.elite-hero-slides-icon-btn:focus{background:#f0f0f1;border-color:#8c8f94;color:#1d2327;}'
-		. '.elite-mods-icon-btn--remove,.elite-hero-slides-icon-btn--remove{color:#b32d2e;border-color:#dba4a4;}'
-		. '.elite-mods-icon-btn--remove:hover,.elite-mods-icon-btn--remove:focus,.elite-hero-slides-icon-btn--remove:hover,.elite-hero-slides-icon-btn--remove:focus{color:#8a2424;background:#fcf0f1;border-color:#b32d2e;}'
-		. '.elite-mods-select-image.has-image,.elite-hero-slides-select-image.has-image{background-size:cover;background-position:center;background-repeat:no-repeat;}'
-		. '.elite-mods-select-image.has-image .dashicons,.elite-hero-slides-select-image.has-image .dashicons{opacity:0;}'
+		. '.elite-mods-icon-btn,.elite-hero-slides-icon-btn,.elite-blog-cards-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:1px solid #c3c4c7;border-radius:4px;background:#fff;color:#1d2327;cursor:pointer;box-shadow:none;}'
+		. '.elite-mods-icon-btn .dashicons,.elite-hero-slides-icon-btn .dashicons,.elite-blog-cards-icon-btn .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
+		. '.elite-mods-icon-btn:hover,.elite-mods-icon-btn:focus,.elite-hero-slides-icon-btn:hover,.elite-hero-slides-icon-btn:focus,.elite-blog-cards-icon-btn:hover,.elite-blog-cards-icon-btn:focus{background:#f0f0f1;border-color:#8c8f94;color:#1d2327;}'
+		. '.elite-mods-icon-btn--remove,.elite-hero-slides-icon-btn--remove,.elite-blog-cards-icon-btn--remove{color:#b32d2e;border-color:#dba4a4;}'
+		. '.elite-mods-icon-btn--remove:hover,.elite-mods-icon-btn--remove:focus,.elite-hero-slides-icon-btn--remove:hover,.elite-hero-slides-icon-btn--remove:focus,.elite-blog-cards-icon-btn--remove:hover,.elite-blog-cards-icon-btn--remove:focus{color:#8a2424;background:#fcf0f1;border-color:#b32d2e;}'
+		. '.elite-mods-select-image.has-image,.elite-hero-slides-select-image.has-image,.elite-blog-cards-select-image.has-image{background-size:cover;background-position:center;background-repeat:no-repeat;}'
+		. '.elite-mods-select-image.has-image .dashicons,.elite-hero-slides-select-image.has-image .dashicons,.elite-blog-cards-select-image.has-image .dashicons{opacity:0;}'
+		. '.elite-blog-cards-list-item{margin:0 0 12px;padding:12px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;}'
+		. '.elite-blog-cards-list-item__top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}'
+		. '.elite-blog-cards-list-item__num{flex:1 1 auto;min-width:0;font-weight:700;color:#1d2327;}'
+		. '.elite-blog-cards-list-item__actions{display:flex;align-items:center;gap:6px;flex:0 0 auto;}'
+		. '.elite-blog-cards-list-item__date{width:132px;max-width:38vw;height:32px;margin:0;}'
+		. '.elite-blog-cards-list-item__title,.elite-blog-cards-list-item__intro{width:100%;max-width:100%;margin:0 0 8px;}'
+		. '.elite-blog-cards-list-item__details-bar{display:flex;align-items:center;gap:8px;margin:2px 0 6px;}'
+		. '.elite-blog-cards-list-item__details-label{font-size:12px;font-weight:600;color:#50575e;}'
+		. '.elite-blog-cards-list-item.is-details-open .elite-blog-cards-toggle-details{border-color:#2271b1;color:#2271b1;}'
+		. '.elite-blog-details-panel{margin-top:8px;padding:12px;background:#fff;border:1px solid #c3c4c7;border-radius:4px;}'
+		. '.elite-blog-details-panel__head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px;}'
+		. '.elite-blog-details-panel__head--faqs{margin-top:16px;padding-top:12px;border-top:1px solid #dcdcde;}'
+		. '.elite-blog-details-panel__title{font-size:13px;font-weight:700;color:#1d2327;}'
+		. '.elite-blog-add-paragraph,.elite-blog-add-faq{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:0 8px;height:30px;}'
+		. '.elite-blog-add-paragraph .dashicons,.elite-blog-add-faq .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
+		. '.elite-blog-paragraph,.elite-blog-section,.elite-blog-block,.elite-blog-faq{margin:0 0 10px;padding:10px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;}'
+		. '.elite-blog-section{background:#fff;}'
+		. '.elite-blog-block{background:#f0f0f1;}'
+		. '.elite-blog-paragraph__top,.elite-blog-section__top,.elite-blog-faq__top,.elite-blog-block__head{display:flex;align-items:center;gap:6px;margin:0 0 8px;}'
+		. '.elite-blog-paragraph__title,.elite-blog-section__title,.elite-blog-faq__title{flex:1 1 auto;min-width:0;margin:0;}'
+		. '.elite-blog-paragraph__actions,.elite-blog-section__actions{display:flex;align-items:center;gap:4px;flex:0 0 auto;margin-left:auto;}'
+		. '.elite-blog-block__type{flex:1 1 auto;font-size:11px;font-weight:700;text-transform:uppercase;color:#646970;}'
+		. '.elite-blog-block__content,.elite-blog-faq__text{width:100%;max-width:100%;margin:0;}'
 	);
 }
 add_action( 'customize_controls_enqueue_scripts', 'elite_shipping_customize_controls_enqueue_scripts' );

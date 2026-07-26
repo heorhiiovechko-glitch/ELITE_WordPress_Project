@@ -2276,6 +2276,128 @@ body.elite-nav-open {
 .elite-shop-archive .apex-kicker {
 	color: var(--orange);
 }
+.apex-blog-card-detail {
+	padding: 40px 0 72px;
+	background: var(--gray-50);
+}
+.apex-blog-card-detail-back {
+	display: inline-flex;
+	margin-bottom: 18px;
+	color: var(--navy);
+	font-weight: 700;
+	text-decoration: none;
+}
+.apex-blog-card-detail-back:hover {
+	color: var(--orange);
+}
+.apex-blog-card-detail-panel {
+	padding: 28px;
+	border: 1px solid rgba(0, 21, 41, 0.08);
+	border-radius: 18px;
+	background: var(--white);
+	box-shadow: 0 14px 40px rgba(0, 21, 41, 0.07);
+}
+.apex-blog-card-detail-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 18px;
+	margin-bottom: 16px;
+	font-size: 13px;
+	color: var(--gray-500);
+}
+.apex-blog-card-detail-media {
+	margin-bottom: 20px;
+	border-radius: 14px;
+	overflow: hidden;
+}
+.apex-blog-card-detail-media img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+.apex-blog-card-detail-intro {
+	margin: 0 0 16px;
+	font-size: 17px;
+	line-height: 1.7;
+	color: var(--text-muted);
+}
+.apex-blog-card-detail-body {
+	font-size: 16px;
+	line-height: 1.8;
+	color: var(--gray-700);
+}
+.apex-blog-card-detail-body p {
+	margin: 0 0 1em;
+}
+.apex-blog-detail-paragraph + .apex-blog-detail-paragraph {
+	margin-top: 28px;
+}
+.apex-blog-detail-paragraph__title {
+	margin: 0 0 14px;
+	font-family: Montserrat, sans-serif;
+	font-size: 24px;
+	font-weight: 800;
+	color: var(--navy);
+}
+.apex-blog-detail-section + .apex-blog-detail-section {
+	margin-top: 18px;
+}
+.apex-blog-detail-section__title {
+	margin: 0 0 10px;
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--navy);
+}
+.apex-blog-detail-list {
+	margin: 0 0 1em;
+	padding-left: 1.2em;
+}
+.apex-blog-detail-list li {
+	margin-bottom: 6px;
+}
+.apex-blog-detail-table-wrap {
+	margin: 0 0 1.2em;
+	overflow-x: auto;
+}
+.apex-blog-detail-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.apex-blog-detail-table th,
+.apex-blog-detail-table td {
+	padding: 10px 12px;
+	border: 1px solid var(--gray-200);
+	text-align: left;
+}
+.apex-blog-detail-table th {
+	background: var(--gray-50);
+	font-weight: 700;
+	color: var(--navy);
+}
+.apex-blog-detail-faqs {
+	margin-top: 36px;
+	padding-top: 28px;
+	border-top: 1px solid var(--gray-200);
+}
+.apex-blog-detail-faqs__title {
+	margin: 0 0 16px;
+	font-family: Montserrat, sans-serif;
+	font-size: 24px;
+	font-weight: 800;
+	color: var(--navy);
+}
+.apex-blog-detail-faq + .apex-blog-detail-faq {
+	margin-top: 16px;
+}
+.apex-blog-detail-faq__title {
+	margin: 0 0 8px;
+	font-size: 17px;
+	font-weight: 700;
+	color: var(--navy);
+}
+.apex-blog-detail-faq__text {
+	color: var(--text-muted);
+}
 .apex-blog-list {
 	padding: 56px 0 80px;
 	background:
@@ -2537,6 +2659,12 @@ body.elite-nav-open {
 	margin: 0;
 	font-size: 16px;
 	line-height: 1.85;
+	color: var(--text-muted);
+}
+.apex-blog-card-lead {
+	margin: 0 0 1.25em;
+	font-size: 17px;
+	line-height: 1.75;
 	color: var(--text-muted);
 }
 .apex-blog-article h2,

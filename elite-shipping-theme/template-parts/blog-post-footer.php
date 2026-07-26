@@ -2,6 +2,11 @@
 /**
  * Blog post footer — share, navigation, and comments.
  *
+ * Optional $args for Customizer card detail pages:
+ * - share_url, share_title, share_image
+ * - older_url, older_title
+ * - comments_mode: 'post' (default) | 'preview'
+ *
  * @package Elite_Shipping
  */
 
@@ -9,10 +14,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$post_id   = get_the_ID();
-$share     = elite_shipping_get_post_share_links( $post_id );
-$urls      = elite_shipping_get_urls();
-$prev_post = get_previous_post();
+$args = isset( $args ) && is_array( $args ) ? $args : array();
+
+$post_id       = ! empty( $args['post_id'] ) ? absint( $args['post_id'] ) : (int) get_the_ID();
+$comments_mode = ! empty( $args['comments_mode'] ) ? (string) $args['comments_mode'] : 'post';
+$share_url     = ! empty( $args['share_url'] ) ? (string) $args['share_url'] : '';
+$share_title   = ! empty( $args['share_title'] ) ? (string) $args['share_title'] : '';
+$share_image   = ! empty( $args['share_image'] ) ? (string) $args['share_image'] : '';
+$older_url     = ! empty( $args['older_url'] ) ? (string) $args['older_url'] : '';
+$older_title   = ! empty( $args['older_title'] ) ? (string) $args['older_title'] : '';
+
+$share_overrides = array();
+if ( $share_url || $share_title || $share_image ) {
+	$share_overrides = array(
+		'url'   => $share_url ? $share_url : ( $post_id ? get_permalink( $post_id ) : '' ),
+		'title' => $share_title ? $share_title : ( $post_id ? get_the_title( $post_id ) : '' ),
+		'image' => $share_image,
+	);
+}
+
+$share = $share_overrides
+	? elite_shipping_get_post_share_links( $share_overrides )
+	: elite_shipping_get_post_share_links( $post_id );
+
+$urls = elite_shipping_get_urls();
+
+if ( ! $older_url && 'preview' !== $comments_mode ) {
+	$prev_post = get_previous_post();
+	if ( $prev_post ) {
+		$older_url   = get_permalink( $prev_post );
+		$older_title = get_the_title( $prev_post );
+	}
+}
 ?>
 <div class="apex-blog-post-footer">
 	<div class="apex-blog-share">
@@ -34,18 +67,69 @@ $prev_post = get_previous_post();
 			<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
 		</a>
 
-		<?php if ( $prev_post ) : ?>
-			<a class="apex-blog-post-nav-older" href="<?php echo esc_url( get_permalink( $prev_post ) ); ?>">
+		<?php if ( $older_url && $older_title ) : ?>
+			<a class="apex-blog-post-nav-older" href="<?php echo esc_url( $older_url ); ?>">
 				<span class="apex-blog-post-nav-label"><?php esc_html_e( 'Older', 'elite-shipping' ); ?></span>
-				<span class="apex-blog-post-nav-title"><?php echo esc_html( get_the_title( $prev_post ) ); ?></span>
+				<span class="apex-blog-post-nav-title"><?php echo esc_html( $older_title ); ?></span>
 				<span class="apex-blog-post-nav-arrow" aria-hidden="true">&rsaquo;</span>
 			</a>
 		<?php endif; ?>
 	</nav>
 
 	<div class="apex-blog-comments" id="respond">
-		<?php
-		if ( comments_open( $post_id ) ) {
+		<?php if ( 'preview' === $comments_mode ) : ?>
+			<?php
+			$current_user = wp_get_current_user();
+			$is_logged_in = is_user_logged_in() && $current_user instanceof WP_User && $current_user->exists();
+			?>
+			<h3 class="comment-reply-title apex-blog-comments-title"><?php esc_html_e( 'Leave a Reply', 'elite-shipping' ); ?></h3>
+			<?php if ( $is_logged_in ) : ?>
+				<p class="logged-in-as">
+					<?php
+					printf(
+						/* translators: 1: user display name, 2: edit profile URL, 3: logout URL */
+						wp_kses(
+							__( 'Logged in as %1$s. <a href="%2$s">Edit your profile</a>. <a href="%3$s">Log out?</a> Required fields are marked <span class="required">*</span>', 'elite-shipping' ),
+							array(
+								'a'    => array( 'href' => array() ),
+								'span' => array( 'class' => array() ),
+							)
+						),
+						esc_html( $current_user->display_name ),
+						esc_url( get_edit_profile_url() ),
+						esc_url( wp_logout_url( get_permalink() ) )
+					);
+					?>
+				</p>
+			<?php else : ?>
+				<p class="comment-notes">
+					<span class="required-field-message">
+						<?php esc_html_e( 'Required fields are marked', 'elite-shipping' ); ?>
+						<span class="required">*</span>
+					</span>
+				</p>
+			<?php endif; ?>
+			<form class="apex-blog-comment-form comment-form" action="<?php echo esc_url( $share_url ? $share_url : '#' ); ?>" method="post">
+				<p class="comment-form-comment">
+					<label for="comment"><?php esc_html_e( 'Comment', 'elite-shipping' ); ?> <span class="required">*</span></label>
+					<textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" required="required"></textarea>
+				</p>
+				<?php if ( ! $is_logged_in ) : ?>
+					<p class="comment-form-author">
+						<label for="author"><?php esc_html_e( 'Name', 'elite-shipping' ); ?> <span class="required">*</span></label>
+						<input id="author" name="author" type="text" value="" size="30" maxlength="245" required="required">
+					</p>
+					<p class="comment-form-email">
+						<label for="email"><?php esc_html_e( 'Email', 'elite-shipping' ); ?> <span class="required">*</span></label>
+						<input id="email" name="email" type="email" value="" size="30" maxlength="100" required="required">
+					</p>
+				<?php endif; ?>
+				<p class="form-submit">
+					<input name="submit" type="submit" id="submit" class="apex-blog-comment-submit submit" value="<?php esc_attr_e( 'Post Comment', 'elite-shipping' ); ?>">
+				</p>
+			</form>
+		<?php elseif ( $post_id && comments_open( $post_id ) ) : ?>
+			<?php
 			comment_form(
 				array(
 					'title_reply'          => __( 'Leave a Reply', 'elite-shipping' ),
@@ -66,12 +150,10 @@ $prev_post = get_previous_post();
 				),
 				$post_id
 			);
-		} else {
 			?>
+		<?php else : ?>
 			<h2 class="apex-blog-comments-title"><?php esc_html_e( 'Leave a Reply', 'elite-shipping' ); ?></h2>
 			<p class="apex-blog-comments-closed"><?php esc_html_e( 'Comments are closed for this post.', 'elite-shipping' ); ?></p>
-			<?php
-		}
-		?>
+		<?php endif; ?>
 	</div>
 </div>

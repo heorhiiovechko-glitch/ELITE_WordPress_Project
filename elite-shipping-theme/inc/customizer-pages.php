@@ -618,7 +618,7 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 			'label'    => __( 'Left block intro', 'elite-shipping' ),
 			'section'  => 'elite_contact_info_blocks',
 			'type'     => 'textarea',
-			'default'  => 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK.',
+			'default'  => 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK. You can also speak with us anytime using the live chat widget on this page.',
 			'sanitize' => 'wp_kses_post',
 		)
 	);
@@ -720,9 +720,10 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 	$wp_customize->add_section(
 		'elite_blog_cards',
 		array(
-			'title'    => __( 'Post cards', 'elite-shipping' ),
-			'panel'    => 'elite_blog',
-			'priority' => 20,
+			'title'       => __( 'Post cards', 'elite-shipping' ),
+			'description' => __( 'Build unlimited blog cards. Add a card, then set title, date, image, introduction, and details.', 'elite-shipping' ),
+			'panel'       => 'elite_blog',
+			'priority'    => 20,
 		)
 	);
 	elite_shipping_add_text_setting(
@@ -743,6 +744,30 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 			'default' => 'Continue reading',
 		)
 	);
+
+	if ( class_exists( 'Elite_Blog_Cards_List_Control' ) ) {
+		$wp_customize->add_setting(
+			'elite_blog_cards_list',
+			array(
+				'default'           => '[]',
+				'sanitize_callback' => 'elite_shipping_sanitize_blog_cards_list',
+				'transport'         => 'refresh',
+			)
+		);
+
+		$wp_customize->add_control(
+			new Elite_Blog_Cards_List_Control(
+				$wp_customize,
+				'elite_blog_cards_list',
+				array(
+					'label'       => __( 'Card list', 'elite-shipping' ),
+					'description' => __( 'No limit. Use the image and trash icons on each card. Open Details to edit the full article body.', 'elite-shipping' ),
+					'section'     => 'elite_blog_cards',
+					'priority'    => 30,
+				)
+			)
+		);
+	}
 
 	$wp_customize->add_section(
 		'elite_blog_single',

@@ -19,7 +19,7 @@ $hero_fallback = elite_shipping_migrate_media_url( 'https://firstchoiceshippingc
 $hero_img      = elite_shipping_get_theme_mod_image_url( 'elite_contact_hero_image', $hero_fallback );
 
 $info_heading = get_theme_mod( 'elite_contact_info_heading', 'Get in touch' );
-$info_intro   = get_theme_mod( 'elite_contact_info_intro', 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK.' );
+$info_intro   = get_theme_mod( 'elite_contact_info_intro', 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK. You can also speak with us anytime using the live chat widget on this page.' );
 $form_kicker  = get_theme_mod( 'elite_contact_form_kicker', 'INFORMATION ABOUT US' );
 $form_title   = get_theme_mod( 'elite_contact_form_title', 'Contact Us For Any Questions' );
 ?><!DOCTYPE html>

@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.21' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.27' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -57,6 +57,10 @@ $elite_policy_pages = ELITE_SHIPPING_DIR . '/inc/policy-pages.php';
 if ( file_exists( $elite_policy_pages ) ) {
 	require_once $elite_policy_pages;
 }
+$elite_live_chat = ELITE_SHIPPING_DIR . '/inc/live-chat.php';
+if ( file_exists( $elite_live_chat ) ) {
+	require_once $elite_live_chat;
+}
 $elite_home_sections = ELITE_SHIPPING_DIR . '/inc/home-sections.php';
 if ( file_exists( $elite_home_sections ) ) {
 	require_once $elite_home_sections;
@@ -72,6 +76,10 @@ if ( file_exists( $elite_customizer_mods ) ) {
 $elite_customizer_hero_slides = ELITE_SHIPPING_DIR . '/inc/customizer-hero-slides-control.php';
 if ( file_exists( $elite_customizer_hero_slides ) ) {
 	require_once $elite_customizer_hero_slides;
+}
+$elite_customizer_blog_cards = ELITE_SHIPPING_DIR . '/inc/customizer-blog-cards-control.php';
+if ( file_exists( $elite_customizer_blog_cards ) ) {
+	require_once $elite_customizer_blog_cards;
 }
 $elite_customizer = ELITE_SHIPPING_DIR . '/inc/customizer.php';
 if ( file_exists( $elite_customizer ) ) {
@@ -426,6 +434,139 @@ function elite_shipping_ensure_core_pages() {
 add_action( 'after_setup_theme', 'elite_shipping_ensure_core_pages', 25 );
 
 /**
+ * WooCommerce store pages (Cart, Checkout, My account, Shop).
+ *
+ * @return array<string, array{title:string,slug:string,option:string,content:string}>
+ */
+function elite_shipping_get_woocommerce_pages_config() {
+	return array(
+		'cart'      => array(
+			'title'   => __( 'Cart', 'elite-shipping' ),
+			'slug'    => 'cart',
+			'option'  => 'woocommerce_cart_page_id',
+			'content' => '<!-- wp:shortcode -->[woocommerce_cart]<!-- /wp:shortcode -->',
+		),
+		'checkout'  => array(
+			'title'   => __( 'Checkout', 'elite-shipping' ),
+			'slug'    => 'checkout',
+			'option'  => 'woocommerce_checkout_page_id',
+			'content' => '<!-- wp:shortcode -->[woocommerce_checkout]<!-- /wp:shortcode -->',
+		),
+		'myaccount' => array(
+			'title'   => __( 'My account', 'elite-shipping' ),
+			'slug'    => 'my-account',
+			'option'  => 'woocommerce_myaccount_page_id',
+			'content' => '<!-- wp:shortcode -->[woocommerce_my_account]<!-- /wp:shortcode -->',
+		),
+		'shop'      => array(
+			'title'   => __( 'Shop', 'elite-shipping' ),
+			'slug'    => 'shop',
+			'option'  => 'woocommerce_shop_page_id',
+			'content' => '',
+		),
+	);
+}
+
+/**
+ * Whether a page already contains the expected WooCommerce shortcode/block.
+ *
+ * @param string $content Page content.
+ * @param string $key     cart|checkout|myaccount|shop.
+ * @return bool
+ */
+function elite_shipping_page_has_woocommerce_content( $content, $key ) {
+	$content = (string) $content;
+	if ( 'shop' === $key ) {
+		return true;
+	}
+
+	$needles = array(
+		'cart'      => array( '[woocommerce_cart]', 'woocommerce/cart' ),
+		'checkout'  => array( '[woocommerce_checkout]', 'woocommerce/checkout' ),
+		'myaccount' => array( '[woocommerce_my_account]', 'woocommerce/my-account' ),
+	);
+
+	if ( empty( $needles[ $key ] ) ) {
+		return true;
+	}
+
+	foreach ( $needles[ $key ] as $needle ) {
+		if ( false !== strpos( $content, $needle ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Create and assign WooCommerce pages if missing (common after migration).
+ */
+function elite_shipping_ensure_woocommerce_pages() {
+	if ( ! class_exists( 'WooCommerce' ) || ! function_exists( 'wp_insert_post' ) ) {
+		return;
+	}
+
+	$changed = false;
+
+	foreach ( elite_shipping_get_woocommerce_pages_config() as $key => $config ) {
+		$page_id = absint( get_option( $config['option'], 0 ) );
+		$page    = $page_id ? get_post( $page_id ) : null;
+
+		if ( ! ( $page instanceof WP_Post ) || 'page' !== $page->post_type || 'publish' !== $page->post_status ) {
+			$by_slug = get_page_by_path( $config['slug'] );
+			if ( $by_slug instanceof WP_Post && 'publish' === $by_slug->post_status ) {
+				$page    = $by_slug;
+				$page_id = (int) $by_slug->ID;
+				update_option( $config['option'], $page_id );
+				$changed = true;
+			} else {
+				$page_id = wp_insert_post(
+					array(
+						'post_title'   => $config['title'],
+						'post_name'    => $config['slug'],
+						'post_status'  => 'publish',
+						'post_type'    => 'page',
+						'post_content' => $config['content'],
+					),
+					true
+				);
+
+				if ( is_wp_error( $page_id ) || ! $page_id ) {
+					continue;
+				}
+
+				update_option( $config['option'], (int) $page_id );
+				$changed = true;
+				$page    = get_post( $page_id );
+			}
+		}
+
+		if ( $page instanceof WP_Post && '' !== $config['content'] && ! elite_shipping_page_has_woocommerce_content( $page->post_content, $key ) ) {
+			// Only fill empty pages so we do not overwrite custom checkout layouts.
+			if ( '' === trim( (string) $page->post_content ) ) {
+				wp_update_post(
+					array(
+						'ID'           => $page->ID,
+						'post_content' => $config['content'],
+					)
+				);
+				$changed = true;
+			}
+		}
+	}
+
+	if ( $changed ) {
+		if ( class_exists( 'WC_Cache_Helper' ) && method_exists( 'WC_Cache_Helper', 'invalidate_cache_group' ) ) {
+			WC_Cache_Helper::invalidate_cache_group( 'shipping' );
+		}
+		delete_transient( 'woocommerce_cache_excluded_uris' );
+		flush_rewrite_rules( false );
+	}
+}
+add_action( 'init', 'elite_shipping_ensure_woocommerce_pages', 20 );
+
+/**
  * Map blog post slugs to image filenames in assets/images/blog or uploads.
  *
  * @return array<string, string>
@@ -716,6 +857,13 @@ function elite_shipping_get_default_blog_posts() {
  * @return array<int, array<string, string>>
  */
 function elite_shipping_get_blog_posts( $limit = 12 ) {
+	if ( function_exists( 'elite_shipping_blog_uses_cards_list' ) && elite_shipping_blog_uses_cards_list() ) {
+		$cards = elite_shipping_get_customizer_blog_cards();
+		if ( ! empty( $cards ) ) {
+			return array_slice( $cards, 0, max( 1, absint( $limit ) ) );
+		}
+	}
+
 	$query = new WP_Query(
 		array(
 			'post_type'      => 'post',
@@ -758,14 +906,26 @@ function elite_shipping_get_blog_posts( $limit = 12 ) {
 
 /**
  * Social share links for a blog post.
+/**
+ * Social share links for a post or custom URL.
  *
- * @param int $post_id Post ID.
- * @return array<int, array{id: string, label: string, url: string, icon: string}>
+ * @param int|array $post_id   Post ID, or override array with url/title/image.
+ * @param array     $overrides Optional overrides: url, title, image.
+ * @return array<int, array<string, string>>
  */
-function elite_shipping_get_post_share_links( $post_id ) {
-	$url   = rawurlencode( get_permalink( $post_id ) );
-	$title = rawurlencode( get_the_title( $post_id ) );
-	$thumb = get_the_post_thumbnail_url( $post_id, 'large' );
+function elite_shipping_get_post_share_links( $post_id = 0, $overrides = array() ) {
+	if ( is_array( $post_id ) ) {
+		$overrides = $post_id;
+		$post_id   = 0;
+	}
+
+	$post_id = absint( $post_id );
+	$page_url = ! empty( $overrides['url'] ) ? (string) $overrides['url'] : ( $post_id ? get_permalink( $post_id ) : home_url( '/' ) );
+	$title_raw = ! empty( $overrides['title'] ) ? (string) $overrides['title'] : ( $post_id ? get_the_title( $post_id ) : get_bloginfo( 'name' ) );
+	$thumb     = ! empty( $overrides['image'] ) ? (string) $overrides['image'] : ( $post_id ? (string) get_the_post_thumbnail_url( $post_id, 'large' ) : '' );
+
+	$url   = rawurlencode( $page_url );
+	$title = rawurlencode( $title_raw );
 	$media = $thumb ? rawurlencode( $thumb ) : '';
 
 	return array(
@@ -817,18 +977,41 @@ function elite_shipping_comment_form_defaults( $defaults ) {
  * @return array<int, array<string, mixed>>
  */
 function elite_shipping_get_recent_blog_posts( $exclude_id = 0, $limit = 3 ) {
+	$limit = max( 1, absint( $limit ) );
+	$posts = array();
+
+	if ( function_exists( 'elite_shipping_blog_uses_cards_list' ) && elite_shipping_blog_uses_cards_list() ) {
+		$exclude_slug = is_string( $exclude_id ) ? sanitize_title( $exclude_id ) : '';
+		foreach ( elite_shipping_get_customizer_blog_cards() as $card ) {
+			if ( $exclude_slug && ! empty( $card['slug'] ) && $card['slug'] === $exclude_slug ) {
+				continue;
+			}
+			$posts[] = array(
+				'title'    => $card['title'],
+				'url'      => $card['url'],
+				'image'    => $card['image'],
+				'date'     => $card['date'],
+				'comments' => 0,
+			);
+			if ( count( $posts ) >= $limit ) {
+				return $posts;
+			}
+		}
+		if ( ! empty( $posts ) ) {
+			return $posts;
+		}
+	}
+
 	$query = new WP_Query(
 		array(
 			'post_type'      => 'post',
 			'posts_per_page' => $limit,
 			'post_status'    => 'publish',
-			'post__not_in'   => $exclude_id ? array( $exclude_id ) : array(),
+			'post__not_in'   => ( is_numeric( $exclude_id ) && $exclude_id ) ? array( absint( $exclude_id ) ) : array(),
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 		)
 	);
-
-	$posts = array();
 
 	if ( $query->have_posts() ) {
 		while ( $query->have_posts() ) {
@@ -848,7 +1031,7 @@ function elite_shipping_get_recent_blog_posts( $exclude_id = 0, $limit = 3 ) {
 	}
 
 	if ( empty( $posts ) ) {
-		$exclude_slug = $exclude_id ? get_post_field( 'post_name', $exclude_id ) : '';
+		$exclude_slug = ( is_numeric( $exclude_id ) && $exclude_id ) ? get_post_field( 'post_name', $exclude_id ) : '';
 		foreach ( elite_shipping_get_default_blog_posts() as $post ) {
 			if ( $exclude_slug && false !== strpos( $post['url'], '/' . $exclude_slug . '/' ) ) {
 				continue;
