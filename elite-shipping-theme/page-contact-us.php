@@ -9,12 +9,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$urls     = elite_shipping_get_urls();
-$contact  = elite_shipping_get_contact_details();
-$media    = static function ( $path ) {
-	return elite_shipping_migrate_media_url( 'https://firstchoiceshippingcontainers.com/wp-content/uploads/' . ltrim( $path, '/' ) );
-};
-$hero_img = $media( '2025/07/510631176_23998021113198545_7887283231137689143_n.jpg' );
+$urls    = elite_shipping_get_urls();
+$contact = elite_shipping_get_contact_details();
+
+$hero_kicker = get_theme_mod( 'elite_contact_page_kicker', 'CONTACT US' );
+$hero_title  = get_theme_mod( 'elite_contact_page_title', 'Get In Touch' );
+$hero_desc   = get_theme_mod( 'elite_contact_page_desc', 'Speak with our team about container quotes, delivery, modifications, and support — we are here to help across the UK.' );
+$hero_fallback = elite_shipping_migrate_media_url( 'https://firstchoiceshippingcontainers.com/wp-content/uploads/2025/07/510631176_23998021113198545_7887283231137689143_n.jpg' );
+$hero_img      = elite_shipping_get_theme_mod_image_url( 'elite_contact_hero_image', $hero_fallback );
+
+$info_heading = get_theme_mod( 'elite_contact_info_heading', 'Get in touch' );
+$info_intro   = get_theme_mod( 'elite_contact_info_intro', 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK.' );
+$form_kicker  = get_theme_mod( 'elite_contact_form_kicker', 'INFORMATION ABOUT US' );
+$form_title   = get_theme_mod( 'elite_contact_form_title', 'Contact Us For Any Questions' );
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -30,9 +37,9 @@ $hero_img = $media( '2025/07/510631176_23998021113198545_7887283231137689143_n.j
 <main class="apex-contact-page">
 	<section class="apex-page-hero apex-page-hero--contact" style="background-image: linear-gradient(rgba(0, 18, 40, 0.72), rgba(0, 18, 40, 0.72)), url('<?php echo esc_url( $hero_img ); ?>');">
 		<div class="elite-container">
-			<span class="apex-kicker">CONTACT US</span>
-			<h1 class="apex-page-hero-title">Get In Touch</h1>
-			<p class="apex-page-hero-desc">Speak with our team about container quotes, delivery, modifications, and support — we are here to help across the UK.</p>
+			<span class="apex-kicker"><?php echo esc_html( $hero_kicker ); ?></span>
+			<h1 class="apex-page-hero-title"><?php echo esc_html( $hero_title ); ?></h1>
+			<p class="apex-page-hero-desc"><?php echo wp_kses_post( $hero_desc ); ?></p>
 		</div>
 	</section>
 
@@ -40,14 +47,14 @@ $hero_img = $media( '2025/07/510631176_23998021113198545_7887283231137689143_n.j
 		<div class="elite-container apex-contact-grid">
 			<div class="apex-contact-info">
 				<div class="apex-contact-block">
-					<h2 class="apex-contact-heading">Get in touch</h2>
+					<h2 class="apex-contact-heading"><?php echo esc_html( $info_heading ); ?></h2>
 					<div class="apex-contact-copy">
 						<p>
 							<?php
-							printf(
-								/* translators: %s: company name */
-								esc_html__( 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK.', 'elite-shipping' ),
-								esc_html( $contact['company_name'] )
+							echo esc_html(
+								false !== strpos( $info_intro, '%s' )
+									? sprintf( $info_intro, $contact['company_name'] )
+									: $info_intro
 							);
 							?>
 						</p>
@@ -86,8 +93,8 @@ $hero_img = $media( '2025/07/510631176_23998021113198545_7887283231137689143_n.j
 			</div>
 
 			<div class="apex-contact-form-wrap">
-				<span class="apex-kicker">INFORMATION ABOUT US</span>
-				<h2 class="apex-contact-form-title">Contact Us For Any Questions</h2>
+				<span class="apex-kicker"><?php echo esc_html( $form_kicker ); ?></span>
+				<h2 class="apex-contact-form-title"><?php echo esc_html( $form_title ); ?></h2>
 				<div class="apex-contact-form">
 					<?php elite_shipping_render_contact_form(); ?>
 				</div>

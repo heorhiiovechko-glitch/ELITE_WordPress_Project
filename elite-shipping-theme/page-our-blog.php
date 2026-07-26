@@ -10,7 +10,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $posts    = elite_shipping_get_blog_posts();
-$hero_img = elite_shipping_get_blog_image_url( 'blog_1.webp' );
+$hero_img = elite_shipping_get_theme_mod_image_url(
+	'elite_blog_hero_image',
+	elite_shipping_get_blog_image_url( 'blog_1.webp' )
+);
+$hero_kicker = get_theme_mod( 'elite_blog_kicker', 'OUR BLOG' );
+$hero_title  = get_theme_mod( 'elite_blog_title', 'Our Blog' );
+$hero_desc   = get_theme_mod(
+	'elite_blog_desc',
+	'Expert guides, market insights, and practical advice on buying, using, and modifying shipping containers across the UK.'
+);
 ?><!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -29,9 +38,9 @@ $hero_img = elite_shipping_get_blog_image_url( 'blog_1.webp' );
 		'template-parts/page',
 		'hero-bar',
 		array(
-			'kicker'   => 'OUR BLOG',
-			'title'    => 'Our Blog',
-			'desc'     => 'Expert guides, market insights, and practical advice on buying, using, and modifying shipping containers across the UK.',
+			'kicker'   => $hero_kicker,
+			'title'    => $hero_title,
+			'desc'     => $hero_desc,
 			'image'    => $hero_img,
 			'modifier' => 'apex-page-hero--blog',
 		)

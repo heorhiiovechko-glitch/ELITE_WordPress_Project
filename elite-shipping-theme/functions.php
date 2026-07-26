@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.16' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.21' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -69,9 +69,17 @@ $elite_customizer_mods = ELITE_SHIPPING_DIR . '/inc/customizer-mods-control.php'
 if ( file_exists( $elite_customizer_mods ) ) {
 	require_once $elite_customizer_mods;
 }
+$elite_customizer_hero_slides = ELITE_SHIPPING_DIR . '/inc/customizer-hero-slides-control.php';
+if ( file_exists( $elite_customizer_hero_slides ) ) {
+	require_once $elite_customizer_hero_slides;
+}
 $elite_customizer = ELITE_SHIPPING_DIR . '/inc/customizer.php';
 if ( file_exists( $elite_customizer ) ) {
 	require_once $elite_customizer;
+}
+$elite_customizer_pages = ELITE_SHIPPING_DIR . '/inc/customizer-pages.php';
+if ( file_exists( $elite_customizer_pages ) ) {
+	require_once $elite_customizer_pages;
 }
 if ( ! function_exists( 'elite_render_product_grid' ) ) {
 	// Fallback if inc file missing on server — prevents fatal error.
@@ -879,22 +887,32 @@ function elite_shipping_get_recent_blog_posts( $exclude_id = 0, $limit = 3 ) {
  * }
  */
 function elite_shipping_get_contact_details() {
-	$address   = ELITE_CONTACT_ADDRESS;
+	$address = get_theme_mod( 'elite_contact_address', ELITE_CONTACT_ADDRESS );
+	$phone   = get_theme_mod( 'elite_contact_phone', ELITE_CONTACT_PHONE );
+	$email   = get_theme_mod( 'elite_contact_email', ELITE_CONTACT_EMAIL );
+	$website = get_theme_mod( 'elite_contact_website', 'eliteshippingcontainers.co.uk' );
+	$web_url = get_theme_mod( 'elite_contact_website_url', ELITE_SITE_URL );
+	$company = get_theme_mod( 'elite_contact_company_name', ELITE_COMPANY_NAME );
+
 	$map_query = rawurlencode( $address );
-	$phone     = ELITE_CONTACT_PHONE;
+	$digits    = preg_replace( '/\D+/', '', $phone );
+	$map_embed = get_theme_mod( 'elite_contact_map_embed', '' );
+	if ( ! $map_embed ) {
+		$map_embed = 'https://maps.google.com/maps?q=' . $map_query . '&t=m&z=14&output=embed&iwloc=near';
+	}
 
 	return array(
-		'company_name'       => ELITE_COMPANY_NAME,
+		'company_name'       => $company,
 		'company_legal_name' => ELITE_COMPANY_LEGAL_NAME,
-		'website'            => 'eliteshippingcontainers.co.uk',
-		'website_url'        => ELITE_SITE_URL,
+		'website'            => $website,
+		'website_url'        => $web_url,
 		'phone'              => $phone,
-		'phone_href'         => 'tel:+447462284270',
+		'phone_href'         => 'tel:+' . ltrim( (string) $digits, '+' ),
 		'whatsapp_href'      => elite_shipping_get_whatsapp_href( $phone ),
-		'email'              => ELITE_CONTACT_EMAIL,
+		'email'              => $email,
 		'address'            => $address,
 		'address_url'        => 'https://www.google.com/maps/search/?api=1&query=' . $map_query,
-		'map_embed'          => 'https://maps.google.com/maps?q=' . $map_query . '&t=m&z=14&output=embed&iwloc=near',
+		'map_embed'          => $map_embed,
 	);
 }
 
@@ -1535,13 +1553,28 @@ function elite_shipping_get_top_rated_products( $limit = 3 ) {
  * @return string[]
  */
 function elite_shipping_get_hero_slides() {
-	$base = ELITE_SHIPPING_URI . '/assets/images/';
-	return array(
+	$base     = ELITE_SHIPPING_URI . '/assets/images/';
+	$fallback = array(
 		$base . 'image_a.jpg',
 		$base . 'image_b.jpg',
 		$base . 'image_c.jpg',
 		$base . 'image_d.jpg',
 	);
+	$slides   = array();
+
+	if ( function_exists( 'elite_shipping_get_hero_slide_attachment_ids' ) ) {
+		foreach ( elite_shipping_get_hero_slide_attachment_ids() as $attachment_id ) {
+			$url = wp_get_attachment_image_url( $attachment_id, 'full' );
+			if ( ! $url ) {
+				$url = wp_get_attachment_image_url( $attachment_id, 'large' );
+			}
+			if ( $url ) {
+				$slides[] = $url;
+			}
+		}
+	}
+
+	return ! empty( $slides ) ? $slides : $fallback;
 }
 
 function elite_shipping_logo_url() {

@@ -15,14 +15,14 @@ $recent_posts = elite_shipping_get_recent_blog_posts( $exclude_id, 3 );
 ?>
 <aside class="apex-blog-sidebar">
 	<div class="apex-blog-sidebar-block">
-		<h2 class="apex-blog-sidebar-title"><?php esc_html_e( 'Categories', 'elite-shipping' ); ?></h2>
+		<h2 class="apex-blog-sidebar-title"><?php echo esc_html( get_theme_mod( 'elite_blog_sidebar_categories_title', __( 'Categories', 'elite-shipping' ) ) ); ?></h2>
 		<ul class="apex-blog-sidebar-list">
-			<li><a href="<?php echo esc_url( $urls['blog'] ); ?>"><?php esc_html_e( 'Blog', 'elite-shipping' ); ?></a></li>
+			<li><a href="<?php echo esc_url( $urls['blog'] ); ?>"><?php echo esc_html( get_theme_mod( 'elite_blog_card_cat', __( 'Blog', 'elite-shipping' ) ) ); ?></a></li>
 		</ul>
 	</div>
 
 	<div class="apex-blog-sidebar-block">
-		<h2 class="apex-blog-sidebar-title"><?php esc_html_e( 'Recent Posts', 'elite-shipping' ); ?></h2>
+		<h2 class="apex-blog-sidebar-title"><?php echo esc_html( get_theme_mod( 'elite_blog_sidebar_recent_title', __( 'Recent Posts', 'elite-shipping' ) ) ); ?></h2>
 		<ul class="apex-blog-sidebar-recent">
 			<?php foreach ( $recent_posts as $recent ) : ?>
 				<li class="apex-blog-sidebar-recent-item">

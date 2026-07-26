@@ -29,15 +29,22 @@ $urls = elite_shipping_get_urls();
 			the_post();
 
 			$thumb = elite_shipping_get_blog_post_image( get_the_ID() );
+			$single_kicker = get_theme_mod( 'elite_blog_single_kicker', 'OUR BLOG' );
+			$single_title  = get_theme_mod( 'elite_blog_single_title', 'Our Blog' );
+			$single_desc   = get_theme_mod(
+				'elite_blog_single_desc',
+				'Expert guides, market insights, and practical advice on buying, using, and modifying shipping containers across the UK.'
+			);
+			$single_cat    = get_theme_mod( 'elite_blog_single_cat', __( 'Blog', 'elite-shipping' ) );
 			?>
 			<?php
 			get_template_part(
 				'template-parts/page',
 				'hero-bar',
 				array(
-					'kicker'   => 'OUR BLOG',
-					'title'    => 'Our Blog',
-					'desc'     => 'Expert guides, market insights, and practical advice on buying, using, and modifying shipping containers across the UK.',
+					'kicker'   => $single_kicker,
+					'title'    => $single_title,
+					'desc'     => $single_desc,
 					'image'    => $thumb,
 					'modifier' => 'apex-page-hero--blog',
 				)
@@ -47,7 +54,7 @@ $urls = elite_shipping_get_urls();
 				<div class="elite-container apex-blog-single-layout">
 					<article class="apex-blog-single-main">
 						<header class="apex-blog-single-head">
-							<a class="apex-blog-single-cat" href="<?php echo esc_url( $urls['blog'] ); ?>"><?php esc_html_e( 'Blog', 'elite-shipping' ); ?></a>
+							<a class="apex-blog-single-cat" href="<?php echo esc_url( $urls['blog'] ); ?>"><?php echo esc_html( $single_cat ); ?></a>
 							<h1 class="apex-blog-single-title"><?php the_title(); ?></h1>
 							<div class="apex-blog-single-meta">
 								<span class="apex-blog-single-meta-item">

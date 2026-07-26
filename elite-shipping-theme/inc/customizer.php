@@ -216,11 +216,176 @@ function elite_shipping_customize_register( $wp_customize ) {
 
 	$product_choices = elite_shipping_get_product_customizer_choices();
 
-	/* Top Picks for You */
+	/* Paragraph 1 — Hero */
+	$wp_customize->add_section(
+		'elite_home_hero',
+		array(
+			'title'       => __( 'Paragraph 1', 'elite-shipping' ),
+			'description' => __( 'Homepage hero: headline, CTAs, stats, trust bar, and background slides.', 'elite-shipping' ),
+			'panel'       => 'elite_home',
+			'priority'    => 5,
+		)
+	);
+
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_eyebrow',
+		array(
+			'label'   => __( 'Eyebrow', 'elite-shipping' ),
+			'section' => 'elite_home_hero',
+			'default' => 'RELIABLE SHIPPING CONTAINERS FOR EVERY INDUSTRY — DELIVERED ACROSS THE UK',
+		)
+	);
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_title_white',
+		array(
+			'label'   => __( 'Heading line 1 (white)', 'elite-shipping' ),
+			'section' => 'elite_home_hero',
+			'default' => 'PREMIUM SHIPPING CONTAINERS',
+		)
+	);
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_title_orange',
+		array(
+			'label'   => __( 'Heading line 2 (orange)', 'elite-shipping' ),
+			'section' => 'elite_home_hero',
+			'default' => 'BUILT FOR EVERY NEED',
+		)
+	);
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_desc',
+		array(
+			'label'    => __( 'Description', 'elite-shipping' ),
+			'section'  => 'elite_home_hero',
+			'type'     => 'textarea',
+			'default'  => 'Elite Shipping Containers Ltd provides durable, secure, and affordable shipping containers nationwide. Whether you need storage, transport, or a custom-built solution — we deliver quality you can trust.',
+			'sanitize' => 'wp_kses_post',
+		)
+	);
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_btn_primary_text',
+		array(
+			'label'   => __( 'Primary button text', 'elite-shipping' ),
+			'section' => 'elite_home_hero',
+			'default' => 'SHOP CONTAINERS',
+		)
+	);
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_btn_primary_url',
+		array(
+			'label'    => __( 'Primary button URL', 'elite-shipping' ),
+			'section'  => 'elite_home_hero',
+			'default'  => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/shop/' ),
+			'sanitize' => 'esc_url_raw',
+		)
+	);
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_btn_secondary_text',
+		array(
+			'label'   => __( 'Secondary button text', 'elite-shipping' ),
+			'section' => 'elite_home_hero',
+			'default' => 'EXPLORE SOLUTIONS',
+		)
+	);
+	elite_shipping_add_text_setting(
+		$wp_customize,
+		'elite_hero_btn_secondary_url',
+		array(
+			'label'    => __( 'Secondary button URL', 'elite-shipping' ),
+			'section'  => 'elite_home_hero',
+			'default'  => home_url( '/get-a-quote/' ),
+			'sanitize' => 'esc_url_raw',
+		)
+	);
+
+	$hero_stat_defaults = array(
+		1 => array( '20+', 'Years of Experience' ),
+		2 => array( '50K+', 'Containers Delivered' ),
+		3 => array( '100+', 'UK Locations Served' ),
+	);
+	foreach ( $hero_stat_defaults as $i => $defaults ) {
+		elite_shipping_add_text_setting(
+			$wp_customize,
+			'elite_hero_stat_' . $i . '_value',
+			array(
+				'label'   => sprintf( __( 'Stat %d value', 'elite-shipping' ), $i ),
+				'section' => 'elite_home_hero',
+				'default' => $defaults[0],
+			)
+		);
+		elite_shipping_add_text_setting(
+			$wp_customize,
+			'elite_hero_stat_' . $i . '_label',
+			array(
+				'label'   => sprintf( __( 'Stat %d label', 'elite-shipping' ), $i ),
+				'section' => 'elite_home_hero',
+				'default' => $defaults[1],
+			)
+		);
+	}
+
+	$hero_trust_defaults = array(
+		1 => array( 'ISO-Certified Quality', 'Built to international standards' ),
+		2 => array( 'UK Nationwide Delivery', 'Fast & reliable shipping' ),
+		3 => array( 'Custom Solutions', 'Tailored to your requirements' ),
+		4 => array( '24/7 Support', "We're here to help" ),
+	);
+	foreach ( $hero_trust_defaults as $i => $defaults ) {
+		elite_shipping_add_text_setting(
+			$wp_customize,
+			'elite_hero_trust_' . $i . '_title',
+			array(
+				'label'   => sprintf( __( 'Trust item %d title', 'elite-shipping' ), $i ),
+				'section' => 'elite_home_hero',
+				'default' => $defaults[0],
+			)
+		);
+		elite_shipping_add_text_setting(
+			$wp_customize,
+			'elite_hero_trust_' . $i . '_text',
+			array(
+				'label'   => sprintf( __( 'Trust item %d subtitle', 'elite-shipping' ), $i ),
+				'section' => 'elite_home_hero',
+				'default' => $defaults[1],
+			)
+		);
+	}
+
+	if ( class_exists( 'Elite_Hero_Slides_List_Control' ) ) {
+		$wp_customize->add_setting(
+			'elite_hero_slides_list',
+			array(
+				'default'           => '[]',
+				'sanitize_callback' => 'elite_shipping_sanitize_hero_slides_list',
+				'transport'         => 'refresh',
+			)
+		);
+
+		$wp_customize->add_control(
+			new Elite_Hero_Slides_List_Control(
+				$wp_customize,
+				'elite_hero_slides_list',
+				array(
+					'label'       => __( 'Background list', 'elite-shipping' ),
+					'description' => __( 'Add unlimited hero background slides. Use the image button to select a photo, or trash to remove.', 'elite-shipping' ),
+					'section'     => 'elite_home_hero',
+					'priority'    => 90,
+				)
+			)
+		);
+	}
+
+	/* Paragraph 2 — Top Picks */
 	$wp_customize->add_section(
 		'elite_home_top_picks',
 		array(
-			'title'       => __( 'Top Picks for You', 'elite-shipping' ),
+			'title'       => __( 'Paragraph 2', 'elite-shipping' ),
 			'description' => __( 'Build the homepage display list. Click Add to insert a category row, then choose a category. Only items in this list appear on the homepage, in order.', 'elite-shipping' ),
 			'panel'       => 'elite_home',
 			'priority'    => 10,
@@ -301,11 +466,11 @@ function elite_shipping_customize_register( $wp_customize ) {
 		);
 	}
 
-	/* Your Trusted Container Partner */
+	/* Paragraph 3 — About */
 	$wp_customize->add_section(
 		'elite_home_about',
 		array(
-			'title'       => __( 'Your Trusted Container Partner', 'elite-shipping' ),
+			'title'       => __( 'Paragraph 3', 'elite-shipping' ),
 			'description' => __( 'About section text and gallery images.', 'elite-shipping' ),
 			'panel'       => 'elite_home',
 			'priority'    => 20,
@@ -390,11 +555,11 @@ function elite_shipping_customize_register( $wp_customize ) {
 		);
 	}
 
-	/* Built to Suit Your Needs */
+	/* Paragraph 4 — Modifications */
 	$wp_customize->add_section(
 		'elite_home_mods',
 		array(
-			'title'       => __( 'Built to Suit Your Needs', 'elite-shipping' ),
+			'title'       => __( 'Paragraph 4', 'elite-shipping' ),
 			'description' => __( 'Build the modifications carousel display list. Click Add for each card, enter a title, and select an image.', 'elite-shipping' ),
 			'panel'       => 'elite_home',
 			'priority'    => 30,
@@ -444,11 +609,11 @@ function elite_shipping_customize_register( $wp_customize ) {
 		);
 	}
 
-	/* Essential Add-Ons */
+	/* Paragraph 5 — Add-Ons */
 	$wp_customize->add_section(
 		'elite_home_addons',
 		array(
-			'title'       => __( 'Essential Add-Ons', 'elite-shipping' ),
+			'title'       => __( 'Paragraph 5', 'elite-shipping' ),
 			'description' => __( 'Choose up to 3 WooCommerce products. Leave on Automatic to use default accessory cards.', 'elite-shipping' ),
 			'panel'       => 'elite_home',
 			'priority'    => 40,
@@ -504,11 +669,11 @@ function elite_shipping_customize_register( $wp_customize ) {
 		);
 	}
 
-	/* Popular Products */
+	/* Paragraph 6 — Popular Products */
 	$wp_customize->add_section(
 		'elite_home_popular',
 		array(
-			'title'       => __( 'Popular Products', 'elite-shipping' ),
+			'title'       => __( 'Paragraph 6', 'elite-shipping' ),
 			'description' => __( 'Choose up to 5 WooCommerce products. Leave on Automatic to show the 5 most recent products.', 'elite-shipping' ),
 			'panel'       => 'elite_home',
 			'priority'    => 50,
@@ -685,27 +850,41 @@ function elite_shipping_customize_controls_enqueue_scripts() {
 		);
 	}
 
+	$hero_slides_script = ELITE_SHIPPING_DIR . '/assets/js/customizer-hero-slides.js';
+	if ( file_exists( $hero_slides_script ) ) {
+		wp_enqueue_script(
+			'elite-hero-slides-customizer',
+			ELITE_SHIPPING_URI . '/assets/js/customizer-hero-slides.js',
+			array( 'jquery', 'customize-controls', 'media-editor' ),
+			(string) filemtime( $hero_slides_script ),
+			true
+		);
+	}
+
 	wp_add_inline_style(
 		'customize-controls',
-		'.elite-top-picks-list-control__head,.elite-mods-list-control__head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}'
-		. '.elite-top-picks-list-control__head .customize-control-title,.elite-mods-list-control__head .customize-control-title{margin:0;}'
-		. '.elite-top-picks-list-items,.elite-mods-list-items{margin:10px 0 0;padding:0;list-style:none;}'
-		. '.elite-top-picks-list-items__empty,.elite-mods-list-items__empty{margin:0;padding:12px 14px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;color:#646970;font-style:italic;font-size:13px;line-height:1.45;}'
+		'.elite-top-picks-list-control__head,.elite-mods-list-control__head,.elite-hero-slides-list-control__head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}'
+		. '.elite-top-picks-list-control__head .customize-control-title,.elite-mods-list-control__head .customize-control-title,.elite-hero-slides-list-control__head .customize-control-title{margin:0;}'
+		. '.elite-hero-slides-add{display:inline-flex;align-items:center;justify-content:center;min-width:36px;padding:0 8px;height:30px;line-height:1;}'
+		. '.elite-hero-slides-add .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
+		. '.elite-top-picks-list-items,.elite-mods-list-items,.elite-hero-slides-list-items{margin:10px 0 0;padding:0;list-style:none;}'
+		. '.elite-top-picks-list-items__empty,.elite-mods-list-items__empty,.elite-hero-slides-list-items__empty{margin:0;padding:12px 14px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;color:#646970;font-style:italic;font-size:13px;line-height:1.45;}'
 		. '.elite-top-picks-list-item{display:flex;align-items:center;gap:10px;margin:0 0 8px;padding:10px 12px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;}'
 		. '.elite-top-picks-list-item__num,.elite-mods-list-item__num{flex:0 0 auto;min-width:1.4em;font-weight:700;color:#1d2327;}'
 		. '.elite-top-picks-list-item__select{flex:1 1 auto;min-width:0;max-width:none;}'
 		. '.elite-top-picks-remove{flex:0 0 auto;margin-left:auto;color:#b32d2e;text-decoration:none;}'
 		. '.elite-top-picks-remove:hover{color:#8a2424;}'
-		. '.elite-mods-list-item{display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:10px 12px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;}'
+		. '.elite-mods-list-item,.elite-hero-slides-list-item{display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:10px 12px;background:#f6f7f7;border:1px solid #dcdcde;border-radius:4px;}'
+		. '.elite-hero-slides-list-item__num{flex:1 1 auto;min-width:0;font-weight:700;color:#1d2327;}'
 		. '.elite-mods-list-item__title{flex:1 1 auto;min-width:0;margin:0;max-width:none;}'
-		. '.elite-mods-list-item__actions{display:flex;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto;}'
-		. '.elite-mods-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:1px solid #c3c4c7;border-radius:4px;background:#fff;color:#1d2327;cursor:pointer;box-shadow:none;}'
-		. '.elite-mods-icon-btn .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
-		. '.elite-mods-icon-btn:hover,.elite-mods-icon-btn:focus{background:#f0f0f1;border-color:#8c8f94;color:#1d2327;}'
-		. '.elite-mods-icon-btn--remove{color:#b32d2e;border-color:#dba4a4;}'
-		. '.elite-mods-icon-btn--remove:hover,.elite-mods-icon-btn--remove:focus{color:#8a2424;background:#fcf0f1;border-color:#b32d2e;}'
-		. '.elite-mods-select-image.has-image{background-size:cover;background-position:center;background-repeat:no-repeat;}'
-		. '.elite-mods-select-image.has-image .dashicons{opacity:0;}'
+		. '.elite-mods-list-item__actions,.elite-hero-slides-list-item__actions{display:flex;align-items:center;gap:6px;flex:0 0 auto;margin-left:auto;}'
+		. '.elite-mods-icon-btn,.elite-hero-slides-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:1px solid #c3c4c7;border-radius:4px;background:#fff;color:#1d2327;cursor:pointer;box-shadow:none;}'
+		. '.elite-mods-icon-btn .dashicons,.elite-hero-slides-icon-btn .dashicons{width:18px;height:18px;font-size:18px;line-height:1;}'
+		. '.elite-mods-icon-btn:hover,.elite-mods-icon-btn:focus,.elite-hero-slides-icon-btn:hover,.elite-hero-slides-icon-btn:focus{background:#f0f0f1;border-color:#8c8f94;color:#1d2327;}'
+		. '.elite-mods-icon-btn--remove,.elite-hero-slides-icon-btn--remove{color:#b32d2e;border-color:#dba4a4;}'
+		. '.elite-mods-icon-btn--remove:hover,.elite-mods-icon-btn--remove:focus,.elite-hero-slides-icon-btn--remove:hover,.elite-hero-slides-icon-btn--remove:focus{color:#8a2424;background:#fcf0f1;border-color:#b32d2e;}'
+		. '.elite-mods-select-image.has-image,.elite-hero-slides-select-image.has-image{background-size:cover;background-position:center;background-repeat:no-repeat;}'
+		. '.elite-mods-select-image.has-image .dashicons,.elite-hero-slides-select-image.has-image .dashicons{opacity:0;}'
 	);
 }
 add_action( 'customize_controls_enqueue_scripts', 'elite_shipping_customize_controls_enqueue_scripts' );
