@@ -27,6 +27,10 @@ if ( $slider_min > $slider_max ) {
 $currency_symbol = function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : '£';
 $categories      = elite_shipping_get_shop_sidebar_categories();
 $top_rated       = elite_shipping_get_top_rated_products( 3 );
+$is_on_sale      = isset( $_GET['onsale'] ) && '1' === (string) wp_unslash( $_GET['onsale'] );
+$is_in_stock     = isset( $_GET['stock_status'] ) && 'instock' === (string) wp_unslash( $_GET['stock_status'] );
+$onsale_url      = $is_on_sale ? remove_query_arg( 'onsale' ) : add_query_arg( 'onsale', '1' );
+$instock_url     = $is_in_stock ? remove_query_arg( 'stock_status' ) : add_query_arg( 'stock_status', 'instock' );
 ?>
 <aside class="apex-shop-sidebar" id="apex-shop-sidebar">
 	<div class="apex-shop-filters-drawer-head">
@@ -97,24 +101,70 @@ $top_rated       = elite_shipping_get_top_rated_products( 3 );
 
 	<div class="apex-shop-sidebar-block apex-shop-sidebar-block--stock">
 		<h2 class="apex-shop-sidebar-title"><?php esc_html_e( 'Stock Status', 'elite-shipping' ); ?></h2>
-		<ul class="apex-shop-sidebar-list apex-shop-sidebar-list--stock">
-			<li><a href="<?php echo esc_url( add_query_arg( 'onsale', '1' ) ); ?>"><?php esc_html_e( 'On sale', 'elite-shipping' ); ?></a></li>
-			<li><a href="<?php echo esc_url( add_query_arg( 'stock_status', 'instock' ) ); ?>"><?php esc_html_e( 'In stock', 'elite-shipping' ); ?></a></li>
+		<ul class="apex-shop-stock-list">
+			<li>
+				<a
+					class="apex-shop-stock-option<?php echo $is_on_sale ? ' is-active' : ''; ?>"
+					href="<?php echo esc_url( $onsale_url ); ?>"
+					<?php echo $is_on_sale ? ' aria-current="true"' : ''; ?>
+				>
+					<span class="apex-shop-stock-option-icon apex-shop-stock-option-icon--sale" aria-hidden="true">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none"/></svg>
+					</span>
+					<span class="apex-shop-stock-option-copy">
+						<span class="apex-shop-stock-option-label"><?php esc_html_e( 'On sale', 'elite-shipping' ); ?></span>
+						<span class="apex-shop-stock-option-desc"><?php esc_html_e( 'Special offers', 'elite-shipping' ); ?></span>
+					</span>
+					<span class="apex-shop-stock-option-check" aria-hidden="true">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+					</span>
+				</a>
+			</li>
+			<li>
+				<a
+					class="apex-shop-stock-option<?php echo $is_in_stock ? ' is-active' : ''; ?>"
+					href="<?php echo esc_url( $instock_url ); ?>"
+					<?php echo $is_in_stock ? ' aria-current="true"' : ''; ?>
+				>
+					<span class="apex-shop-stock-option-icon apex-shop-stock-option-icon--stock" aria-hidden="true">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+					</span>
+					<span class="apex-shop-stock-option-copy">
+						<span class="apex-shop-stock-option-label"><?php esc_html_e( 'In stock', 'elite-shipping' ); ?></span>
+						<span class="apex-shop-stock-option-desc"><?php esc_html_e( 'Ready to ship', 'elite-shipping' ); ?></span>
+					</span>
+					<span class="apex-shop-stock-option-check" aria-hidden="true">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
+					</span>
+				</a>
+			</li>
 		</ul>
 	</div>
 
-	<div class="apex-shop-sidebar-block">
+	<div class="apex-shop-sidebar-block apex-shop-sidebar-block--categories">
 		<h2 class="apex-shop-sidebar-title"><?php esc_html_e( 'Product Categories', 'elite-shipping' ); ?></h2>
-		<ul class="apex-shop-sidebar-list apex-shop-sidebar-cats">
-			<?php foreach ( $categories as $category ) : ?>
-				<?php $is_current = $current_slug && $current_slug === $category['slug']; ?>
-				<li>
-					<a class="<?php echo $is_current ? 'is-current' : ''; ?>" href="<?php echo esc_url( $category['url'] ); ?>">
-						<?php echo esc_html( $category['name'] ); ?>
-					</a>
-				</li>
-			<?php endforeach; ?>
-		</ul>
+		<div class="apex-shop-category-panel">
+			<ul class="apex-shop-category-list">
+				<?php foreach ( $categories as $category ) : ?>
+					<?php $is_current = $current_slug && $current_slug === $category['slug']; ?>
+					<li>
+						<a
+							class="apex-shop-category-link<?php echo $is_current ? ' is-current' : ''; ?>"
+							href="<?php echo esc_url( $category['url'] ); ?>"
+							<?php echo $is_current ? ' aria-current="page"' : ''; ?>
+						>
+							<span class="apex-shop-category-label"><?php echo esc_html( $category['name'] ); ?></span>
+							<?php if ( ! empty( $category['count'] ) ) : ?>
+								<span class="apex-shop-category-count"><?php echo esc_html( (string) $category['count'] ); ?></span>
+							<?php endif; ?>
+							<span class="apex-shop-category-chevron" aria-hidden="true">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+							</span>
+						</a>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
 	</div>
 
 	<?php if ( ! empty( $top_rated ) ) : ?>

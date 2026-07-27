@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.27' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.54' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -1100,6 +1100,74 @@ function elite_shipping_get_contact_details() {
 }
 
 /**
+ * Default Contact page intro copy.
+ *
+ * @return string
+ */
+function elite_shipping_get_contact_info_intro_default() {
+	return __( 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK. You can also speak with us anytime using the live chat widget on this page.', 'elite-shipping' );
+}
+
+/**
+ * Format Contact page intro, replacing %s and stripping accidental theme-path URLs.
+ *
+ * @param string $intro   Raw intro from theme_mod.
+ * @param string $company Company display name.
+ * @return string
+ */
+function elite_shipping_format_contact_info_intro( $intro, $company = '' ) {
+	$company = trim( (string) $company );
+	if ( '' === $company ) {
+		$company = ELITE_COMPANY_NAME;
+	}
+
+	$intro = trim( (string) $intro );
+	if ( '' === $intro ) {
+		$intro = elite_shipping_get_contact_info_intro_default();
+	}
+
+	// Remove accidental theme directory URLs / paths from saved Customizer text.
+	$intro = preg_replace(
+		'#https?://[^\s]+/wp-content/themes/[^\s]+#i',
+		$company,
+		$intro
+	);
+	$intro = preg_replace(
+		'#/wp-content/themes/[^\s]+#i',
+		$company,
+		$intro
+	);
+
+	if ( false !== strpos( $intro, '%s' ) ) {
+		$intro = sprintf( $intro, $company );
+	}
+
+	// Collapse leftover double spaces after replacements.
+	$intro = preg_replace( '/\s{2,}/', ' ', $intro );
+
+	return trim( (string) $intro );
+}
+
+/**
+ * Repair a corrupted Contact intro theme_mod once (theme path saved as company).
+ */
+function elite_shipping_repair_contact_info_intro_theme_mod() {
+	$stored = get_theme_mod( 'elite_contact_info_intro', null );
+	if ( null === $stored || '' === $stored ) {
+		return;
+	}
+
+	if ( false === stripos( (string) $stored, '/wp-content/themes/' ) ) {
+		return;
+	}
+
+	$company = get_theme_mod( 'elite_contact_company_name', ELITE_COMPANY_NAME );
+	$fixed   = elite_shipping_format_contact_info_intro( $stored, $company );
+	set_theme_mod( 'elite_contact_info_intro', $fixed );
+}
+add_action( 'init', 'elite_shipping_repair_contact_info_intro_theme_mod', 30 );
+
+/**
  * Build a WhatsApp chat link from a phone number.
  *
  * @param string $phone   E.164-style phone number.
@@ -1126,20 +1194,99 @@ function elite_shipping_get_whatsapp_href( $phone = '', $message = '' ) {
 }
 
 /**
- * Container type options for the contact form.
+ * Container type options for the contact form (WooCommerce product categories).
  *
  * @return string[]
  */
 function elite_shipping_get_contact_container_types() {
-	return array(
-		'20ft Shipping Container',
-		'40ft High Cube Container',
-		'Office / Workshop Container',
-		'Used Container',
-		'Refrigerated Container',
-		'Custom Modified Unit',
-	);
+	$types = array();
+
+	if ( taxonomy_exists( 'product_cat' ) ) {
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => false,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			)
+		);
+
+		if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+			foreach ( $terms as $term ) {
+				if ( ! $term instanceof WP_Term ) {
+					continue;
+				}
+				// Skip WooCommerce default uncategorized bucket.
+				if ( 'uncategorized' === $term->slug ) {
+					continue;
+				}
+				$name = trim( elite_shipping_decode_term_name( $term->name ) );
+				if ( '' !== $name ) {
+					$types[] = $name;
+				}
+			}
+		}
+	}
+
+	if ( empty( $types ) ) {
+		$types = array(
+			'20ft Shipping Container',
+			'40ft High Cube Container',
+			'Office / Workshop Container',
+			'Used Container',
+			'Refrigerated Container',
+			'Custom Modified Unit',
+		);
+	}
+
+	$types[] = __( 'Other / Not sure', 'elite-shipping' );
+
+	return array_values( array_unique( $types ) );
 }
+
+/**
+ * Fill Contact Form 7 "Container Type" selects with product categories.
+ *
+ * @param array $tag CF7 form-tag.
+ * @return array
+ */
+function elite_shipping_cf7_fill_container_categories( $tag ) {
+	if ( ! is_array( $tag ) ) {
+		return $tag;
+	}
+
+	$type = isset( $tag['type'] ) ? (string) $tag['type'] : '';
+	$name = isset( $tag['name'] ) ? (string) $tag['name'] : '';
+
+	if ( 0 !== strpos( $type, 'select' ) ) {
+		return $tag;
+	}
+
+	$known_names = array(
+		'container',
+		'container-type',
+		'container_type',
+		'your-container',
+		'menu-container',
+		'container-type*',
+	);
+
+	if ( ! in_array( $name, $known_names, true ) && false === stripos( $name, 'container' ) ) {
+		return $tag;
+	}
+
+	$types = elite_shipping_get_contact_container_types();
+	if ( empty( $types ) ) {
+		return $tag;
+	}
+
+	$tag['raw_values'] = $types;
+	$tag['values']     = $types;
+	$tag['labels']     = $types;
+
+	return $tag;
+}
+add_filter( 'wpcf7_form_tag', 'elite_shipping_cf7_fill_container_categories', 20 );
 
 /**
  * Output the Contact Us page form.
@@ -1171,12 +1318,13 @@ function elite_shipping_render_contact_form() {
 		}
 	}
 
-	$values = array(
+	$container_types = elite_shipping_get_contact_container_types();
+	$values          = array(
 		'name'         => '',
 		'email'        => '',
 		'phone'        => '',
 		'location'     => '',
-		'container'    => elite_shipping_get_contact_container_types()[0],
+		'container'    => '',
 		'quantity'     => '',
 		'delivery'     => '',
 		'requirements' => '',
@@ -1213,7 +1361,8 @@ function elite_shipping_render_contact_form() {
 		<p>
 			<label for="elite-contact-container"><?php esc_html_e( 'Container Type', 'elite-shipping' ); ?> *</label>
 			<select id="elite-contact-container" name="elite_contact_container" required>
-				<?php foreach ( elite_shipping_get_contact_container_types() as $type ) : ?>
+				<option value=""><?php esc_html_e( 'Select a category…', 'elite-shipping' ); ?></option>
+				<?php foreach ( $container_types as $type ) : ?>
 					<option value="<?php echo esc_attr( $type ); ?>" <?php selected( $values['container'], $type ); ?>><?php echo esc_html( $type ); ?></option>
 				<?php endforeach; ?>
 			</select>
@@ -1432,7 +1581,7 @@ function elite_shipping_get_footer_product_categories() {
 				$link = $shop_url;
 			}
 			$items[] = array(
-				'name' => $term->name,
+				'name' => elite_shipping_decode_term_name( $term->name ),
 				'url'  => $link,
 			);
 			continue;
@@ -1445,6 +1594,18 @@ function elite_shipping_get_footer_product_categories() {
 	}
 
 	return $items;
+}
+
+/**
+ * Decode HTML entities in term/category names (fixes &amp; → &).
+ *
+ * @param string $name Raw term name.
+ * @return string
+ */
+function elite_shipping_decode_term_name( $name ) {
+	$name = html_entity_decode( (string) $name, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	// Second pass covers double-encoded values like &amp;amp;.
+	return html_entity_decode( $name, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 }
 
 /**
@@ -1463,7 +1624,7 @@ function elite_shipping_get_nav_categories() {
 			$link = $shop_url;
 		}
 		$items[] = array(
-			'name' => $term->name,
+			'name' => elite_shipping_decode_term_name( $term->name ),
 			'url'  => $link,
 		);
 	}
@@ -1527,7 +1688,7 @@ function elite_shipping_get_containers_menu_categories() {
 				$link = $shop_url;
 			}
 			$items[] = array(
-				'name' => $term->name,
+				'name' => elite_shipping_decode_term_name( $term->name ),
 				'url'  => $link,
 				'slug' => $term->slug,
 			);
@@ -1642,9 +1803,10 @@ function elite_shipping_get_shop_sidebar_categories() {
 		}
 
 		$items[] = array(
-			'name' => $term->name,
-			'url'  => $link,
-			'slug' => $term->slug,
+			'name'  => elite_shipping_decode_term_name( $term->name ),
+			'url'   => $link,
+			'slug'  => $term->slug,
+			'count' => (int) $term->count,
 		);
 	}
 

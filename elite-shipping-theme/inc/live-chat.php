@@ -9,8 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_TAWK_PROPERTY_ID', '69e5da87d1bb301c336082a1' );
-define( 'ELITE_TAWK_WIDGET_ID', '1jmktre0m' );
+define( 'ELITE_TAWK_PROPERTY_ID', '6a661926846c4d1d49b06810' );
+define( 'ELITE_TAWK_WIDGET_ID', '1jufd4gq6' );
 
 add_action( 'wp_footer', 'elite_shipping_tawk_embed', 99 );
 

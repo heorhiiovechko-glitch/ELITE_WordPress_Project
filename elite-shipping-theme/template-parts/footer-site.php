@@ -28,12 +28,6 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 						</a>
 					</li>
 					<li>
-						<a href="mailto:<?php echo esc_attr( $contact['email'] ); ?>">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/></svg>
-							<?php echo esc_html( $contact['email'] ); ?>
-						</a>
-					</li>
-					<li>
 						<a href="<?php echo esc_url( $contact['address_url'] ); ?>" target="_blank" rel="noopener noreferrer">
 							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
 							<?php echo esc_html( $contact['address'] ); ?>
@@ -77,7 +71,6 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 			<div class="apex-footer-col">
 				<h4>SUPPORT</h4>
 				<ul>
-					<li><a href="<?php echo esc_url( $urls['account'] ); ?>">Track Order</a></li>
 					<?php if ( function_exists( 'elite_shipping_get_policy_footer_links' ) ) : ?>
 						<?php foreach ( elite_shipping_get_policy_footer_links() as $policy_link ) : ?>
 							<li><a href="<?php echo esc_url( $policy_link['url'] ); ?>"><?php echo esc_html( $policy_link['label'] ); ?></a></li>

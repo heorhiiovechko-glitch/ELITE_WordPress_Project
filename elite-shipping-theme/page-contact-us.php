@@ -19,7 +19,10 @@ $hero_fallback = elite_shipping_migrate_media_url( 'https://firstchoiceshippingc
 $hero_img      = elite_shipping_get_theme_mod_image_url( 'elite_contact_hero_image', $hero_fallback );
 
 $info_heading = get_theme_mod( 'elite_contact_info_heading', 'Get in touch' );
-$info_intro   = get_theme_mod( 'elite_contact_info_intro', 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK. You can also speak with us anytime using the live chat widget on this page.' );
+$info_intro   = elite_shipping_format_contact_info_intro(
+	get_theme_mod( 'elite_contact_info_intro', elite_shipping_get_contact_info_intro_default() ),
+	$contact['company_name']
+);
 $form_kicker  = get_theme_mod( 'elite_contact_form_kicker', 'INFORMATION ABOUT US' );
 $form_title   = get_theme_mod( 'elite_contact_form_title', 'Contact Us For Any Questions' );
 ?><!DOCTYPE html>
@@ -49,15 +52,7 @@ $form_title   = get_theme_mod( 'elite_contact_form_title', 'Contact Us For Any Q
 				<div class="apex-contact-block">
 					<h2 class="apex-contact-heading"><?php echo esc_html( $info_heading ); ?></h2>
 					<div class="apex-contact-copy">
-						<p>
-							<?php
-							echo esc_html(
-								false !== strpos( $info_intro, '%s' )
-									? sprintf( $info_intro, $contact['company_name'] )
-									: $info_intro
-							);
-							?>
-						</p>
+						<p><?php echo esc_html( $info_intro ); ?></p>
 						<p>
 							<?php esc_html_e( 'Phone:', 'elite-shipping' ); ?>
 							<a href="<?php echo esc_url( $contact['phone_href'] ); ?>"><?php echo esc_html( $contact['phone'] ); ?></a>

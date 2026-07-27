@@ -31,10 +31,6 @@ $search_url              = home_url( '/' );
 				<span class="elite-topbar-item">Fast quotes</span>
 			</div>
 			<div class="elite-topbar-links">
-				<a href="<?php echo esc_url( $urls['account'] ); ?>">
-					<svg class="elite-topbar-ico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
-					Track Order
-				</a>
 				<a href="#">
 					<svg class="elite-topbar-ico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1 7V3.5L19.5 9H15zM8 13h8v2H8v-2zm0 4h8v2H8v-2zm0-8h5v2H8V9z"/></svg>
 					Brochure
@@ -169,7 +165,15 @@ $search_url              = home_url( '/' );
 
 			<nav class="elite-mobile-nav-panel" id="elite-mobile-nav-categories" role="tabpanel" data-panel="categories" aria-label="Category links" hidden>
 				<?php foreach ( $categories as $category ) : ?>
-					<a href="<?php echo esc_url( $category['url'] ); ?>"><?php echo esc_html( strtoupper( $category['name'] ) ); ?></a>
+					<?php
+					$category_name = function_exists( 'elite_shipping_decode_term_name' )
+						? elite_shipping_decode_term_name( $category['name'] )
+						: $category['name'];
+					$category_name = function_exists( 'mb_strtoupper' )
+						? mb_strtoupper( $category_name, 'UTF-8' )
+						: strtoupper( $category_name );
+					?>
+					<a href="<?php echo esc_url( $category['url'] ); ?>"><?php echo esc_html( $category_name ); ?></a>
 				<?php endforeach; ?>
 			</nav>
 		</div>

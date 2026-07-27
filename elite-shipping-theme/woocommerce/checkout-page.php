@@ -18,7 +18,7 @@ $hero_img    = ELITE_SHIPPING_URI . '/assets/images/image_c.jpg';
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<?php wp_head(); ?>
 </head>
-<body <?php body_class( 'elite-checkout-page' ); ?>>
+<body <?php body_class( $is_thankyou ? 'elite-checkout-page elite-thankyou-page' : 'elite-checkout-page' ); ?>>
 <?php wp_body_open(); ?>
 
 <?php get_template_part( 'template-parts/header', 'site' ); ?>

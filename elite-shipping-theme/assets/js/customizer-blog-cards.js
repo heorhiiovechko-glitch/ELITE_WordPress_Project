@@ -14,6 +14,8 @@
       (extraClass ? ' ' + extraClass : '') +
       '" aria-label="' +
       label +
+      '" title="' +
+      label +
       '">' +
       '<span class="dashicons dashicons-' +
       icon +
@@ -25,60 +27,91 @@
     );
   }
 
-  function blockLabel(type) {
-    if (type === 'table') return 'Table';
-    if (type === 'list') return 'List text';
-    return 'Normal text';
+  function contentMeta(type) {
+    if (type === 'table') {
+      return { mark: '#', placeholder: 'Table content', markClass: 'table' };
+    }
+    if (type === 'list') {
+      return { mark: '•', placeholder: 'List content', markClass: 'list' };
+    }
+    return { mark: '-', placeholder: 'Small paragraph content', markClass: 'text' };
   }
 
-  function buildBlockHtml(type) {
-    var label = blockLabel(type);
+  function buildContentRowHtml(type) {
+    var meta = contentMeta(type);
+    var cellField =
+      type === 'table'
+        ? '<input type="text" class="elite-blog-section__cell" value="" placeholder="h1" aria-label="Table cell role (h1-h3, c1-c3)" title="h1-h3 = header, c1-c3 = column" maxlength="2">'
+        : '';
     return (
-      '<div class="elite-blog-block" data-type="' +
+      '<div class="elite-blog-content-row" data-type="' +
       type +
       '">' +
-      '<div class="elite-blog-block__head">' +
-      '<span class="elite-blog-block__type">' +
-      label +
+      '<span class="elite-blog-field-mark elite-blog-field-mark--' +
+      meta.markClass +
+      '">' +
+      meta.mark +
       '</span>' +
-      iconButton('elite-blog-remove-block', 'trash', 'Remove', 'elite-blog-cards-icon-btn--remove') +
-      '</div>' +
-      '<textarea class="elite-blog-block__content" rows="3" placeholder="' +
-      label +
+      '<input type="text" class="elite-blog-section__content" value="" placeholder="' +
+      meta.placeholder +
       '" aria-label="' +
-      label +
-      '"></textarea>' +
+      meta.placeholder +
+      '">' +
+      cellField +
+      iconButton('elite-blog-remove-content', 'trash', 'Remove content', 'elite-blog-cards-icon-btn--remove') +
       '</div>'
     );
   }
 
-  function buildSectionHtml() {
+  function buildTitleRowHtml(number) {
     return (
-      '<div class="elite-blog-section">' +
-      '<div class="elite-blog-section__top">' +
+      '<div class="elite-blog-section__title-row">' +
+      '<span class="elite-blog-field-mark elite-blog-field-mark--title">s' +
+      String(number || 1) +
+      '</span>' +
       '<input type="text" class="elite-blog-section__title" value="" placeholder="Small paragraph title" aria-label="Small paragraph title">' +
-      '<div class="elite-blog-section__actions">' +
-      iconButton('elite-blog-remove-section', 'trash', 'Remove', 'elite-blog-cards-icon-btn--remove') +
-      iconButton('elite-blog-add-block-text', 'text', 'Add normal text') +
-      iconButton('elite-blog-add-block-table', 'editor-table', 'Add table') +
-      iconButton('elite-blog-add-block-list', 'editor-ul', 'Add list text') +
-      '</div>' +
-      '</div>' +
-      '<div class="elite-blog-section__blocks"></div>' +
+      iconButton('elite-blog-remove-section', 'trash', 'Remove small title', 'elite-blog-cards-icon-btn--remove') +
       '</div>'
     );
   }
 
-  function buildParagraphHtml() {
+  function renumberSmallTitles($paragraph) {
+    $paragraph.find('.elite-blog-section__title-row .elite-blog-field-mark--title').each(function (index) {
+      $(this).text('s' + String(index + 1));
+    });
+  }
+
+  function buildParagraphToolbarHtml() {
+    return (
+      '<div class="elite-blog-paragraph__toolbar">' +
+      iconButton('elite-blog-add-section', 'plus-alt', 'New small title') +
+      '<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-content" data-type="text" aria-label="Add text content" title="Add text content">' +
+      '<span class="dashicons dashicons-text" aria-hidden="true"></span>' +
+      '<span class="screen-reader-text">Add text content</span>' +
+      '</button>' +
+      '<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-content" data-type="table" aria-label="Add table content" title="Add table content">' +
+      '<span class="dashicons dashicons-editor-table" aria-hidden="true"></span>' +
+      '<span class="screen-reader-text">Add table content</span>' +
+      '</button>' +
+      '<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-content" data-type="list" aria-label="Add list content" title="Add list content">' +
+      '<span class="dashicons dashicons-editor-ul" aria-hidden="true"></span>' +
+      '<span class="screen-reader-text">Add list content</span>' +
+      '</button>' +
+      '</div>'
+    );
+  }
+
+  function buildParagraphHtml(number) {
     return (
       '<div class="elite-blog-paragraph">' +
       '<div class="elite-blog-paragraph__top">' +
-      '<input type="text" class="elite-blog-paragraph__title" value="" placeholder="Paragraph title" aria-label="Paragraph title">' +
-      '<div class="elite-blog-paragraph__actions">' +
+      '<span class="elite-blog-paragraph__num">Paragraph ' +
+      String(number) +
+      '</span>' +
       iconButton('elite-blog-remove-paragraph', 'trash', 'Remove', 'elite-blog-cards-icon-btn--remove') +
-      iconButton('elite-blog-add-section', 'plus-alt', 'Add small paragraph') +
       '</div>' +
-      '</div>' +
+      '<input type="text" class="elite-blog-paragraph__title" value="" placeholder="Paragraph title" aria-label="Paragraph title">' +
+      buildParagraphToolbarHtml() +
       '<div class="elite-blog-paragraph__sections"></div>' +
       '</div>'
     );
@@ -102,23 +135,48 @@
 
     $row.find('.elite-blog-paragraph').each(function () {
       var sections = [];
+      var current = null;
+
       $(this)
-        .find('.elite-blog-section')
+        .find('.elite-blog-paragraph__sections')
+        .first()
+        .children('.elite-blog-section__title-row, .elite-blog-content-row')
         .each(function () {
-          var blocks = [];
-          $(this)
-            .find('.elite-blog-block')
-            .each(function () {
-              blocks.push({
-                type: $(this).attr('data-type') || 'text',
-                content: $.trim($(this).find('.elite-blog-block__content').val() || '')
-              });
-            });
-          sections.push({
-            title: $.trim($(this).find('.elite-blog-section__title').val() || ''),
-            blocks: blocks
-          });
+          var $item = $(this);
+
+          if ($item.hasClass('elite-blog-section__title-row')) {
+            current = {
+              title: $.trim($item.find('.elite-blog-section__title').val() || ''),
+              hasTitle: true,
+              blocks: []
+            };
+            sections.push(current);
+            return;
+          }
+
+          if ($item.hasClass('elite-blog-content-row')) {
+            var type = $item.attr('data-type') || 'text';
+            if (type !== 'text' && type !== 'table' && type !== 'list') {
+              type = 'text';
+            }
+            if (!current || current.hasTitle === false) {
+              current = { title: '', hasTitle: false, blocks: [] };
+              sections.push(current);
+            }
+            var block = {
+              type: type,
+              content: $.trim($item.find('.elite-blog-section__content').val() || '')
+            };
+            if (type === 'table') {
+              block.cell = $.trim($item.find('.elite-blog-section__cell').val() || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .slice(0, 2);
+            }
+            current.blocks.push(block);
+          }
         });
+
       paragraphs.push({
         title: $.trim($(this).find('.elite-blog-paragraph__title').val() || ''),
         sections: sections
@@ -189,11 +247,6 @@
 
     setting.set(json);
     $wrap.find('.elite-blog-cards-list-value').val(json);
-
-    var $open = $wrap.find('.elite-blog-cards-list-item.is-details-open').first();
-    if ($open.length) {
-      previewCardUrl($open);
-    }
   }
 
   function renumberRows($wrap) {
@@ -202,6 +255,15 @@
       $(this)
         .find('.elite-blog-cards-list-item__num')
         .text('Card ' + String(index + 1));
+    });
+  }
+
+  function renumberParagraphs($row) {
+    $row.find('.elite-blog-paragraph').each(function (index) {
+      $(this)
+        .find('.elite-blog-paragraph__num')
+        .first()
+        .text('Paragraph ' + String(index + 1));
     });
   }
 
@@ -244,25 +306,12 @@
       '</div>' +
       '<input type="text" class="elite-blog-cards-list-item__title" value="" placeholder="Title" aria-label="Title">' +
       '<textarea class="elite-blog-cards-list-item__intro" rows="3" placeholder="Introduction" aria-label="Introduction"></textarea>' +
-      '<div class="elite-blog-cards-list-item__details-bar">' +
-      iconButton('elite-blog-cards-toggle-details', 'editor-paragraph', 'Details') +
-      '<span class="elite-blog-cards-list-item__details-label">Details</span>' +
-      '</div>' +
-      '<div class="elite-blog-details-panel" hidden>' +
-      '<div class="elite-blog-details-panel__head">' +
-      '<span class="elite-blog-details-panel__title">Paragraphs</span>' +
-      '<button type="button" class="button button-secondary elite-blog-add-paragraph">' +
-      '<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>' +
-      '<span class="screen-reader-text">Add new paragraph</span>' +
-      '</button>' +
-      '</div>' +
       '<div class="elite-blog-paragraphs"></div>' +
-      '<div class="elite-blog-details-panel__head elite-blog-details-panel__head--faqs">' +
-      '<span class="elite-blog-details-panel__title">FAQs</span>' +
-      '<button type="button" class="button button-secondary elite-blog-add-faq">' +
-      '<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>' +
-      '<span class="screen-reader-text">Add new FAQs</span>' +
-      '</button>' +
+      '<button type="button" class="button button-secondary elite-blog-add-paragraph">Add new paragraph</button>' +
+      '<div class="elite-blog-faqs-block">' +
+      '<div class="elite-blog-faqs-block__head">' +
+      '<span class="elite-blog-faqs-block__title">FAQs</span>' +
+      '<button type="button" class="button button-secondary elite-blog-add-faq">Add new FAQ</button>' +
       '</div>' +
       '<div class="elite-blog-faqs"></div>' +
       '</div>' +
@@ -337,75 +386,63 @@
       openMediaPicker($(this).closest('.elite-blog-cards-list-item'), $wrap);
     });
 
-    $wrap.on('click', '.elite-blog-cards-toggle-details', function (event) {
-      event.preventDefault();
-      var $btn = $(this);
-      var $row = $btn.closest('.elite-blog-cards-list-item');
-      var $panel = $row.find('.elite-blog-details-panel');
-      var isOpen = !$panel.prop('hidden');
-      $panel.prop('hidden', isOpen);
-      $btn.attr('aria-expanded', isOpen ? 'false' : 'true');
-      $row.toggleClass('is-details-open', !isOpen);
-      if (!isOpen) {
-        previewCardUrl($row);
-      }
-    });
-
-    $wrap.on('focus', '.elite-blog-cards-list-item__title, .elite-blog-cards-list-item__intro', function () {
+    $wrap.on('focus', '.elite-blog-cards-list-item__title, .elite-blog-cards-list-item__intro, .elite-blog-paragraph__title', function () {
       previewCardUrl($(this).closest('.elite-blog-cards-list-item'));
     });
 
     $wrap.on('click', '.elite-blog-add-paragraph', function (event) {
       event.preventDefault();
-      $(this).closest('.elite-blog-details-panel').find('.elite-blog-paragraphs').append(buildParagraphHtml());
+      var $row = $(this).closest('.elite-blog-cards-list-item');
+      var next = $row.find('.elite-blog-paragraph').length + 1;
+      $row.find('.elite-blog-paragraphs').first().append(buildParagraphHtml(next));
+      renumberParagraphs($row);
+      previewCardUrl($row);
       syncSetting($wrap);
     });
 
     $wrap.on('click', '.elite-blog-remove-paragraph', function (event) {
       event.preventDefault();
+      var $row = $(this).closest('.elite-blog-cards-list-item');
       $(this).closest('.elite-blog-paragraph').remove();
+      renumberParagraphs($row);
       syncSetting($wrap);
     });
 
     $wrap.on('click', '.elite-blog-add-section', function (event) {
       event.preventDefault();
-      $(this).closest('.elite-blog-paragraph').find('.elite-blog-paragraph__sections').first().append(buildSectionHtml());
+      var $paragraph = $(this).closest('.elite-blog-paragraph');
+      var $sections = $paragraph.find('.elite-blog-paragraph__sections').first();
+      var next = $sections.find('.elite-blog-section__title-row').length + 1;
+      $sections.append(buildTitleRowHtml(next));
+      renumberSmallTitles($paragraph);
+      syncSetting($wrap);
+    });
+
+    $wrap.on('click', '.elite-blog-add-content', function (event) {
+      event.preventDefault();
+      var type = $(this).attr('data-type') || 'text';
+      var $paragraph = $(this).closest('.elite-blog-paragraph');
+      $paragraph.find('.elite-blog-paragraph__sections').first().append(buildContentRowHtml(type));
       syncSetting($wrap);
     });
 
     $wrap.on('click', '.elite-blog-remove-section', function (event) {
       event.preventDefault();
-      $(this).closest('.elite-blog-section').remove();
+      var $paragraph = $(this).closest('.elite-blog-paragraph');
+      $(this).closest('.elite-blog-section__title-row').remove();
+      renumberSmallTitles($paragraph);
       syncSetting($wrap);
     });
 
-    $wrap.on('click', '.elite-blog-add-block-text', function (event) {
+    $wrap.on('click', '.elite-blog-remove-content', function (event) {
       event.preventDefault();
-      $(this).closest('.elite-blog-section').find('.elite-blog-section__blocks').first().append(buildBlockHtml('text'));
-      syncSetting($wrap);
-    });
-
-    $wrap.on('click', '.elite-blog-add-block-table', function (event) {
-      event.preventDefault();
-      $(this).closest('.elite-blog-section').find('.elite-blog-section__blocks').first().append(buildBlockHtml('table'));
-      syncSetting($wrap);
-    });
-
-    $wrap.on('click', '.elite-blog-add-block-list', function (event) {
-      event.preventDefault();
-      $(this).closest('.elite-blog-section').find('.elite-blog-section__blocks').first().append(buildBlockHtml('list'));
-      syncSetting($wrap);
-    });
-
-    $wrap.on('click', '.elite-blog-remove-block', function (event) {
-      event.preventDefault();
-      $(this).closest('.elite-blog-block').remove();
+      $(this).closest('.elite-blog-content-row').remove();
       syncSetting($wrap);
     });
 
     $wrap.on('click', '.elite-blog-add-faq', function (event) {
       event.preventDefault();
-      $(this).closest('.elite-blog-details-panel').find('.elite-blog-faqs').append(buildFaqHtml());
+      $(this).closest('.elite-blog-faqs-block').find('.elite-blog-faqs').append(buildFaqHtml());
       syncSetting($wrap);
     });
 
@@ -417,7 +454,7 @@
 
     $wrap.on(
       'input change',
-      '.elite-blog-cards-list-item__title, .elite-blog-cards-list-item__date, .elite-blog-cards-list-item__intro, .elite-blog-paragraph__title, .elite-blog-section__title, .elite-blog-block__content, .elite-blog-faq__title, .elite-blog-faq__text',
+      '.elite-blog-cards-list-item__title, .elite-blog-cards-list-item__date, .elite-blog-cards-list-item__intro, .elite-blog-paragraph__title, .elite-blog-section__title, .elite-blog-section__content, .elite-blog-section__cell, .elite-blog-faq__title, .elite-blog-faq__text',
       function () {
         syncSetting($wrap);
       }
@@ -428,6 +465,12 @@
     wp.customize.control(SETTING_ID, function (control) {
       var $wrap = control.container.find('.elite-blog-cards-list-control');
       bindControl($wrap);
+      $wrap.find('.elite-blog-cards-list-item').each(function () {
+        renumberParagraphs($(this));
+        $(this).find('.elite-blog-paragraph').each(function () {
+          renumberSmallTitles($(this));
+        });
+      });
     });
   });
 })(jQuery);

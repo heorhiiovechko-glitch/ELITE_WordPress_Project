@@ -133,14 +133,24 @@ function elite_shipping_normalize_blog_card_details( $details ) {
 					if ( ! in_array( $type, array( 'text', 'table', 'list' ), true ) ) {
 						$type = 'text';
 					}
-					$blocks[] = array(
+					$item = array(
 						'type'    => $type,
 						'content' => sanitize_textarea_field( $block['content'] ?? '' ),
 					);
+					if ( 'table' === $type ) {
+						$item['cell'] = elite_shipping_sanitize_blog_table_cell_role( $block['cell'] ?? '' );
+					}
+					$blocks[] = $item;
 				}
+				$title     = sanitize_text_field( $section['title'] ?? '' );
+				$has_title = array_key_exists( 'hasTitle', $section )
+					? ! empty( $section['hasTitle'] )
+					: ( '' !== $title || empty( $blocks ) );
+
 				$sections[] = array(
-					'title'  => sanitize_text_field( $section['title'] ?? '' ),
-					'blocks' => $blocks,
+					'title'    => $title,
+					'hasTitle' => $has_title,
+					'blocks'   => $blocks,
 				);
 			}
 			$paragraphs[] = array(
@@ -168,91 +178,177 @@ function elite_shipping_normalize_blog_card_details( $details ) {
 }
 
 /**
- * Render content blocks inside a small paragraph.
+ * Sanitize table cell role (h1-h3 header, c1-c3 column).
  *
- * @param array $blocks Blocks.
+ * @param mixed $role Raw role.
  * @return string
  */
-function elite_shipping_render_blog_card_blocks( $blocks ) {
-	ob_start();
-	foreach ( $blocks as $block ) {
-		$type    = (string) ( $block['type'] ?? 'text' );
-		$content = (string) ( $block['content'] ?? '' );
-		$label   = 'text' === $type ? __( 'Normal text', 'elite-shipping' ) : ( 'table' === $type ? __( 'Table', 'elite-shipping' ) : __( 'List text', 'elite-shipping' ) );
-		?>
-		<div class="elite-blog-block" data-type="<?php echo esc_attr( $type ); ?>">
-			<div class="elite-blog-block__head">
-				<span class="elite-blog-block__type"><?php echo esc_html( $label ); ?></span>
-				<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-icon-btn--remove elite-blog-remove-block" aria-label="<?php esc_attr_e( 'Remove', 'elite-shipping' ); ?>">
-					<?php echo elite_shipping_blog_cards_icon_html( 'trash', __( 'Remove', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				</button>
-			</div>
-			<textarea class="elite-blog-block__content" rows="3" placeholder="<?php echo esc_attr( $label ); ?>" aria-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_textarea( $content ); ?></textarea>
-		</div>
-		<?php
+function elite_shipping_sanitize_blog_table_cell_role( $role ) {
+	$role = strtolower( preg_replace( '/[^a-z0-9]/', '', (string) $role ) );
+	if ( preg_match( '/^[hc][1-3]$/', $role ) ) {
+		return $role;
 	}
+	return '';
+}
+
+/**
+ * Render one content row for the Customizer editor.
+ *
+ * @param string $type    text|table|list.
+ * @param string $content Content value.
+ * @param string $cell    Table cell role (h1-h3, c1-c3).
+ * @return string
+ */
+function elite_shipping_render_blog_card_content_row( $type, $content = '', $cell = '' ) {
+	$type = sanitize_key( $type );
+	if ( ! in_array( $type, array( 'text', 'table', 'list' ), true ) ) {
+		$type = 'text';
+	}
+
+	if ( 'table' === $type ) {
+		$mark        = '#';
+		$placeholder = __( 'Table content', 'elite-shipping' );
+	} elseif ( 'list' === $type ) {
+		$mark        = '•';
+		$placeholder = __( 'List content', 'elite-shipping' );
+	} else {
+		$mark        = '-';
+		$placeholder = __( 'Small paragraph content', 'elite-shipping' );
+	}
+
+	$cell = elite_shipping_sanitize_blog_table_cell_role( $cell );
+
+	ob_start();
+	?>
+	<div class="elite-blog-content-row" data-type="<?php echo esc_attr( $type ); ?>">
+		<span class="elite-blog-field-mark elite-blog-field-mark--<?php echo esc_attr( $type ); ?>"><?php echo esc_html( $mark ); ?></span>
+		<input type="text" class="elite-blog-section__content" value="<?php echo esc_attr( (string) $content ); ?>" placeholder="<?php echo esc_attr( $placeholder ); ?>" aria-label="<?php echo esc_attr( $placeholder ); ?>">
+		<?php if ( 'table' === $type ) : ?>
+			<input
+				type="text"
+				class="elite-blog-section__cell"
+				value="<?php echo esc_attr( $cell ); ?>"
+				placeholder="<?php esc_attr_e( 'h1', 'elite-shipping' ); ?>"
+				aria-label="<?php esc_attr_e( 'Table cell role (h1-h3, c1-c3)', 'elite-shipping' ); ?>"
+				title="<?php esc_attr_e( 'h1-h3 = header, c1-c3 = column', 'elite-shipping' ); ?>"
+				maxlength="2"
+			>
+		<?php endif; ?>
+		<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-icon-btn--remove elite-blog-remove-content" aria-label="<?php esc_attr_e( 'Remove content', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'Remove content', 'elite-shipping' ); ?>">
+			<?php echo elite_shipping_blog_cards_icon_html( 'trash', __( 'Remove content', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</button>
+	</div>
+	<?php
 	return ob_get_clean();
 }
 
 /**
- * Render small paragraphs.
+ * Render one small-title row for the Customizer editor.
+ *
+ * @param string $title Title value.
+ * @param int    $number Small title number (1-based).
+ * @return string
+ */
+function elite_shipping_render_blog_card_title_row( $title = '', $number = 1 ) {
+	$number = max( 1, absint( $number ) );
+	ob_start();
+	?>
+	<div class="elite-blog-section__title-row">
+		<span class="elite-blog-field-mark elite-blog-field-mark--title"><?php echo esc_html( 's' . $number ); ?></span>
+		<input type="text" class="elite-blog-section__title" value="<?php echo esc_attr( (string) $title ); ?>" placeholder="<?php esc_attr_e( 'Small paragraph title', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Small paragraph title', 'elite-shipping' ); ?>">
+		<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-icon-btn--remove elite-blog-remove-section" aria-label="<?php esc_attr_e( 'Remove small title', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'Remove small title', 'elite-shipping' ); ?>">
+			<?php echo elite_shipping_blog_cards_icon_html( 'trash', __( 'Remove small title', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</button>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * Render small titles and content rows as separate sibling fields.
  *
  * @param array $sections Sections.
  * @return string
  */
 function elite_shipping_render_blog_card_sections( $sections ) {
 	ob_start();
+	$title_number = 0;
 	foreach ( $sections as $section ) {
-		?>
-		<div class="elite-blog-section">
-			<div class="elite-blog-section__top">
-				<input type="text" class="elite-blog-section__title" value="<?php echo esc_attr( (string) ( $section['title'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'Small paragraph title', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Small paragraph title', 'elite-shipping' ); ?>">
-				<div class="elite-blog-section__actions">
-					<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-icon-btn--remove elite-blog-remove-section" aria-label="<?php esc_attr_e( 'Remove', 'elite-shipping' ); ?>">
-						<?php echo elite_shipping_blog_cards_icon_html( 'trash', __( 'Remove', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</button>
-					<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-block-text" aria-label="<?php esc_attr_e( 'Add normal text', 'elite-shipping' ); ?>">
-						<?php echo elite_shipping_blog_cards_icon_html( 'text', __( 'Add normal text', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</button>
-					<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-block-table" aria-label="<?php esc_attr_e( 'Add table', 'elite-shipping' ); ?>">
-						<?php echo elite_shipping_blog_cards_icon_html( 'editor-table', __( 'Add table', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</button>
-					<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-block-list" aria-label="<?php esc_attr_e( 'Add list text', 'elite-shipping' ); ?>">
-						<?php echo elite_shipping_blog_cards_icon_html( 'editor-ul', __( 'Add list text', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</button>
-				</div>
-			</div>
-			<div class="elite-blog-section__blocks">
-				<?php echo elite_shipping_render_blog_card_blocks( isset( $section['blocks'] ) && is_array( $section['blocks'] ) ? $section['blocks'] : array() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			</div>
-		</div>
-		<?php
+		if ( ! is_array( $section ) ) {
+			continue;
+		}
+
+		$title     = (string) ( $section['title'] ?? '' );
+		$blocks    = isset( $section['blocks'] ) && is_array( $section['blocks'] ) ? $section['blocks'] : array();
+		$has_title = array_key_exists( 'hasTitle', $section )
+			? ! empty( $section['hasTitle'] )
+			: ( '' !== trim( $title ) || empty( $blocks ) );
+
+		// Title rows stay independent from content rows.
+		if ( $has_title ) {
+			++$title_number;
+			echo elite_shipping_render_blog_card_title_row( $title, $title_number ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+			echo elite_shipping_render_blog_card_content_row( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				(string) ( $block['type'] ?? 'text' ),
+				(string) ( $block['content'] ?? '' ),
+				(string) ( $block['cell'] ?? '' )
+			);
+		}
 	}
 	return ob_get_clean();
 }
 
 /**
- * Render paragraphs inside details panel.
+ * Toolbar under paragraph title: new small title + content type buttons.
+ *
+ * @return string
+ */
+function elite_shipping_render_blog_card_paragraph_toolbar() {
+	ob_start();
+	?>
+	<div class="elite-blog-paragraph__toolbar">
+		<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-section" aria-label="<?php esc_attr_e( 'New small title', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'New small title', 'elite-shipping' ); ?>">
+			<?php echo elite_shipping_blog_cards_icon_html( 'plus-alt', __( 'New small title', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</button>
+		<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-content" data-type="text" aria-label="<?php esc_attr_e( 'Add text content', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'Add text content', 'elite-shipping' ); ?>">
+			<?php echo elite_shipping_blog_cards_icon_html( 'text', __( 'Add text content', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</button>
+		<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-content" data-type="table" aria-label="<?php esc_attr_e( 'Add table content', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'Add table content', 'elite-shipping' ); ?>">
+			<?php echo elite_shipping_blog_cards_icon_html( 'editor-table', __( 'Add table content', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</button>
+		<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-content" data-type="list" aria-label="<?php esc_attr_e( 'Add list content', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'Add list content', 'elite-shipping' ); ?>">
+			<?php echo elite_shipping_blog_cards_icon_html( 'editor-ul', __( 'Add list content', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</button>
+	</div>
+	<?php
+	return ob_get_clean();
+}
+
+/**
+ * Render paragraphs under a card introduction.
  *
  * @param array $paragraphs Paragraphs.
  * @return string
  */
 function elite_shipping_render_blog_card_paragraphs( $paragraphs ) {
 	ob_start();
-	foreach ( $paragraphs as $paragraph ) {
+	foreach ( $paragraphs as $index => $paragraph ) {
 		?>
 		<div class="elite-blog-paragraph">
 			<div class="elite-blog-paragraph__top">
-				<input type="text" class="elite-blog-paragraph__title" value="<?php echo esc_attr( (string) ( $paragraph['title'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'Paragraph title', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Paragraph title', 'elite-shipping' ); ?>">
-				<div class="elite-blog-paragraph__actions">
-					<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-icon-btn--remove elite-blog-remove-paragraph" aria-label="<?php esc_attr_e( 'Remove', 'elite-shipping' ); ?>">
-						<?php echo elite_shipping_blog_cards_icon_html( 'trash', __( 'Remove', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</button>
-					<button type="button" class="elite-blog-cards-icon-btn elite-blog-add-section" aria-label="<?php esc_attr_e( 'Add small paragraph', 'elite-shipping' ); ?>">
-						<?php echo elite_shipping_blog_cards_icon_html( 'plus-alt', __( 'Add small paragraph', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</button>
-				</div>
+				<span class="elite-blog-paragraph__num"><?php echo esc_html( sprintf( __( 'Paragraph %d', 'elite-shipping' ), (int) $index + 1 ) ); ?></span>
+				<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-icon-btn--remove elite-blog-remove-paragraph" aria-label="<?php esc_attr_e( 'Remove paragraph', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'Remove paragraph', 'elite-shipping' ); ?>">
+					<?php echo elite_shipping_blog_cards_icon_html( 'trash', __( 'Remove paragraph', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				</button>
 			</div>
+			<input type="text" class="elite-blog-paragraph__title" value="<?php echo esc_attr( (string) ( $paragraph['title'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'Paragraph title', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Paragraph title', 'elite-shipping' ); ?>">
+			<?php echo elite_shipping_render_blog_card_paragraph_toolbar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			<div class="elite-blog-paragraph__sections">
 				<?php echo elite_shipping_render_blog_card_sections( isset( $paragraph['sections'] ) && is_array( $paragraph['sections'] ) ? $paragraph['sections'] : array() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
@@ -325,30 +421,18 @@ function elite_shipping_render_blog_card_list_item_row( $index, $item ) {
 		<input type="text" class="elite-blog-cards-list-item__title" value="<?php echo esc_attr( $title ); ?>" placeholder="<?php esc_attr_e( 'Title', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Title', 'elite-shipping' ); ?>">
 		<textarea class="elite-blog-cards-list-item__intro" rows="3" placeholder="<?php esc_attr_e( 'Introduction', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Introduction', 'elite-shipping' ); ?>"><?php echo esc_textarea( $intro ); ?></textarea>
 
-		<div class="elite-blog-cards-list-item__details-bar">
-			<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-toggle-details" aria-expanded="false" aria-label="<?php esc_attr_e( 'Details', 'elite-shipping' ); ?>">
-				<?php echo elite_shipping_blog_cards_icon_html( 'editor-paragraph', __( 'Details', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			</button>
-			<span class="elite-blog-cards-list-item__details-label"><?php esc_html_e( 'Details', 'elite-shipping' ); ?></span>
+		<div class="elite-blog-paragraphs">
+			<?php echo elite_shipping_render_blog_card_paragraphs( $details['paragraphs'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		</div>
+		<button type="button" class="button button-secondary elite-blog-add-paragraph">
+			<?php esc_html_e( 'Add new paragraph', 'elite-shipping' ); ?>
+		</button>
 
-		<div class="elite-blog-details-panel" hidden>
-			<div class="elite-blog-details-panel__head">
-				<span class="elite-blog-details-panel__title"><?php esc_html_e( 'Paragraphs', 'elite-shipping' ); ?></span>
-				<button type="button" class="button button-secondary elite-blog-add-paragraph">
-					<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
-					<span class="screen-reader-text"><?php esc_html_e( 'Add new paragraph', 'elite-shipping' ); ?></span>
-				</button>
-			</div>
-			<div class="elite-blog-paragraphs">
-				<?php echo elite_shipping_render_blog_card_paragraphs( $details['paragraphs'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			</div>
-
-			<div class="elite-blog-details-panel__head elite-blog-details-panel__head--faqs">
-				<span class="elite-blog-details-panel__title"><?php esc_html_e( 'FAQs', 'elite-shipping' ); ?></span>
+		<div class="elite-blog-faqs-block">
+			<div class="elite-blog-faqs-block__head">
+				<span class="elite-blog-faqs-block__title"><?php esc_html_e( 'FAQs', 'elite-shipping' ); ?></span>
 				<button type="button" class="button button-secondary elite-blog-add-faq">
-					<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
-					<span class="screen-reader-text"><?php esc_html_e( 'Add new FAQs', 'elite-shipping' ); ?></span>
+					<?php esc_html_e( 'Add new FAQ', 'elite-shipping' ); ?>
 				</button>
 			</div>
 			<div class="elite-blog-faqs">
@@ -486,6 +570,111 @@ function elite_shipping_blog_uses_cards_list() {
 }
 
 /**
+ * Build a table from cell roles (h1-h3 headers, c1-c3 columns).
+ *
+ * @param array $cells Table block items.
+ * @return string
+ */
+function elite_shipping_render_blog_card_table_html( $cells ) {
+	$headers     = array();
+	$rows        = array();
+	$current_row = array();
+	$has_roles   = false;
+	$legacy      = array();
+
+	foreach ( $cells as $cell ) {
+		if ( ! is_array( $cell ) ) {
+			continue;
+		}
+		$content = trim( (string) ( $cell['content'] ?? '' ) );
+		$role    = elite_shipping_sanitize_blog_table_cell_role( $cell['cell'] ?? '' );
+
+		if ( '' === $role ) {
+			if ( '' !== $content ) {
+				$legacy[] = $content;
+			}
+			continue;
+		}
+
+		$has_roles = true;
+		$col       = (int) substr( $role, 1, 1 );
+
+		if ( 'h' === $role[0] ) {
+			$headers[ $col ] = $content;
+			continue;
+		}
+
+		// Start a new body row whenever c1 appears after values already exist.
+		if ( 1 === $col && ! empty( $current_row ) ) {
+			$rows[]      = $current_row;
+			$current_row = array();
+		}
+		$current_row[ $col ] = $content;
+	}
+
+	if ( ! empty( $current_row ) ) {
+		$rows[] = $current_row;
+	}
+
+	// Legacy pipe/newline table content (no cell roles).
+	if ( ! $has_roles && ! empty( $legacy ) ) {
+		ob_start();
+		echo '<div class="apex-blog-detail-table-wrap"><table class="apex-blog-detail-table">';
+		foreach ( $legacy as $legacy_i => $legacy_content ) {
+			$legacy_rows = preg_split( '/\r\n|\r|\n/', $legacy_content );
+			foreach ( $legacy_rows as $row_i => $row ) {
+				$parts = array_map( 'trim', explode( '|', (string) $row ) );
+				if ( '' === implode( '', $parts ) ) {
+					continue;
+				}
+				echo '<tr>';
+				foreach ( $parts as $part ) {
+					$tag = ( 0 === $legacy_i && 0 === $row_i ) ? 'th' : 'td';
+					echo '<' . $tag . '>' . esc_html( $part ) . '</' . $tag . '>';
+				}
+				echo '</tr>';
+			}
+		}
+		echo '</table></div>';
+		return ob_get_clean();
+	}
+
+	if ( empty( $headers ) && empty( $rows ) ) {
+		return '';
+	}
+
+	$max_col = 0;
+	foreach ( array_keys( $headers ) as $col ) {
+		$max_col = max( $max_col, (int) $col );
+	}
+	foreach ( $rows as $row ) {
+		foreach ( array_keys( $row ) as $col ) {
+			$max_col = max( $max_col, (int) $col );
+		}
+	}
+	$max_col = max( 1, $max_col );
+
+	ob_start();
+	echo '<div class="apex-blog-detail-table-wrap"><table class="apex-blog-detail-table">';
+	if ( ! empty( $headers ) ) {
+		echo '<tr>';
+		for ( $col = 1; $col <= $max_col; $col++ ) {
+			echo '<th>' . esc_html( (string) ( $headers[ $col ] ?? '' ) ) . '</th>';
+		}
+		echo '</tr>';
+	}
+	foreach ( $rows as $row ) {
+		echo '<tr>';
+		for ( $col = 1; $col <= $max_col; $col++ ) {
+			echo '<td>' . esc_html( (string) ( $row[ $col ] ?? '' ) ) . '</td>';
+		}
+		echo '</tr>';
+	}
+	echo '</table></div>';
+	return ob_get_clean();
+}
+
+/**
  * Render structured details HTML for the front-end.
  *
  * @param array|string $details Details payload.
@@ -509,9 +698,28 @@ function elite_shipping_render_blog_card_details_html( $details ) {
 				echo '<h3 class="apex-blog-detail-section__title">' . esc_html( $section_title ) . '</h3>';
 			}
 			$blocks = isset( $section['blocks'] ) && is_array( $section['blocks'] ) ? $section['blocks'] : array();
-			foreach ( $blocks as $block ) {
-				$type    = (string) ( $block['type'] ?? 'text' );
+			$bi     = 0;
+			$bcount = count( $blocks );
+			while ( $bi < $bcount ) {
+				$block = $blocks[ $bi ];
+				if ( ! is_array( $block ) ) {
+					++$bi;
+					continue;
+				}
+				$type = (string) ( $block['type'] ?? 'text' );
+
+				if ( 'table' === $type ) {
+					$table_cells = array();
+					while ( $bi < $bcount && is_array( $blocks[ $bi ] ) && 'table' === (string) ( $blocks[ $bi ]['type'] ?? '' ) ) {
+						$table_cells[] = $blocks[ $bi ];
+						++$bi;
+					}
+					echo elite_shipping_render_blog_card_table_html( $table_cells ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					continue;
+				}
+
 				$content = trim( (string) ( $block['content'] ?? '' ) );
+				++$bi;
 				if ( '' === $content ) {
 					continue;
 				}
@@ -525,22 +733,6 @@ function elite_shipping_render_blog_card_details_html( $details ) {
 						}
 					}
 					echo '</ul>';
-				} elseif ( 'table' === $type ) {
-					$rows = preg_split( '/\r\n|\r|\n/', $content );
-					echo '<div class="apex-blog-detail-table-wrap"><table class="apex-blog-detail-table">';
-					foreach ( $rows as $row_i => $row ) {
-						$cells = array_map( 'trim', explode( '|', (string) $row ) );
-						if ( '' === implode( '', $cells ) ) {
-							continue;
-						}
-						echo '<tr>';
-						foreach ( $cells as $cell ) {
-							$tag = 0 === $row_i ? 'th' : 'td';
-							echo '<' . $tag . '>' . esc_html( $cell ) . '</' . $tag . '>';
-						}
-						echo '</tr>';
-					}
-					echo '</table></div>';
 				} else {
 					echo '<div class="apex-blog-detail-text">' . wp_kses_post( wpautop( $content ) ) . '</div>';
 				}

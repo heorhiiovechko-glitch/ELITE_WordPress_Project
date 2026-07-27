@@ -344,6 +344,8 @@ function elite_render_shop_product_card( $product ) {
 	$url            = get_permalink( $product->get_id() );
 	$title          = $product->get_name();
 	$category_label = elite_get_product_shop_category_label( $product );
+	$is_on_sale     = $product->is_on_sale();
+	$is_in_stock    = $product->is_in_stock();
 	$img            = $product->get_image(
 		'woocommerce_thumbnail',
 		array(
@@ -353,12 +355,21 @@ function elite_render_shop_product_card( $product ) {
 	?>
 	<article <?php wc_product_class( 'apex-shop-product-card', $product ); ?>>
 		<a class="apex-shop-product-media" href="<?php echo esc_url( $url ); ?>">
+			<?php if ( $is_on_sale ) : ?>
+				<span class="apex-shop-product-badge apex-shop-product-badge--sale"><?php esc_html_e( 'Sale', 'elite-shipping' ); ?></span>
+			<?php endif; ?>
 			<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		</a>
 		<div class="apex-shop-product-body">
-			<h3 class="apex-shop-product-title"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title ); ?></a></h3>
 			<p class="apex-shop-product-cat"><?php echo esc_html( $category_label ); ?></p>
-			<div class="apex-shop-product-price"><?php echo wp_kses_post( $product->get_price_html() ); ?></div>
+			<h3 class="apex-shop-product-title"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title ); ?></a></h3>
+			<div class="apex-shop-product-meta">
+				<div class="apex-shop-product-price"><?php echo wp_kses_post( $product->get_price_html() ); ?></div>
+				<?php if ( $is_in_stock ) : ?>
+					<span class="apex-shop-product-stock"><?php esc_html_e( 'In stock', 'elite-shipping' ); ?></span>
+				<?php endif; ?>
+			</div>
+			<a class="apex-shop-product-link" href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'View details', 'elite-shipping' ); ?> &rarr;</a>
 		</div>
 	</article>
 	<?php

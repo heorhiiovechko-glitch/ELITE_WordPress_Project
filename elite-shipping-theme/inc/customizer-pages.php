@@ -615,11 +615,12 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 		$wp_customize,
 		'elite_contact_info_intro',
 		array(
-			'label'    => __( 'Left block intro', 'elite-shipping' ),
-			'section'  => 'elite_contact_info_blocks',
-			'type'     => 'textarea',
-			'default'  => 'Contact %s for container quotes, delivery questions, modifications, and order support across the UK. You can also speak with us anytime using the live chat widget on this page.',
-			'sanitize' => 'wp_kses_post',
+			'label'       => __( 'Left block intro', 'elite-shipping' ),
+			'description' => __( 'Use %s where the company name should appear.', 'elite-shipping' ),
+			'section'     => 'elite_contact_info_blocks',
+			'type'        => 'textarea',
+			'default'     => elite_shipping_get_contact_info_intro_default(),
+			'sanitize'    => 'wp_kses_post',
 		)
 	);
 	elite_shipping_add_text_setting(
