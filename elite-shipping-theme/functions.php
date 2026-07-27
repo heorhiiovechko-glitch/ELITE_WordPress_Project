@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.54' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.74' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -116,12 +116,17 @@ function elite_shipping_enqueue_assets() {
 	$wc_archive = elite_shipping_is_shop_archive();
 	$style_deps = array( 'elite-google-fonts' );
 
+	$is_account = function_exists( 'is_account_page' ) && is_account_page();
+
 	if ( class_exists( 'WooCommerce' ) && ! $wc_archive ) {
 		wp_enqueue_style( 'woocommerce-general' );
-		wp_enqueue_style( 'woocommerce-layout' );
+		// Account page uses a custom grid; WooCommerce layout floats break Login/Register.
+		if ( ! $is_account ) {
+			wp_enqueue_style( 'woocommerce-layout' );
+			$style_deps[] = 'woocommerce-layout';
+		}
 		wp_enqueue_style( 'woocommerce-smallscreen' );
 		$style_deps[] = 'woocommerce-general';
-		$style_deps[] = 'woocommerce-layout';
 	}
 
 	wp_enqueue_style(
@@ -131,6 +136,10 @@ function elite_shipping_enqueue_assets() {
 		$css_ver
 	);
 
+	if ( $is_account ) {
+		wp_add_inline_style( 'elite-shipping-main', elite_shipping_get_account_layout_css() );
+	}
+
 	wp_enqueue_script(
 		'elite-shipping-main',
 		ELITE_SHIPPING_URI . '/assets/js/main.js',
@@ -138,6 +147,154 @@ function elite_shipping_enqueue_assets() {
 		$js_ver,
 		true
 	);
+}
+
+/**
+ * Hard override CSS for My Account Login/Register column layout.
+ *
+ * @return string
+ */
+function elite_shipping_get_account_layout_css() {
+	return <<<'CSS'
+body.woocommerce-account #customer_login,
+body.elite-account-page #customer_login,
+body.woocommerce-account .apex-account-auth,
+body.elite-account-page .apex-account-auth{
+	display:block!important;
+	width:100%!important;
+	max-width:460px!important;
+	margin:0 auto!important;
+	clear:both!important;
+}
+body.woocommerce-account #customer_login::before,
+body.woocommerce-account #customer_login::after,
+body.elite-account-page #customer_login::before,
+body.elite-account-page #customer_login::after{
+	display:none!important;
+	content:none!important;
+}
+body.woocommerce-account #customer_login .col-1,
+body.woocommerce-account #customer_login .col-2,
+body.woocommerce-account #customer_login .u-column1,
+body.woocommerce-account #customer_login .u-column2,
+body.elite-account-page #customer_login .col-1,
+body.elite-account-page #customer_login .col-2{
+	float:none!important;
+	clear:none!important;
+	width:100%!important;
+	max-width:none!important;
+	margin:0!important;
+}
+body.woocommerce-account .apex-account-auth-card,
+body.elite-account-page .apex-account-auth-card{
+	background:#fff;
+	border:1px solid #dde3ec;
+	border-radius:14px;
+	padding:28px 26px;
+	box-shadow:0 12px 30px rgba(15,23,42,.06);
+}
+body.woocommerce-account .apex-account-auth-toggle,
+body.elite-account-page .apex-account-auth-toggle{
+	display:grid;
+	grid-template-columns:1fr 1fr;
+	gap:6px;
+	margin:0 0 22px;
+	padding:6px;
+	border-radius:10px;
+	background:#eef2f7;
+}
+body.woocommerce-account .apex-account-auth-toggle-btn,
+body.elite-account-page .apex-account-auth-toggle-btn{
+	appearance:none;
+	border:0;
+	border-radius:8px;
+	background:transparent;
+	color:#334155;
+	font:inherit;
+	font-size:14px;
+	font-weight:750;
+	letter-spacing:.04em;
+	text-transform:uppercase;
+	padding:12px 10px;
+	cursor:pointer;
+	transition:background .18s,color .18s,box-shadow .18s;
+}
+body.woocommerce-account .apex-account-auth-toggle-btn.is-active,
+body.elite-account-page .apex-account-auth-toggle-btn.is-active{
+	background:#001529;
+	color:#fff;
+	box-shadow:0 6px 14px rgba(0,21,41,.18);
+}
+body.woocommerce-account .apex-account-auth-panel[hidden],
+body.elite-account-page .apex-account-auth-panel[hidden]{
+	display:none!important;
+}
+body.woocommerce-account #customer_login .woocommerce-form-login,
+body.woocommerce-account #customer_login .woocommerce-form-register,
+body.elite-account-page #customer_login .woocommerce-form-login,
+body.elite-account-page #customer_login .woocommerce-form-register{
+	background:transparent!important;
+	border:0!important;
+	box-shadow:none!important;
+	padding:0!important;
+}
+body.woocommerce-account #customer_login .lost_password a,
+body.elite-account-page #customer_login .lost_password a{
+	color:#ff6600;
+	font-weight:650;
+	text-decoration:none;
+}
+body.woocommerce-account .woocommerce form .password-input,
+body.elite-account-page .woocommerce form .password-input{
+	display:block!important;
+	position:relative!important;
+}
+body.woocommerce-account .woocommerce form .password-input input,
+body.elite-account-page .woocommerce form .password-input input{
+	padding-right:48px!important;
+	width:100%!important;
+}
+body.woocommerce-account .woocommerce form .show-password-input,
+body.elite-account-page .woocommerce form .show-password-input,
+body.woocommerce-account button.show-password-input,
+body.elite-account-page button.show-password-input{
+	position:absolute!important;
+	top:50%!important;
+	right:10px!important;
+	left:auto!important;
+	transform:translateY(-50%);
+	width:34px!important;
+	height:34px!important;
+	margin:0!important;
+	padding:0!important;
+	border:0!important;
+	border-radius:8px;
+	background-color:transparent!important;
+	background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E")!important;
+	background-repeat:no-repeat!important;
+	background-position:center!important;
+	background-size:20px 20px!important;
+	box-shadow:none!important;
+	cursor:pointer;
+	color:transparent!important;
+	font-size:0!important;
+	line-height:0!important;
+	text-indent:-9999px;
+	overflow:hidden;
+	z-index:2;
+}
+body.woocommerce-account .woocommerce form .show-password-input::before,
+body.woocommerce-account .woocommerce form .show-password-input::after,
+body.elite-account-page .woocommerce form .show-password-input::before,
+body.elite-account-page .woocommerce form .show-password-input::after{
+	display:none!important;
+	content:none!important;
+}
+body.woocommerce-account .woocommerce form .show-password-input.display-password,
+body.elite-account-page .woocommerce form .show-password-input.display-password{
+	background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23ff6600' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94'/%3E%3Cpath d='M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a21.8 21.8 0 0 1-2.16 3.19'/%3E%3Cpath d='M14.12 14.12a3 3 0 0 1-4.24-4.24'/%3E%3Cpath d='M1 1l22 22'/%3E%3C/svg%3E")!important;
+}
+CSS;
 }
 
 /**
@@ -259,6 +416,13 @@ function elite_shipping_force_theme_templates( $template ) {
 		}
 	}
 
+	if ( function_exists( 'is_account_page' ) && is_account_page() ) {
+		$account_page = ELITE_SHIPPING_DIR . '/woocommerce/my-account-page.php';
+		if ( file_exists( $account_page ) ) {
+			return $account_page;
+		}
+	}
+
 	return $template;
 }
 
@@ -297,13 +461,18 @@ function elite_shipping_disable_wc_styles_on_archives( $styles ) {
  */
 add_action( 'wp_enqueue_scripts', 'elite_shipping_dequeue_wc_archive_styles', 100 );
 function elite_shipping_dequeue_wc_archive_styles() {
-	if ( ! elite_shipping_is_shop_archive() ) {
+	if ( elite_shipping_is_shop_archive() ) {
+		wp_dequeue_style( 'woocommerce-general' );
+		wp_dequeue_style( 'woocommerce-layout' );
+		wp_dequeue_style( 'woocommerce-smallscreen' );
 		return;
 	}
 
-	wp_dequeue_style( 'woocommerce-general' );
-	wp_dequeue_style( 'woocommerce-layout' );
-	wp_dequeue_style( 'woocommerce-smallscreen' );
+	// Prevent WooCommerce float columns from breaking account Login/Register.
+	if ( function_exists( 'is_account_page' ) && is_account_page() ) {
+		wp_dequeue_style( 'woocommerce-layout' );
+		wp_deregister_style( 'woocommerce-layout' );
+	}
 }
 
 /**

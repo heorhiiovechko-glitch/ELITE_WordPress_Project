@@ -138,10 +138,17 @@ function elite_shipping_normalize_blog_card_details( $details ) {
 						'content' => sanitize_textarea_field( $block['content'] ?? '' ),
 					);
 					if ( 'table' === $type ) {
-						$item['cell'] = elite_shipping_sanitize_blog_table_cell_role( $block['cell'] ?? '' );
+						$pos          = elite_shipping_sanitize_blog_table_position( $block );
+						$item['row']  = $pos['row'];
+						$item['col']  = $pos['col'];
+						// Keep legacy role briefly for ordered migration of c1/c2 groups.
+						if ( ! empty( $block['cell'] ) && ( empty( $block['row'] ) || empty( $block['col'] ) ) ) {
+							$item['_cell'] = elite_shipping_sanitize_blog_table_cell_role( $block['cell'] );
+						}
 					}
 					$blocks[] = $item;
 				}
+				$blocks = elite_shipping_migrate_blog_table_block_positions( $blocks );
 				$title     = sanitize_text_field( $section['title'] ?? '' );
 				$has_title = array_key_exists( 'hasTitle', $section )
 					? ! empty( $section['hasTitle'] )
@@ -153,9 +160,26 @@ function elite_shipping_normalize_blog_card_details( $details ) {
 					'blocks'   => $blocks,
 				);
 			}
+
+			// Merge consecutive untitled sections (fixes older saves that
+			// split each table cell into its own section).
+			$merged_sections = array();
+			foreach ( $sections as $section ) {
+				$sec_title = trim( (string) ( $section['title'] ?? '' ) );
+				$last      = ! empty( $merged_sections ) ? $merged_sections[ count( $merged_sections ) - 1 ] : null;
+				if ( $last && '' === $sec_title && '' === trim( (string) ( $last['title'] ?? '' ) ) ) {
+					$merged_sections[ count( $merged_sections ) - 1 ]['blocks'] = array_merge(
+						isset( $last['blocks'] ) && is_array( $last['blocks'] ) ? $last['blocks'] : array(),
+						isset( $section['blocks'] ) && is_array( $section['blocks'] ) ? $section['blocks'] : array()
+					);
+					continue;
+				}
+				$merged_sections[] = $section;
+			}
+
 			$paragraphs[] = array(
 				'title'    => sanitize_text_field( $paragraph['title'] ?? '' ),
-				'sections' => $sections,
+				'sections' => $merged_sections,
 			);
 		}
 
@@ -178,28 +202,113 @@ function elite_shipping_normalize_blog_card_details( $details ) {
 }
 
 /**
- * Sanitize table cell role (h1-h3 header, c1-c3 column).
+ * Sanitize legacy table cell role (h1-h3 header, c1-c3 column).
  *
  * @param mixed $role Raw role.
  * @return string
  */
 function elite_shipping_sanitize_blog_table_cell_role( $role ) {
 	$role = strtolower( preg_replace( '/[^a-z0-9]/', '', (string) $role ) );
-	if ( preg_match( '/^[hc][1-3]$/', $role ) ) {
+	if ( preg_match( '/^[hc][1-9]$/', $role ) ) {
 		return $role;
 	}
 	return '';
 }
 
 /**
+ * Sanitize table cell row/column position.
+ *
+ * @param array $block Raw block.
+ * @return array{row:int,col:int}
+ */
+function elite_shipping_sanitize_blog_table_position( $block ) {
+	$block = is_array( $block ) ? $block : array();
+	$row   = absint( $block['row'] ?? 0 );
+	$col   = absint( $block['col'] ?? 0 );
+
+	if ( $row < 1 || $col < 1 ) {
+		$role = elite_shipping_sanitize_blog_table_cell_role( $block['cell'] ?? '' );
+		if ( $role ) {
+			$col = max( 1, (int) substr( $role, 1, 1 ) );
+			$row = ( 'h' === $role[0] ) ? 1 : 2;
+		} else {
+			$row = 1;
+			$col = 1;
+		}
+	}
+
+	return array(
+		'row' => max( 1, min( 50, $row ) ),
+		'col' => max( 1, min( 20, $col ) ),
+	);
+}
+
+/**
+ * Convert legacy h/c cell roles into explicit row/col for a block list.
+ *
+ * @param array $blocks Content blocks.
+ * @return array
+ */
+function elite_shipping_migrate_blog_table_block_positions( $blocks ) {
+	if ( ! is_array( $blocks ) ) {
+		return array();
+	}
+
+	$body_row = 2;
+	$has_body = false;
+
+	foreach ( $blocks as &$block ) {
+		if ( ! is_array( $block ) || 'table' !== ( $block['type'] ?? '' ) ) {
+			continue;
+		}
+
+		$legacy = elite_shipping_sanitize_blog_table_cell_role( $block['_cell'] ?? ( $block['cell'] ?? '' ) );
+		unset( $block['_cell'], $block['cell'] );
+
+		// Prefer explicit row/col (1:1 = row 1, col 1).
+		$has_explicit = ! empty( $block['row'] ) && ! empty( $block['col'] );
+		if ( $has_explicit ) {
+			$pos          = elite_shipping_sanitize_blog_table_position( $block );
+			$block['row'] = $pos['row'];
+			$block['col'] = $pos['col'];
+			continue;
+		}
+
+		if ( $legacy ) {
+			$col = max( 1, (int) substr( $legacy, 1, 1 ) );
+			if ( 'h' === $legacy[0] ) {
+				$block['row'] = 1;
+				$block['col'] = $col;
+			} else {
+				if ( 1 === $col && $has_body ) {
+					++$body_row;
+				}
+				$has_body     = true;
+				$block['row'] = $body_row;
+				$block['col'] = $col;
+			}
+			continue;
+		}
+
+		$pos          = elite_shipping_sanitize_blog_table_position( $block );
+		$block['row'] = $pos['row'];
+		$block['col'] = $pos['col'];
+	}
+	unset( $block );
+
+	return $blocks;
+}
+
+/**
  * Render one content row for the Customizer editor.
  *
- * @param string $type    text|table|list.
- * @param string $content Content value.
- * @param string $cell    Table cell role (h1-h3, c1-c3).
+ * @param string   $type    text|table|list.
+ * @param string   $content Content value.
+ * @param int|array $row_or_cell Row number, or legacy cell role string.
+ * @param int      $col     Column number.
  * @return string
  */
-function elite_shipping_render_blog_card_content_row( $type, $content = '', $cell = '' ) {
+function elite_shipping_render_blog_card_content_row( $type, $content = '', $row_or_cell = 1, $col = 1 ) {
 	$type = sanitize_key( $type );
 	if ( ! in_array( $type, array( 'text', 'table', 'list' ), true ) ) {
 		$type = 'text';
@@ -216,7 +325,20 @@ function elite_shipping_render_blog_card_content_row( $type, $content = '', $cel
 		$placeholder = __( 'Small paragraph content', 'elite-shipping' );
 	}
 
-	$cell = elite_shipping_sanitize_blog_table_cell_role( $cell );
+	if ( is_string( $row_or_cell ) && preg_match( '/^[hc][1-9]$/', strtolower( $row_or_cell ) ) ) {
+		$pos = elite_shipping_sanitize_blog_table_position(
+			array(
+				'cell' => $row_or_cell,
+			)
+		);
+	} else {
+		$pos = elite_shipping_sanitize_blog_table_position(
+			array(
+				'row' => $row_or_cell,
+				'col' => $col,
+			)
+		);
+	}
 
 	ob_start();
 	?>
@@ -224,15 +346,18 @@ function elite_shipping_render_blog_card_content_row( $type, $content = '', $cel
 		<span class="elite-blog-field-mark elite-blog-field-mark--<?php echo esc_attr( $type ); ?>"><?php echo esc_html( $mark ); ?></span>
 		<input type="text" class="elite-blog-section__content" value="<?php echo esc_attr( (string) $content ); ?>" placeholder="<?php echo esc_attr( $placeholder ); ?>" aria-label="<?php echo esc_attr( $placeholder ); ?>">
 		<?php if ( 'table' === $type ) : ?>
-			<input
-				type="text"
-				class="elite-blog-section__cell"
-				value="<?php echo esc_attr( $cell ); ?>"
-				placeholder="<?php esc_attr_e( 'h1', 'elite-shipping' ); ?>"
-				aria-label="<?php esc_attr_e( 'Table cell role (h1-h3, c1-c3)', 'elite-shipping' ); ?>"
-				title="<?php esc_attr_e( 'h1-h3 = header, c1-c3 = column', 'elite-shipping' ); ?>"
-				maxlength="2"
-			>
+			<span class="elite-blog-section__pos">
+				<span class="elite-blog-spin" title="<?php esc_attr_e( 'Row number (1 = header)', 'elite-shipping' ); ?>">
+					<button type="button" class="elite-blog-spin__btn elite-blog-spin__up" data-spin="up" aria-label="<?php esc_attr_e( 'Increase row', 'elite-shipping' ); ?>">▲</button>
+					<input type="number" class="elite-blog-section__row" value="<?php echo esc_attr( (string) $pos['row'] ); ?>" min="1" max="50" step="1" aria-label="<?php esc_attr_e( 'Row number', 'elite-shipping' ); ?>">
+					<button type="button" class="elite-blog-spin__btn elite-blog-spin__down" data-spin="down" aria-label="<?php esc_attr_e( 'Decrease row', 'elite-shipping' ); ?>">▼</button>
+				</span>
+				<span class="elite-blog-spin" title="<?php esc_attr_e( 'Column number', 'elite-shipping' ); ?>">
+					<button type="button" class="elite-blog-spin__btn elite-blog-spin__up" data-spin="up" aria-label="<?php esc_attr_e( 'Increase column', 'elite-shipping' ); ?>">▲</button>
+					<input type="number" class="elite-blog-section__col" value="<?php echo esc_attr( (string) $pos['col'] ); ?>" min="1" max="20" step="1" aria-label="<?php esc_attr_e( 'Column number', 'elite-shipping' ); ?>">
+					<button type="button" class="elite-blog-spin__btn elite-blog-spin__down" data-spin="down" aria-label="<?php esc_attr_e( 'Decrease column', 'elite-shipping' ); ?>">▼</button>
+				</span>
+			</span>
 		<?php endif; ?>
 		<button type="button" class="elite-blog-cards-icon-btn elite-blog-cards-icon-btn--remove elite-blog-remove-content" aria-label="<?php esc_attr_e( 'Remove content', 'elite-shipping' ); ?>" title="<?php esc_attr_e( 'Remove content', 'elite-shipping' ); ?>">
 			<?php echo elite_shipping_blog_cards_icon_html( 'trash', __( 'Remove content', 'elite-shipping' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -280,6 +405,7 @@ function elite_shipping_render_blog_card_sections( $sections ) {
 
 		$title     = (string) ( $section['title'] ?? '' );
 		$blocks    = isset( $section['blocks'] ) && is_array( $section['blocks'] ) ? $section['blocks'] : array();
+		$blocks    = elite_shipping_migrate_blog_table_block_positions( $blocks );
 		$has_title = array_key_exists( 'hasTitle', $section )
 			? ! empty( $section['hasTitle'] )
 			: ( '' !== trim( $title ) || empty( $blocks ) );
@@ -294,10 +420,12 @@ function elite_shipping_render_blog_card_sections( $sections ) {
 			if ( ! is_array( $block ) ) {
 				continue;
 			}
+			$pos = elite_shipping_sanitize_blog_table_position( $block );
 			echo elite_shipping_render_blog_card_content_row( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				(string) ( $block['type'] ?? 'text' ),
 				(string) ( $block['content'] ?? '' ),
-				(string) ( $block['cell'] ?? '' )
+				$pos['row'],
+				$pos['col']
 			);
 		}
 	}
@@ -390,11 +518,12 @@ function elite_shipping_render_blog_card_faqs( $faqs ) {
  * @return string
  */
 function elite_shipping_render_blog_card_list_item_row( $index, $item ) {
-	$title   = (string) ( $item['title'] ?? '' );
-	$date    = (string) ( $item['date'] ?? '' );
-	$image   = absint( $item['image'] ?? 0 );
-	$intro   = (string) ( $item['intro'] ?? '' );
-	$details = elite_shipping_normalize_blog_card_details( $item['details'] ?? array() );
+	$title      = (string) ( $item['title'] ?? '' );
+	$date       = (string) ( $item['date'] ?? '' );
+	$image      = absint( $item['image'] ?? 0 );
+	$intro      = (string) ( $item['intro'] ?? '' );
+	$short_text = (string) ( $item['short_text'] ?? '' );
+	$details    = elite_shipping_normalize_blog_card_details( $item['details'] ?? array() );
 
 	$preview_url   = $image ? wp_get_attachment_image_url( $image, 'thumbnail' ) : '';
 	$preview_style = $preview_url ? 'background-image:url(' . esc_url( $preview_url ) . ');' : '';
@@ -420,6 +549,7 @@ function elite_shipping_render_blog_card_list_item_row( $index, $item ) {
 		</div>
 		<input type="text" class="elite-blog-cards-list-item__title" value="<?php echo esc_attr( $title ); ?>" placeholder="<?php esc_attr_e( 'Title', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Title', 'elite-shipping' ); ?>">
 		<textarea class="elite-blog-cards-list-item__intro" rows="3" placeholder="<?php esc_attr_e( 'Introduction', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Introduction', 'elite-shipping' ); ?>"><?php echo esc_textarea( $intro ); ?></textarea>
+		<input type="text" class="elite-blog-cards-list-item__short-text" value="<?php echo esc_attr( $short_text ); ?>" placeholder="<?php esc_attr_e( 'Short text', 'elite-shipping' ); ?>" aria-label="<?php esc_attr_e( 'Short text', 'elite-shipping' ); ?>">
 
 		<div class="elite-blog-paragraphs">
 			<?php echo elite_shipping_render_blog_card_paragraphs( $details['paragraphs'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -445,6 +575,54 @@ function elite_shipping_render_blog_card_list_item_row( $index, $item ) {
 }
 
 /**
+ * Clean blog card prose input (literal \\n, broken ".nNext" joins).
+ *
+ * @param string $text       Raw text.
+ * @param bool   $allow_nl   Keep real newlines.
+ * @return string
+ */
+function elite_shipping_clean_blog_card_prose_input( $text, $allow_nl = true ) {
+	$text = (string) $text;
+	if ( '' === $text ) {
+		return '';
+	}
+
+	// Literal escape sequences from pasted JSON / bad exports.
+	$text = str_replace( array( '\\r\\n', '\\n', '\\r' ), "\n", $text );
+	$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
+
+	// Broken newline that became a lone "n" between sentences: "...home.nThis..."
+	$text = preg_replace( '/\.(\s*)n(?=[A-Z])/', ".$1\n\n", $text );
+
+	if ( ! $allow_nl ) {
+		// Short text is single-line in the UI; keep one paragraph.
+		$text = preg_replace( '/^n(?=[A-Z])/', '', $text );
+		$text = preg_replace( '/\s+/', ' ', str_replace( "\n", ' ', $text ) );
+	}
+
+	return trim( (string) $text );
+}
+
+/**
+ * Format blog card intro/short text for the front-end (paragraphs + **bold**).
+ *
+ * @param string $text Raw text.
+ * @return string Safe HTML.
+ */
+function elite_shipping_format_blog_card_prose( $text ) {
+	$text = elite_shipping_clean_blog_card_prose_input( $text, true );
+	if ( '' === $text ) {
+		return '';
+	}
+
+	$html = esc_html( $text );
+	$html = wpautop( $html );
+	$html = preg_replace( '/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $html );
+
+	return wp_kses_post( (string) $html );
+}
+
+/**
  * Normalize blog card list items.
  *
  * @param array $items      Raw items.
@@ -459,15 +637,16 @@ function elite_shipping_normalize_blog_cards_list_items( $items, $keep_empty = f
 			continue;
 		}
 
-		$title   = sanitize_text_field( $item['title'] ?? '' );
-		$date    = sanitize_text_field( $item['date'] ?? '' );
-		$image   = absint( $item['image'] ?? 0 );
-		$intro   = sanitize_textarea_field( $item['intro'] ?? '' );
-		$details = elite_shipping_normalize_blog_card_details( $item['details'] ?? array() );
+		$title      = sanitize_text_field( $item['title'] ?? '' );
+		$date       = sanitize_text_field( $item['date'] ?? '' );
+		$image      = absint( $item['image'] ?? 0 );
+		$intro      = elite_shipping_clean_blog_card_prose_input( sanitize_textarea_field( $item['intro'] ?? '' ), true );
+		$short_text = elite_shipping_clean_blog_card_prose_input( sanitize_text_field( $item['short_text'] ?? '' ), false );
+		$details    = elite_shipping_normalize_blog_card_details( $item['details'] ?? array() );
 
 		$has_details = ! empty( $details['paragraphs'] ) || ! empty( $details['faqs'] );
 
-		if ( '' === $title && $image <= 0 && '' === $intro && ! $has_details && ! $keep_empty ) {
+		if ( '' === $title && $image <= 0 && '' === $intro && '' === $short_text && ! $has_details && ! $keep_empty ) {
 			continue;
 		}
 
@@ -481,11 +660,12 @@ function elite_shipping_normalize_blog_cards_list_items( $items, $keep_empty = f
 		}
 
 		$normalized[] = array(
-			'title'   => $title,
-			'date'    => $date,
-			'image'   => $image,
-			'intro'   => $intro,
-			'details' => $details,
+			'title'      => $title,
+			'date'       => $date,
+			'image'      => $image,
+			'intro'      => $intro,
+			'short_text' => $short_text,
+			'details'    => $details,
 		);
 	}
 
@@ -570,54 +750,30 @@ function elite_shipping_blog_uses_cards_list() {
 }
 
 /**
- * Build a table from cell roles (h1-h3 headers, c1-c3 columns).
+ * Build a table from row/column cell positions (row 1 = header).
  *
  * @param array $cells Table block items.
  * @return string
  */
 function elite_shipping_render_blog_card_table_html( $cells ) {
-	$headers     = array();
-	$rows        = array();
-	$current_row = array();
-	$has_roles   = false;
-	$legacy      = array();
+	$raw     = is_array( $cells ) ? $cells : array();
+	$has_pos = false;
+	$legacy  = array();
 
-	foreach ( $cells as $cell ) {
+	foreach ( $raw as $cell ) {
 		if ( ! is_array( $cell ) ) {
 			continue;
 		}
 		$content = trim( (string) ( $cell['content'] ?? '' ) );
-		$role    = elite_shipping_sanitize_blog_table_cell_role( $cell['cell'] ?? '' );
-
-		if ( '' === $role ) {
-			if ( '' !== $content ) {
-				$legacy[] = $content;
-			}
-			continue;
+		if ( ! empty( $cell['row'] ) || ! empty( $cell['col'] ) || ! empty( $cell['cell'] ) ) {
+			$has_pos = true;
+		} elseif ( '' !== $content ) {
+			$legacy[] = $content;
 		}
-
-		$has_roles = true;
-		$col       = (int) substr( $role, 1, 1 );
-
-		if ( 'h' === $role[0] ) {
-			$headers[ $col ] = $content;
-			continue;
-		}
-
-		// Start a new body row whenever c1 appears after values already exist.
-		if ( 1 === $col && ! empty( $current_row ) ) {
-			$rows[]      = $current_row;
-			$current_row = array();
-		}
-		$current_row[ $col ] = $content;
 	}
 
-	if ( ! empty( $current_row ) ) {
-		$rows[] = $current_row;
-	}
-
-	// Legacy pipe/newline table content (no cell roles).
-	if ( ! $has_roles && ! empty( $legacy ) ) {
+	// Legacy pipe/newline table content (no positions).
+	if ( ! $has_pos && ! empty( $legacy ) ) {
 		ob_start();
 		echo '<div class="apex-blog-detail-table-wrap"><table class="apex-blog-detail-table">';
 		foreach ( $legacy as $legacy_i => $legacy_content ) {
@@ -639,39 +795,98 @@ function elite_shipping_render_blog_card_table_html( $cells ) {
 		return ob_get_clean();
 	}
 
-	if ( empty( $headers ) && empty( $rows ) ) {
+	$cells = elite_shipping_migrate_blog_table_block_positions( $raw );
+	$grid  = array();
+
+	foreach ( $cells as $cell ) {
+		if ( ! is_array( $cell ) ) {
+			continue;
+		}
+		$content = trim( (string) ( $cell['content'] ?? '' ) );
+		if ( '' === $content ) {
+			continue;
+		}
+		$pos = elite_shipping_sanitize_blog_table_position( $cell );
+		$row = $pos['row'];
+		$col = $pos['col'];
+		if ( ! isset( $grid[ $row ] ) ) {
+			$grid[ $row ] = array();
+		}
+		$grid[ $row ][ $col ] = $content;
+	}
+
+	if ( empty( $grid ) ) {
 		return '';
 	}
 
-	$max_col = 0;
-	foreach ( array_keys( $headers ) as $col ) {
-		$max_col = max( $max_col, (int) $col );
-	}
-	foreach ( $rows as $row ) {
-		foreach ( array_keys( $row ) as $col ) {
-			$max_col = max( $max_col, (int) $col );
+	ksort( $grid, SORT_NUMERIC );
+	$max_col = 1;
+	$max_row = 1;
+	foreach ( $grid as $row_num => $cols ) {
+		$max_row = max( $max_row, (int) $row_num );
+		foreach ( array_keys( $cols ) as $col_num ) {
+			$max_col = max( $max_col, (int) $col_num );
 		}
 	}
-	$max_col = max( 1, $max_col );
 
 	ob_start();
 	echo '<div class="apex-blog-detail-table-wrap"><table class="apex-blog-detail-table">';
-	if ( ! empty( $headers ) ) {
+	if ( isset( $grid[1] ) ) {
+		echo '<thead><tr>';
+		for ( $col = 1; $col <= $max_col; $col++ ) {
+			echo '<th scope="col">' . esc_html( (string) ( $grid[1][ $col ] ?? '' ) ) . '</th>';
+		}
+		echo '</tr></thead>';
+	}
+	echo '<tbody>';
+	for ( $row = ( isset( $grid[1] ) ? 2 : 1 ); $row <= $max_row; $row++ ) {
 		echo '<tr>';
 		for ( $col = 1; $col <= $max_col; $col++ ) {
-			echo '<th>' . esc_html( (string) ( $headers[ $col ] ?? '' ) ) . '</th>';
+			echo '<td>' . esc_html( (string) ( $grid[ $row ][ $col ] ?? '' ) ) . '</td>';
 		}
 		echo '</tr>';
 	}
-	foreach ( $rows as $row ) {
-		echo '<tr>';
-		for ( $col = 1; $col <= $max_col; $col++ ) {
-			echo '<td>' . esc_html( (string) ( $row[ $col ] ?? '' ) ) . '</td>';
-		}
-		echo '</tr>';
-	}
-	echo '</table></div>';
+	echo '</tbody></table></div>';
 	return ob_get_clean();
+}
+
+/**
+ * Flatten paragraph sections into a render stream (titles + blocks).
+ * Consecutive table cells keep their row/col so one grid is built.
+ *
+ * @param array $sections Sections.
+ * @return array<int, array{kind:string,title?:string,block?:array}>
+ */
+function elite_shipping_blog_card_paragraph_stream( $sections ) {
+	$stream   = array();
+	$sections = is_array( $sections ) ? $sections : array();
+
+	foreach ( $sections as $section ) {
+		if ( ! is_array( $section ) ) {
+			continue;
+		}
+		$section_title = trim( (string) ( $section['title'] ?? '' ) );
+		$blocks        = isset( $section['blocks'] ) && is_array( $section['blocks'] ) ? $section['blocks'] : array();
+
+		if ( '' !== $section_title ) {
+			$stream[] = array(
+				'kind'  => 'title',
+				'title' => $section_title,
+			);
+		}
+
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+			$stream[] = array(
+				'kind'  => 'block',
+				'block' => $block,
+			);
+		}
+	}
+
+	return $stream;
 }
 
 /**
@@ -690,53 +905,84 @@ function elite_shipping_render_blog_card_details_html( $details ) {
 		if ( '' !== $title ) {
 			echo '<h2 class="apex-blog-detail-paragraph__title">' . esc_html( $title ) . '</h2>';
 		}
+
 		$sections = isset( $paragraph['sections'] ) && is_array( $paragraph['sections'] ) ? $paragraph['sections'] : array();
-		foreach ( $sections as $section ) {
-			$section_title = trim( (string) ( $section['title'] ?? '' ) );
-			echo '<div class="apex-blog-detail-section">';
-			if ( '' !== $section_title ) {
-				echo '<h3 class="apex-blog-detail-section__title">' . esc_html( $section_title ) . '</h3>';
-			}
-			$blocks = isset( $section['blocks'] ) && is_array( $section['blocks'] ) ? $section['blocks'] : array();
-			$bi     = 0;
-			$bcount = count( $blocks );
-			while ( $bi < $bcount ) {
-				$block = $blocks[ $bi ];
-				if ( ! is_array( $block ) ) {
-					++$bi;
-					continue;
-				}
-				$type = (string) ( $block['type'] ?? 'text' );
+		$stream   = elite_shipping_blog_card_paragraph_stream( $sections );
+		$count    = count( $stream );
+		$i        = 0;
+		$open_sec = false;
 
-				if ( 'table' === $type ) {
-					$table_cells = array();
-					while ( $bi < $bcount && is_array( $blocks[ $bi ] ) && 'table' === (string) ( $blocks[ $bi ]['type'] ?? '' ) ) {
-						$table_cells[] = $blocks[ $bi ];
-						++$bi;
-					}
-					echo elite_shipping_render_blog_card_table_html( $table_cells ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					continue;
-				}
+		while ( $i < $count ) {
+			$item = $stream[ $i ];
+			$kind = (string) ( $item['kind'] ?? '' );
 
-				$content = trim( (string) ( $block['content'] ?? '' ) );
-				++$bi;
-				if ( '' === $content ) {
-					continue;
+			if ( 'title' === $kind ) {
+				if ( $open_sec ) {
+					echo '</div>';
+					$open_sec = false;
 				}
-				if ( 'list' === $type ) {
-					$lines = preg_split( '/\r\n|\r|\n/', $content );
-					echo '<ul class="apex-blog-detail-list">';
-					foreach ( $lines as $line ) {
-						$line = trim( (string) $line );
-						if ( '' !== $line ) {
-							echo '<li>' . esc_html( $line ) . '</li>';
-						}
-					}
-					echo '</ul>';
-				} else {
-					echo '<div class="apex-blog-detail-text">' . wp_kses_post( wpautop( $content ) ) . '</div>';
-				}
+				echo '<div class="apex-blog-detail-section">';
+				echo '<h3 class="apex-blog-detail-section__title">' . esc_html( (string) ( $item['title'] ?? '' ) ) . '</h3>';
+				$open_sec = true;
+				++$i;
+				continue;
 			}
+
+			$block = isset( $item['block'] ) && is_array( $item['block'] ) ? $item['block'] : null;
+			if ( ! $block ) {
+				++$i;
+				continue;
+			}
+
+			$type = (string) ( $block['type'] ?? 'text' );
+
+			if ( 'table' === $type ) {
+				$table_cells = array();
+				while ( $i < $count ) {
+					$next = $stream[ $i ];
+					if ( 'block' !== (string) ( $next['kind'] ?? '' ) ) {
+						break;
+					}
+					$next_block = isset( $next['block'] ) && is_array( $next['block'] ) ? $next['block'] : null;
+					if ( ! $next_block || 'table' !== (string) ( $next_block['type'] ?? '' ) ) {
+						break;
+					}
+					$table_cells[] = $next_block;
+					++$i;
+				}
+				if ( ! $open_sec ) {
+					echo '<div class="apex-blog-detail-section">';
+					$open_sec = true;
+				}
+				echo elite_shipping_render_blog_card_table_html( $table_cells ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				continue;
+			}
+
+			$content = trim( (string) ( $block['content'] ?? '' ) );
+			++$i;
+			if ( '' === $content ) {
+				continue;
+			}
+			if ( ! $open_sec ) {
+				echo '<div class="apex-blog-detail-section">';
+				$open_sec = true;
+			}
+			if ( 'list' === $type ) {
+				$lines = preg_split( '/\r\n|\r|\n/', $content );
+				echo '<ul class="apex-blog-detail-list">';
+				foreach ( $lines as $line ) {
+					$line = trim( (string) $line );
+					if ( '' !== $line ) {
+						echo '<li>' . esc_html( $line ) . '</li>';
+					}
+				}
+				echo '</ul>';
+			} else {
+				echo '<div class="apex-blog-detail-text">' . wp_kses_post( wpautop( $content ) ) . '</div>';
+			}
+		}
+
+		if ( $open_sec ) {
 			echo '</div>';
 		}
 		echo '</section>';
@@ -799,18 +1045,22 @@ function elite_shipping_get_customizer_blog_cards() {
 			$slug = 'card-' . ( $index + 1 );
 		}
 
+		$intro      = (string) ( $item['intro'] ?? '' );
+		$short_text = (string) ( $item['short_text'] ?? '' );
+
 		$ready[] = array(
-			'title'    => $title,
-			'url'      => add_query_arg( 'card', $slug, $blog ),
-			'image'    => $image_url,
-			'excerpt'  => (string) ( $item['intro'] ?? '' ),
-			'details'  => isset( $item['details'] ) ? $item['details'] : array(),
-			'date'     => gmdate( 'F j, Y', $timestamp ),
-			'datetime' => gmdate( 'Y-m-d', $timestamp ),
-			'day'      => gmdate( 'j', $timestamp ),
-			'month'    => gmdate( 'M', $timestamp ),
-			'author'   => $author,
-			'slug'     => $slug,
+			'title'      => $title,
+			'url'        => add_query_arg( 'card', $slug, $blog ),
+			'image'      => $image_url,
+			'excerpt'    => $intro,
+			'short_text' => $short_text,
+			'details'    => isset( $item['details'] ) ? $item['details'] : array(),
+			'date'       => gmdate( 'F j, Y', $timestamp ),
+			'datetime'   => gmdate( 'Y-m-d', $timestamp ),
+			'day'        => gmdate( 'j', $timestamp ),
+			'month'      => gmdate( 'M', $timestamp ),
+			'author'     => $author,
+			'slug'       => $slug,
 		);
 	}
 

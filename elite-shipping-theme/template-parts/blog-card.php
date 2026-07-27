@@ -33,8 +33,11 @@ if ( empty( $post['title'] ) || empty( $post['url'] ) ) {
 			<span class="apex-blog-card-meta-dot" aria-hidden="true"></span>
 			<time datetime="<?php echo esc_attr( $post['datetime'] ); ?>"><?php echo esc_html( $post['date'] ); ?></time>
 		</div>
-		<?php if ( ! empty( $post['excerpt'] ) ) : ?>
-			<p class="apex-blog-card-excerpt"><?php echo esc_html( $post['excerpt'] ); ?></p>
+		<?php
+		$card_excerpt = ! empty( $post['short_text'] ) ? $post['short_text'] : ( $post['excerpt'] ?? '' );
+		if ( ! empty( $card_excerpt ) ) :
+			?>
+			<p class="apex-blog-card-excerpt"><?php echo esc_html( $card_excerpt ); ?></p>
 		<?php endif; ?>
 		<a class="apex-blog-card-more" href="<?php echo esc_url( $post['url'] ); ?>">
 			<span><?php echo esc_html( get_theme_mod( 'elite_blog_card_more', __( 'Continue reading', 'elite-shipping' ) ) ); ?></span>

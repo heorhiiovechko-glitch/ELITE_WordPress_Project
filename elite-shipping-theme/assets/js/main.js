@@ -1860,4 +1860,37 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   }
+
+  /* My Account: Login / Register toggle */
+  var authRoot = document.getElementById('customer_login');
+  if (authRoot && authRoot.classList.contains('apex-account-auth--toggle')) {
+    var authButtons = authRoot.querySelectorAll('[data-auth-panel].apex-account-auth-toggle-btn');
+    var authPanels = authRoot.querySelectorAll('.apex-account-auth-panel[data-auth-panel]');
+
+    function setAuthPanel(panelName) {
+      authRoot.setAttribute('data-active', panelName);
+
+      authButtons.forEach(function (btn) {
+        var isActive = btn.getAttribute('data-auth-panel') === panelName;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      authPanels.forEach(function (panel) {
+        var isActive = panel.getAttribute('data-auth-panel') === panelName;
+        panel.classList.toggle('is-active', isActive);
+        if (isActive) {
+          panel.removeAttribute('hidden');
+        } else {
+          panel.setAttribute('hidden', '');
+        }
+      });
+    }
+
+    authButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setAuthPanel(btn.getAttribute('data-auth-panel'));
+      });
+    });
+  }
 });

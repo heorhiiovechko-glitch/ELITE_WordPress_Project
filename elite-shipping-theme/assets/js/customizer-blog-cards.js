@@ -39,9 +39,20 @@
 
   function buildContentRowHtml(type) {
     var meta = contentMeta(type);
-    var cellField =
+    var posFields =
       type === 'table'
-        ? '<input type="text" class="elite-blog-section__cell" value="" placeholder="h1" aria-label="Table cell role (h1-h3, c1-c3)" title="h1-h3 = header, c1-c3 = column" maxlength="2">'
+        ? '<span class="elite-blog-section__pos">' +
+          '<span class="elite-blog-spin" title="Row number (1 = header)">' +
+          '<button type="button" class="elite-blog-spin__btn elite-blog-spin__up" data-spin="up" aria-label="Increase row">▲</button>' +
+          '<input type="number" class="elite-blog-section__row" value="1" min="1" max="50" step="1" aria-label="Row number">' +
+          '<button type="button" class="elite-blog-spin__btn elite-blog-spin__down" data-spin="down" aria-label="Decrease row">▼</button>' +
+          '</span>' +
+          '<span class="elite-blog-spin" title="Column number">' +
+          '<button type="button" class="elite-blog-spin__btn elite-blog-spin__up" data-spin="up" aria-label="Increase column">▲</button>' +
+          '<input type="number" class="elite-blog-section__col" value="1" min="1" max="20" step="1" aria-label="Column number">' +
+          '<button type="button" class="elite-blog-spin__btn elite-blog-spin__down" data-spin="down" aria-label="Decrease column">▼</button>' +
+          '</span>' +
+          '</span>'
         : '';
     return (
       '<div class="elite-blog-content-row" data-type="' +
@@ -57,7 +68,7 @@
       '" aria-label="' +
       meta.placeholder +
       '">' +
-      cellField +
+      posFields +
       iconButton('elite-blog-remove-content', 'trash', 'Remove content', 'elite-blog-cards-icon-btn--remove') +
       '</div>'
     );
@@ -159,7 +170,9 @@
             if (type !== 'text' && type !== 'table' && type !== 'list') {
               type = 'text';
             }
-            if (!current || current.hasTitle === false) {
+            // Keep consecutive content rows in the same section so table
+            // cells (row/col) can build one grid. Only start a section if none.
+            if (!current) {
               current = { title: '', hasTitle: false, blocks: [] };
               sections.push(current);
             }
@@ -168,10 +181,10 @@
               content: $.trim($item.find('.elite-blog-section__content').val() || '')
             };
             if (type === 'table') {
-              block.cell = $.trim($item.find('.elite-blog-section__cell').val() || '')
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, '')
-                .slice(0, 2);
+              var row = parseInt($item.find('.elite-blog-section__row').val(), 10) || 1;
+              var col = parseInt($item.find('.elite-blog-section__col').val(), 10) || 1;
+              block.row = Math.max(1, Math.min(50, row));
+              block.col = Math.max(1, Math.min(20, col));
             }
             current.blocks.push(block);
           }
@@ -202,6 +215,7 @@
         date: $.trim($(this).find('.elite-blog-cards-list-item__date').val() || ''),
         image: parseInt($(this).find('.elite-blog-cards-list-item__image-id').val(), 10) || 0,
         intro: $.trim($(this).find('.elite-blog-cards-list-item__intro').val() || ''),
+        short_text: $.trim($(this).find('.elite-blog-cards-list-item__short-text').val() || ''),
         details: readDetails($(this))
       });
     });
@@ -306,6 +320,7 @@
       '</div>' +
       '<input type="text" class="elite-blog-cards-list-item__title" value="" placeholder="Title" aria-label="Title">' +
       '<textarea class="elite-blog-cards-list-item__intro" rows="3" placeholder="Introduction" aria-label="Introduction"></textarea>' +
+      '<input type="text" class="elite-blog-cards-list-item__short-text" value="" placeholder="Short text" aria-label="Short text">' +
       '<div class="elite-blog-paragraphs"></div>' +
       '<button type="button" class="button button-secondary elite-blog-add-paragraph">Add new paragraph</button>' +
       '<div class="elite-blog-faqs-block">' +
@@ -440,6 +455,25 @@
       syncSetting($wrap);
     });
 
+    $wrap.on('click', '.elite-blog-spin__btn', function (event) {
+      event.preventDefault();
+      var $input = $(this).closest('.elite-blog-spin').find('input').first();
+      if (!$input.length) {
+        return;
+      }
+      var min = parseInt($input.attr('min'), 10);
+      var max = parseInt($input.attr('max'), 10);
+      var value = parseInt($input.val(), 10) || 1;
+      if (isNaN(min)) {
+        min = 1;
+      }
+      if (isNaN(max)) {
+        max = 99;
+      }
+      value = $(this).attr('data-spin') === 'up' ? Math.min(max, value + 1) : Math.max(min, value - 1);
+      $input.val(String(value)).trigger('change');
+    });
+
     $wrap.on('click', '.elite-blog-add-faq', function (event) {
       event.preventDefault();
       $(this).closest('.elite-blog-faqs-block').find('.elite-blog-faqs').append(buildFaqHtml());
@@ -454,7 +488,7 @@
 
     $wrap.on(
       'input change',
-      '.elite-blog-cards-list-item__title, .elite-blog-cards-list-item__date, .elite-blog-cards-list-item__intro, .elite-blog-paragraph__title, .elite-blog-section__title, .elite-blog-section__content, .elite-blog-section__cell, .elite-blog-faq__title, .elite-blog-faq__text',
+      '.elite-blog-cards-list-item__title, .elite-blog-cards-list-item__date, .elite-blog-cards-list-item__intro, .elite-blog-cards-list-item__short-text, .elite-blog-paragraph__title, .elite-blog-section__title, .elite-blog-section__content, .elite-blog-section__row, .elite-blog-section__col, .elite-blog-faq__title, .elite-blog-faq__text',
       function () {
         syncSetting($wrap);
       }

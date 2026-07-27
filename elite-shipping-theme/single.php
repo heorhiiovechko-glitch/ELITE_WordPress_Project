@@ -54,29 +54,28 @@ $urls = elite_shipping_get_urls();
 				<div class="elite-container apex-blog-single-layout">
 					<article class="apex-blog-single-main">
 						<header class="apex-blog-single-head">
+							<a class="apex-blog-single-back" href="<?php echo esc_url( $urls['blog'] ); ?>" aria-label="<?php esc_attr_e( 'Back to blog', 'elite-shipping' ); ?>">
+								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+							</a>
 							<a class="apex-blog-single-cat" href="<?php echo esc_url( $urls['blog'] ); ?>"><?php echo esc_html( $single_cat ); ?></a>
 							<h1 class="apex-blog-single-title"><?php the_title(); ?></h1>
 							<div class="apex-blog-single-meta">
 								<span class="apex-blog-single-meta-item">
-									<?php esc_html_e( 'Posted by', 'elite-shipping' ); ?>
 									<svg class="apex-blog-single-meta-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
 									<span><?php the_author(); ?></span>
 								</span>
+								<span class="apex-blog-single-meta-sep" aria-hidden="true"></span>
 								<span class="apex-blog-single-meta-item">
-									<?php esc_html_e( 'On', 'elite-shipping' ); ?>
+									<svg class="apex-blog-single-meta-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10z"/></svg>
 									<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date( 'F j, Y' ) ); ?></time>
-								</span>
-								<span class="apex-blog-single-meta-item">
-									<svg class="apex-blog-single-meta-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 2H4a2 2 0 0 0-2 2v14l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>
-									<span><?php echo esc_html( (string) get_comments_number() ); ?></span>
 								</span>
 							</div>
 						</header>
 
 						<?php if ( $thumb ) : ?>
-							<div class="apex-blog-single-featured">
+							<figure class="apex-blog-single-featured">
 								<img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>" loading="lazy">
-							</div>
+							</figure>
 						<?php endif; ?>
 
 						<div class="apex-blog-article entry-content">

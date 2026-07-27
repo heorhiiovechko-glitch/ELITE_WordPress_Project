@@ -1,6 +1,6 @@
 /**
- * Elite Shipping Containers — Apex / type1 exact match v1.3.0
- * Colors: Navy #001529 · Orange #ff6600
+ * Elite Shipping Containers â€” Apex / type1 exact match v1.3.0
+ * Colors: Navy #001529 Â· Orange #ff6600
  */
 
 :root {
@@ -64,7 +64,7 @@ html {
 	padding: 0 20px;
 }
 
-/* ── TOP BAR + HEADER (sticky on all pages) ── */
+/* â”€â”€ TOP BAR + HEADER (sticky on all pages) â”€â”€ */
 .elite-site-header-bar {
 	position: -webkit-sticky;
 	position: sticky;
@@ -122,7 +122,7 @@ body.admin-bar .elite-site-header-bar {
 	background: var(--orange); border: 1.5px solid var(--navy-bar);
 }
 
-/* ── HEADER ── */
+/* â”€â”€ HEADER â”€â”€ */
 .elite-header {
 	background: var(--white);
 	border-bottom: 1px solid var(--gray-200);
@@ -543,7 +543,7 @@ body.elite-nav-open {
 	}
 }
 
-/* ── BUTTONS ── */
+/* â”€â”€ BUTTONS â”€â”€ */
 .elite-btn {
 	display: inline-flex; align-items: center; justify-content: center;
 	padding: 10px 18px; border-radius: var(--radius);
@@ -560,7 +560,7 @@ body.elite-nav-open {
 .elite-btn-navy { background: var(--navy); color: var(--white); border-color: var(--navy); font-size: 12px; padding: 9px 14px; }
 .elite-btn-outline-orange { background: transparent; color: var(--orange); border-color: var(--orange); padding: 11px 20px; }
 
-/* ── HERO ── */
+/* â”€â”€ HERO â”€â”€ */
 .apex-hero {
 	--hero-scale: 1.3;
 	position: relative;
@@ -794,7 +794,7 @@ body.elite-nav-open {
 	line-height: 1.35;
 }
 
-/* ── SECTIONS ── */
+/* â”€â”€ SECTIONS â”€â”€ */
 .apex-section { padding: 32px 0; }
 .apex-featured { background: var(--white); }
 .apex-about {
@@ -919,7 +919,7 @@ body.elite-nav-open {
 	flex-shrink: 0;
 }
 
-/* ── PRODUCT GRID ── */
+/* â”€â”€ PRODUCT GRID â”€â”€ */
 .apex-grid.apex-product-grid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0,1fr));
@@ -1017,7 +1017,7 @@ body.elite-nav-open {
 }
 .apex-addon-link:hover { text-decoration: underline; }
 
-/* ── POLICY PAGES ── */
+/* â”€â”€ POLICY PAGES â”€â”€ */
 .apex-page-hero--policy {
 	position: relative;
 	overflow: hidden;
@@ -1529,7 +1529,7 @@ body.elite-nav-open {
 }
 .apex-view-link:hover { text-decoration: underline; }
 
-/* Top Picks — modern category cards */
+/* Top Picks â€” modern category cards */
 .apex-featured .apex-grid.apex-product-grid {
 	gap: 22px;
 }
@@ -1634,7 +1634,7 @@ body.elite-nav-open {
 	border-radius: 2px; letter-spacing: .04em;
 }
 
-/* ── ABOUT ── */
+/* â”€â”€ ABOUT â”€â”€ */
 .elite-container.apex-about-grid {
 	display: grid;
 	grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
@@ -1670,7 +1670,7 @@ body.elite-nav-open {
 	font-weight: 500;
 }
 .apex-checklist li::before {
-	content: "✓";
+	content: "âœ“";
 	position: absolute;
 	left: 0;
 	top: 1px;
@@ -1685,7 +1685,7 @@ body.elite-nav-open {
 	margin-bottom: 14px;
 }
 .apex-checklist--about li::before {
-	content: "✓";
+	content: "âœ“";
 	width: 22px;
 	height: 22px;
 	border-radius: 50%;
@@ -1794,7 +1794,7 @@ body.elite-nav-open {
 	}
 }
 
-/* ── ABOUT PAGE ── */
+/* â”€â”€ ABOUT PAGE â”€â”€ */
 .apex-page-hero {
 	background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
 	color: var(--white);
@@ -2078,7 +2078,7 @@ body.elite-nav-open {
 	margin-top: 32px;
 }
 
-/* ── CONTACT PAGE ── */
+/* â”€â”€ CONTACT PAGE â”€â”€ */
 .apex-page-hero--contact {
 	background-size: cover;
 	background-position: center;
@@ -2253,7 +2253,7 @@ body.elite-nav-open {
 	border: 0;
 }
 
-/* ── BLOG PAGE ── */
+/* â”€â”€ BLOG PAGE â”€â”€ */
 .apex-page-hero--bar,
 .apex-page-hero--blog,
 .apex-page-hero--blog-single,
@@ -2330,77 +2330,181 @@ body.elite-nav-open {
 	margin: 0 0 1em;
 }
 .apex-blog-detail-paragraph {
-	margin-top: 28px;
-	padding-top: 0;
-	border-top: 2px solid #000;
+	margin-top: 36px;
+	padding: 28px 0 0;
+	border-top: 1px solid var(--gray-200);
+}
+.apex-blog-detail-paragraph--intro {
+	margin-top: 0;
+	padding: 0;
+	border-top: 0;
 }
 .apex-blog-detail-paragraph__title {
-	margin: 1.6em 0 14px;
+	position: relative;
+	margin: 0 0 18px;
+	padding-bottom: 12px;
 	font-family: Montserrat, sans-serif;
-	font-size: 24px;
+	font-size: clamp(22px, 2.4vw, 28px);
 	font-weight: 800;
+	line-height: 1.25;
 	color: var(--navy);
+	letter-spacing: -0.01em;
+}
+.apex-blog-detail-paragraph__title::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 48px;
+	height: 3px;
+	border-radius: 2px;
+	background: linear-gradient(90deg, var(--orange) 0%, #ff944d 100%);
+}
+.apex-blog-detail-paragraph--intro .apex-blog-detail-paragraph__title {
+	margin-top: 0;
+}
+.apex-blog-detail-section {
+	margin-top: 22px;
 }
 .apex-blog-detail-section + .apex-blog-detail-section {
-	margin-top: 18px;
+	margin-top: 26px;
 }
 .apex-blog-detail-section__title {
-	margin: 0 0 10px;
+	margin: 0 0 12px;
+	font-family: Montserrat, sans-serif;
 	font-size: 18px;
 	font-weight: 700;
+	line-height: 1.35;
 	color: var(--navy);
 }
+.apex-blog-detail-text {
+	color: var(--text-muted);
+}
+.apex-blog-detail-text p {
+	margin: 0 0 1em;
+}
+.apex-blog-detail-text p:last-child {
+	margin-bottom: 0;
+}
 .apex-blog-detail-list {
-	margin: 0.6em 0;
-	padding-left: 2.5em;
-	list-style: disc;
-	list-style-position: outside;
+	margin: 0.4em 0 1em;
+	padding: 16px 18px 16px 1.4em;
+	list-style: none;
+	border-radius: 10px;
+	background: linear-gradient(180deg, #f8fafc 0%, #f3f6fa 100%);
+	border: 1px solid var(--gray-100);
 }
 .apex-blog-detail-list li {
-	margin: 0 0 0.4em;
-	padding-left: 0.35em;
-	line-height: 1.55;
+	position: relative;
+	margin: 0 0 0.55em;
+	padding-left: 1.15em;
+	line-height: 1.6;
 	color: var(--text-muted);
 }
 .apex-blog-detail-list li:last-child {
 	margin-bottom: 0;
 }
-.apex-blog-detail-list li::marker {
-	color: var(--gray-600);
+.apex-blog-detail-list li::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0.62em;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--orange);
+	box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.14);
 }
 .apex-blog-detail-table-wrap {
-	margin: 0 0 1.2em;
+	margin: 8px 0 1.4em;
 	overflow-x: auto;
+	border-radius: 12px;
+	border: 1px solid var(--gray-200);
+	background: #fff;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
+.apex-blog-article .apex-blog-detail-table,
 .apex-blog-detail-table {
 	width: 100%;
 	border-collapse: collapse;
+	table-layout: fixed;
+	display: table !important;
+	margin: 0;
 }
+.apex-blog-article .apex-blog-detail-table thead,
+.apex-blog-detail-table thead {
+	display: table-header-group !important;
+}
+.apex-blog-article .apex-blog-detail-table tbody,
+.apex-blog-detail-table tbody {
+	display: table-row-group !important;
+}
+.apex-blog-article .apex-blog-detail-table tr,
+.apex-blog-detail-table tr {
+	display: table-row !important;
+}
+.apex-blog-article .apex-blog-detail-table th,
+.apex-blog-article .apex-blog-detail-table td,
 .apex-blog-detail-table th,
 .apex-blog-detail-table td {
-	padding: 10px 12px;
+	display: table-cell !important;
+	padding: 14px 16px;
 	border: 1px solid var(--gray-200);
 	text-align: left;
+	vertical-align: middle;
+	word-break: break-word;
+	font-size: 15px;
+	line-height: 1.5;
 }
 .apex-blog-detail-table th {
-	background: var(--gray-50);
+	background: #f8fafc;
 	font-weight: 700;
 	color: var(--navy);
+	text-align: center;
+	border-bottom: 3px solid var(--navy);
+}
+.apex-blog-detail-table thead th {
+	text-align: center;
+	border-bottom: 3px solid var(--navy);
+}
+.apex-blog-detail-table tbody tr:nth-child(even) td {
+	background: #fcfdff;
+}
+.apex-blog-detail-table tbody tr:hover td {
+	background: rgba(255, 102, 0, 0.04);
+}
+.apex-blog-detail-table td:first-child {
+	font-weight: 700;
+	color: var(--text-strong);
 }
 .apex-blog-detail-faqs {
-	margin-top: 36px;
-	padding-top: 28px;
-	border-top: 1px solid var(--gray-200);
+	margin-top: 40px;
+	padding: 28px 24px;
+	border-radius: 14px;
+	border: 1px solid var(--gray-200);
+	background:
+		radial-gradient(ellipse 60% 50% at 100% 0%, rgba(255, 102, 0, 0.06), transparent 55%),
+		#fff;
 }
 .apex-blog-detail-faqs__title {
-	margin: 0 0 16px;
+	margin: 0 0 18px;
+	padding-bottom: 12px;
 	font-family: Montserrat, sans-serif;
-	font-size: 24px;
+	font-size: clamp(22px, 2.4vw, 26px);
 	font-weight: 800;
 	color: var(--navy);
+	border-bottom: 1px solid var(--gray-200);
+}
+.apex-blog-detail-faq {
+	padding: 16px 0;
+	border-bottom: 1px solid var(--gray-100);
+}
+.apex-blog-detail-faq:last-child {
+	padding-bottom: 0;
+	border-bottom: 0;
 }
 .apex-blog-detail-faq + .apex-blog-detail-faq {
-	margin-top: 16px;
+	margin-top: 0;
 }
 .apex-blog-detail-faq__title {
 	margin: 0 0 8px;
@@ -2410,6 +2514,7 @@ body.elite-nav-open {
 }
 .apex-blog-detail-faq__text {
 	color: var(--text-muted);
+	line-height: 1.7;
 }
 .apex-blog-list {
 	padding: 56px 0 80px;
@@ -2600,118 +2705,219 @@ body.elite-nav-open {
 }
 .apex-blog-single-content {
 	padding: 48px 0 64px;
-	background: var(--white);
+	background:
+		radial-gradient(ellipse 55% 40% at 0% 0%, rgba(255, 102, 0, 0.05), transparent 55%),
+		linear-gradient(180deg, #f4f7fb 0%, #eef2f7 40%, #f8fafc 100%);
 }
 .apex-blog-single-wrap {
-	padding: 48px 0 72px;
-	background: var(--white);
+	padding: 40px 0 80px;
+	background:
+		radial-gradient(ellipse 55% 40% at 0% 0%, rgba(255, 102, 0, 0.05), transparent 55%),
+		linear-gradient(180deg, #f4f7fb 0%, #eef2f7 40%, #f8fafc 100%);
 }
 .apex-blog-single-layout {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-	gap: clamp(32px, 4vw, 56px);
+	gap: clamp(28px, 3.5vw, 48px);
 	align-items: start;
 }
+.apex-blog-single-main {
+	padding: clamp(28px, 3vw, 40px);
+	border: 1px solid rgba(15, 23, 42, 0.06);
+	border-radius: 18px;
+	background: #fff;
+	box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+}
 .apex-blog-single-head {
+	position: relative;
 	margin-bottom: 28px;
+	padding-bottom: 24px;
 	text-align: center;
+	border-bottom: 1px solid var(--gray-100);
+}
+.apex-blog-single-back {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 42px;
+	height: 42px;
+	border: 1px solid var(--gray-200);
+	border-radius: 12px;
+	background: #fff;
+	color: var(--navy);
+	text-decoration: none;
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+	transition: background .18s, border-color .18s, color .18s, transform .18s, box-shadow .18s;
+}
+.apex-blog-single-back:hover {
+	background: var(--navy);
+	border-color: var(--navy);
+	color: #fff;
+	transform: translateX(-2px);
+	box-shadow: 0 8px 18px rgba(0, 21, 41, 0.18);
 }
 .apex-blog-single-cat {
-	display: inline-block;
-	margin-bottom: 18px;
-	padding: 7px 16px;
+	display: inline-flex;
+	align-items: center;
+	margin-bottom: 16px;
+	padding: 7px 14px;
 	border-radius: 999px;
-	background: #3d2f57;
-	color: var(--white);
+	background: rgba(255, 102, 0, 0.1);
+	color: var(--orange-dark);
 	font-size: 12px;
-	font-weight: 700;
-	letter-spacing: 0.08em;
+	font-weight: 800;
+	letter-spacing: 0.1em;
 	text-transform: uppercase;
 	text-decoration: none;
+	transition: background .18s, color .18s;
 }
 .apex-blog-single-cat:hover {
-	background: var(--navy);
-	color: var(--white);
+	background: var(--orange);
+	color: #fff;
 }
 .apex-blog-single-title {
-	margin: 0 0 18px;
+	margin: 0 auto 16px;
+	max-width: 22em;
 	font-family: Montserrat, sans-serif;
-	font-size: clamp(28px, 3.5vw, 40px);
-	font-weight: 700;
-	line-height: 1.2;
-	color: var(--text-strong);
+	font-size: clamp(28px, 3.6vw, 42px);
+	font-weight: 800;
+	line-height: 1.18;
+	letter-spacing: -0.02em;
+	color: var(--navy);
 }
 .apex-blog-single-meta {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
-	gap: 10px 18px;
+	align-items: center;
+	gap: 8px 14px;
 	font-size: 14px;
 	color: var(--gray-500);
 }
 .apex-blog-single-meta-item {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
+	gap: 7px;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: var(--gray-50);
+	border: 1px solid var(--gray-100);
+	color: var(--gray-700);
+	font-weight: 600;
+}
+.apex-blog-single-meta-sep {
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: var(--gray-200);
 }
 .apex-blog-single-meta-icon {
 	flex-shrink: 0;
-	color: var(--gray-500);
+	color: var(--orange);
 }
 .apex-blog-single-featured {
-	margin-bottom: 32px;
+	margin: 0 0 32px;
+	overflow: hidden;
+	border-radius: 14px;
+	border: 1px solid var(--gray-100);
+	background: var(--gray-50);
+	box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 .apex-blog-single-featured img {
 	width: 100%;
+	aspect-ratio: 16 / 9;
 	height: auto;
 	display: block;
-	border-radius: 0;
+	object-fit: cover;
+	transition: transform .45s ease;
+}
+.apex-blog-single-featured:hover img {
+	transform: scale(1.02);
 }
 .apex-blog-article {
 	max-width: none;
 	margin: 0;
-	font-size: 16px;
-	line-height: 1.85;
+	font-size: 17px;
+	line-height: 1.8;
 	color: var(--text-muted);
 }
-.apex-blog-card-lead {
-	margin: 0 0 1.25em;
-	font-size: 17px;
-	line-height: 1.75;
-	color: var(--text-muted);
+.apex-blog-card-lead,
+.apex-blog-card-short-text {
+	margin: 0;
+	font-size: 18px;
+	line-height: 1.8;
+	color: var(--gray-700);
+}
+.apex-blog-detail-paragraph--intro .apex-blog-card-lead,
+.apex-blog-detail-paragraph--intro .apex-blog-card-short-text {
+	font-size: 18px;
+}
+.apex-blog-card-lead p,
+.apex-blog-card-short-text p {
+	margin: 0 0 1.15em;
+	font-size: inherit;
+	line-height: inherit;
+	color: inherit;
+}
+.apex-blog-card-lead p:last-child,
+.apex-blog-card-short-text p:last-child {
+	margin-bottom: 1.15em;
+}
+.apex-blog-card-lead + .apex-blog-card-short-text p:last-child {
+	margin-bottom: 0;
+}
+.apex-blog-detail-paragraph--intro .apex-blog-card-short-text:last-child p:last-child,
+.apex-blog-detail-paragraph--intro .apex-blog-card-lead:last-child p:last-child {
+	margin-bottom: 0;
+}
+.apex-blog-card-lead strong,
+.apex-blog-card-short-text strong {
+	font-weight: 700;
+	color: var(--navy);
 }
 .apex-blog-article h2,
 .apex-blog-article h3,
 .apex-blog-article h4 {
-	color: var(--text-strong);
+	color: var(--navy);
 	font-family: Montserrat, sans-serif;
 	margin-top: 1.6em;
 }
 .apex-blog-article p {
-	margin: 0 0 1.2em;
+	margin: 0 0 1.15em;
 }
 .apex-blog-article img {
 	max-width: 100%;
 	height: auto;
-	border-radius: 0;
+	border-radius: 10px;
 }
 .apex-blog-sidebar {
 	position: sticky;
 	top: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+}
+.apex-blog-sidebar-block {
+	padding: 22px 20px;
+	border: 1px solid rgba(15, 23, 42, 0.06);
+	border-radius: 16px;
+	background: #fff;
+	box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
 }
 .apex-blog-sidebar-block + .apex-blog-sidebar-block {
-	margin-top: 34px;
-	padding-top: 28px;
-	border-top: 1px solid var(--gray-200);
+	margin-top: 0;
 }
 .apex-blog-sidebar-title {
-	margin: 0 0 18px;
+	margin: 0 0 16px;
 	font-family: Montserrat, sans-serif;
-	font-size: 18px;
-	font-weight: 700;
-	color: var(--text-strong);
+	font-size: 14px;
+	font-weight: 800;
+	color: var(--navy);
 	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.06em;
 }
 .apex-blog-sidebar-list,
 .apex-blog-sidebar-recent {
@@ -2723,6 +2929,8 @@ body.elite-nav-open {
 	color: var(--text-muted);
 	text-decoration: none;
 	font-size: 15px;
+	font-weight: 600;
+	transition: color .18s;
 }
 .apex-blog-sidebar-list a:hover {
 	color: var(--orange);
@@ -2734,26 +2942,31 @@ body.elite-nav-open {
 	align-items: start;
 }
 .apex-blog-sidebar-recent-item + .apex-blog-sidebar-recent-item {
-	margin-top: 18px;
-	padding-top: 18px;
-	border-top: 1px solid var(--gray-200);
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid var(--gray-100);
 }
 .apex-blog-sidebar-recent-media {
 	display: block;
 	overflow: hidden;
+	border-radius: 10px;
 }
 .apex-blog-sidebar-recent-media img {
 	width: 72px;
 	height: 72px;
 	object-fit: cover;
 	display: block;
+	transition: transform .35s ease;
+}
+.apex-blog-sidebar-recent-item:hover .apex-blog-sidebar-recent-media img {
+	transform: scale(1.05);
 }
 .apex-blog-sidebar-recent-title {
 	display: block;
 	margin-bottom: 6px;
-	color: var(--text-strong);
+	color: var(--navy);
 	font-size: 14px;
-	font-weight: 600;
+	font-weight: 700;
 	line-height: 1.45;
 	text-decoration: none;
 }
@@ -2768,7 +2981,8 @@ body.elite-nav-open {
 }
 .apex-blog-post-footer {
 	margin-top: 40px;
-	padding-top: 8px;
+	padding-top: 24px;
+	border-top: 1px solid var(--gray-100);
 }
 .apex-blog-share {
 	display: flex;
@@ -2938,12 +3152,8 @@ body.elite-nav-open {
 	font-size: 15px;
 	color: var(--text-muted);
 }
-.apex-blog-single-back {
-	max-width: 820px;
-	margin: 32px auto 0;
-}
 
-/* ── MODIFICATIONS ── */
+/* â”€â”€ MODIFICATIONS â”€â”€ */
 .apex-mods {
 	background: var(--white);
 	padding: 0 0 60px;
@@ -3110,7 +3320,7 @@ body.elite-nav-open {
 .apex-dots button.on,
 .apex-dots span.on { background: var(--orange); }
 
-/* ── TRUST BAR ── */
+/* â”€â”€ TRUST BAR â”€â”€ */
 .apex-trustbar {
 	background: var(--white);
 	padding: 0 0 30px;
@@ -3170,7 +3380,7 @@ body.elite-nav-open {
 	line-height: 1.4;
 }
 
-/* ── FOOTER ── */
+/* â”€â”€ FOOTER â”€â”€ */
 .apex-footer {
 	background: var(--navy);
 	color: rgba(255,255,255,.78);
@@ -3321,10 +3531,10 @@ body.elite-single-product-page .apex-footer-bar .apex-pay-strip {
 	object-position: right center;
 }
 
-/* ── MISC ── */
+/* â”€â”€ MISC â”€â”€ */
 .elite-wc-main { padding: 0 0 72px; background: var(--white); }
 
-/* ── CHECKOUT ── */
+/* â”€â”€ CHECKOUT â”€â”€ */
 .apex-page-hero--checkout {
 	background-position: center;
 	background-size: cover;
@@ -3505,7 +3715,7 @@ body.elite-checkout-page .woocommerce-notices-wrapper:empty {
 	display: none;
 }
 
-/* ── WC NOTICES (cart added, info, errors) ── */
+/* â”€â”€ WC NOTICES (cart added, info, errors) â”€â”€ */
 @keyframes apex-notice-in {
 	from {
 		opacity: 0;
@@ -4571,7 +4781,7 @@ body.elite-checkout-page .apex-checkout-order-card #payment .form-row.place-orde
 	transform: translateY(-1px);
 }
 
-/* Card form fields inside payment box — not alert style */
+/* Card form fields inside payment box â€” not alert style */
 .apex-checkout-order-card #payment div.payment_box .wc-stripe-elements-field,
 .apex-checkout-order-card #payment div.payment_box iframe,
 .apex-checkout-order-card #payment div.payment_box .StripeElement,
@@ -4675,7 +4885,7 @@ body.elite-checkout-page .woocommerce-form-coupon-toggle,
 body.elite-checkout-page .checkout_coupon:not(.apex-checkout-coupon-form) {
 	margin-bottom: 0;
 }
-/* ── Thank you / order received ── */
+/* â”€â”€ Thank you / order received â”€â”€ */
 body.elite-checkout-page .woocommerce-order.apex-thankyou,
 body.elite-checkout-page .woocommerce-order {
 	max-width: 820px;
@@ -4853,7 +5063,7 @@ body.elite-checkout-page .woocommerce-order-overview li.total strong,
 	font-size: 18px;
 }
 body.elite-checkout-page .woocommerce-order .woocommerce-order-details,
-body.elite-checkout-page .woocommerce-order .woocommerce-customer-details,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details:not(.apex-order-addresses),
 body.elite-checkout-page .woocommerce-order .woocommerce-bacs-bank-details,
 body.elite-checkout-page .woocommerce-order .wc-bacs-bank-details-wrapper {
 	margin: 0 0 18px;
@@ -4862,6 +5072,39 @@ body.elite-checkout-page .woocommerce-order .wc-bacs-bank-details-wrapper {
 	border-radius: 14px;
 	background: var(--white);
 	box-shadow: 0 8px 24px rgba(0, 21, 41, 0.05);
+}
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details.apex-order-addresses {
+	margin: 0 0 18px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details::after,
+body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses::before,
+body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses::after,
+body.elite-checkout-page .woocommerce-order .col2-set.addresses::before,
+body.elite-checkout-page .woocommerce-order .col2-set.addresses::after {
+	display: none !important;
+	content: none !important;
+}
+body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col2-set,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .addresses {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+	width: 100%;
+	clear: both;
+}
+body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses .woocommerce-column,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col-1,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col-2 {
+	float: none !important;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
 }
 body.elite-checkout-page .woocommerce-order .woocommerce-order-details__title,
 body.elite-checkout-page .woocommerce-order .woocommerce-column__title,
@@ -4909,13 +5152,22 @@ body.elite-checkout-page .woocommerce-table--order-details tr:last-child td {
 }
 body.elite-checkout-page .woocommerce-order address {
 	margin: 0;
-	padding: 14px 16px;
+	padding: 16px 18px;
 	border: 1px solid var(--gray-200);
 	border-radius: 10px;
-	background: var(--gray-50);
+	background: linear-gradient(180deg, #fbfdff 0%, var(--gray-50) 100%);
 	font-style: normal;
 	line-height: 1.7;
 	color: var(--text-muted);
+	min-height: 100%;
+}
+body.elite-checkout-page .woocommerce-order address .woocommerce-customer-details--phone,
+body.elite-checkout-page .woocommerce-order address .woocommerce-customer-details--email {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+	color: var(--text-strong);
 }
 body.elite-checkout-page .woocommerce-order .wc-bacs-bank-details-account-name,
 body.elite-checkout-page .woocommerce-order ul.wc-bacs-bank-details,
@@ -4967,6 +5219,12 @@ body.elite-checkout-page .woocommerce-order .wc-bacs-bank-details li strong {
 	body.elite-checkout-page .woocommerce-order .woocommerce-bacs-bank-details,
 	body.elite-checkout-page .woocommerce-order .wc-bacs-bank-details-wrapper {
 		padding: 18px;
+	}
+	body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses,
+	body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col2-set,
+	body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .addresses {
+		grid-template-columns: 1fr;
+		gap: 16px;
 	}
 	body.elite-checkout-page .woocommerce-order ul.order_details.wc-bacs-bank-details li,
 	body.elite-checkout-page .woocommerce-order .wc-bacs-bank-details li {
@@ -5055,7 +5313,7 @@ body.elite-checkout-page .woocommerce-order .wc-bacs-bank-details li strong {
 	}
 }
 
-/* ── CART ── */
+/* â”€â”€ CART â”€â”€ */
 .apex-page-hero--cart {
 	background-position: center;
 	background-size: cover;
@@ -6723,7 +6981,7 @@ body.elite-product-category .woocommerce-pagination span.page-numbers {
 }
 .apex-empty { color: var(--gray-500); font-style: italic; }
 
-/* ── SINGLE PRODUCT ── */
+/* â”€â”€ SINGLE PRODUCT â”€â”€ */
 .elite-single-product {
 	padding: 32px 0 72px;
 	background: var(--white);
@@ -8255,7 +8513,7 @@ body.elite-single-product-page .related.products ul.products {
 	display: none !important;
 }
 
-/* ── RESPONSIVE ── */
+/* â”€â”€ RESPONSIVE â”€â”€ */
 @media (max-width: 1024px) {
 	.elite-header-inner,
 	.elite-topbar-inner,
@@ -8696,6 +8954,34 @@ body.elite-single-product-page .related.products ul.products {
 	.apex-blog-sidebar {
 		position: static;
 	}
+	.apex-blog-single-main {
+		padding: 22px 18px 28px;
+		border-radius: 14px;
+	}
+	.apex-blog-single-head {
+		padding-top: 52px;
+		padding-bottom: 20px;
+		margin-bottom: 22px;
+	}
+	.apex-blog-single-back {
+		width: 38px;
+		height: 38px;
+		border-radius: 10px;
+	}
+	.apex-blog-single-title {
+		font-size: clamp(24px, 7vw, 32px);
+	}
+	.apex-blog-detail-list {
+		padding: 14px 14px 14px 1.2em;
+	}
+	.apex-blog-detail-faqs {
+		padding: 22px 16px;
+	}
+	.apex-blog-detail-table th,
+	.apex-blog-detail-table td {
+		padding: 10px 12px;
+		font-size: 14px;
+	}
 	.apex-page-hero {
 		padding: 40px 0 32px;
 	}
@@ -9084,4 +9370,1022 @@ body.elite-single-product-page .related.products ul.products {
 	.apex-stat strong { font-size: 20px; }
 	.apex-stat small { font-size: 13px; }
 	.apex-trust-ico { width: 26px; height: 26px; }
+}
+
+/* ==========================================================================
+   My Account
+   ========================================================================== */
+.apex-page-hero--account {
+	background-position: center;
+	background-size: cover;
+}
+.apex-account-main {
+	padding: 36px 0 80px;
+	background:
+		radial-gradient(ellipse 80% 50% at 10% 0%, rgba(255, 102, 0, 0.06), transparent 55%),
+		linear-gradient(180deg, #f3f6fa 0%, var(--gray-50) 45%, #eef2f7 100%);
+}
+body.elite-account-page .apex-account-main .woocommerce-notices-wrapper {
+	margin: 0 0 24px;
+}
+.apex-account-page .woocommerce {
+	max-width: none;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation,
+body.elite-account-page .woocommerce-MyAccount-content,
+body.elite-account-page .woocommerce .col2-set .col-1,
+body.elite-account-page .woocommerce .col2-set .col-2 {
+	float: none !important;
+	width: auto !important;
+}
+body.elite-account-page .apex-account-layout {
+	display: grid;
+	grid-template-columns: 260px minmax(0, 1fr);
+	gap: 28px;
+	align-items: start;
+}
+body.elite-account-page:not(.logged-in) .apex-account-layout {
+	display: block;
+	max-width: 980px;
+	margin: 0 auto;
+}
+body.elite-account-page:not(.logged-in) .woocommerce {
+	max-width: 520px;
+	margin: 0 auto;
+}
+
+/* Login / Register single card + toggle */
+body.elite-account-page .apex-account-auth,
+body.elite-account-page #customer_login {
+	display: block !important;
+	width: 100%;
+	max-width: 460px;
+	margin: 0 auto;
+	clear: both;
+}
+body.elite-account-page .apex-account-auth::before,
+body.elite-account-page .apex-account-auth::after,
+body.elite-account-page #customer_login::before,
+body.elite-account-page #customer_login::after {
+	display: none !important;
+	content: none !important;
+}
+body.elite-account-page .apex-account-auth-card {
+	padding: 28px 26px;
+	border: 1px solid var(--gray-200);
+	border-radius: 14px;
+	background: var(--white);
+	box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+body.elite-account-page .apex-account-auth-card > h2 {
+	margin: 0 0 18px;
+	color: var(--navy);
+	font-size: 22px;
+	font-weight: 800;
+	letter-spacing: -.01em;
+}
+body.elite-account-page .apex-account-auth-toggle {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+	margin: 0 0 22px;
+	padding: 6px;
+	border-radius: 10px;
+	background: var(--gray-100);
+}
+body.elite-account-page .apex-account-auth-toggle-btn {
+	appearance: none;
+	border: 0;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--gray-700);
+	font: inherit;
+	font-size: 14px;
+	font-weight: 750;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	padding: 12px 10px;
+	cursor: pointer;
+	transition: background .18s, color .18s, box-shadow .18s;
+}
+body.elite-account-page .apex-account-auth-toggle-btn:hover {
+	color: var(--navy);
+}
+body.elite-account-page .apex-account-auth-toggle-btn.is-active {
+	background: var(--navy);
+	color: var(--white);
+	box-shadow: 0 6px 14px rgba(0, 21, 41, 0.18);
+}
+body.elite-account-page .apex-account-auth-lead {
+	margin: 0 0 18px;
+	font-size: 14px;
+	line-height: 1.55;
+	color: var(--text-muted);
+}
+body.elite-account-page .apex-account-auth-note {
+	margin: 0 0 14px;
+	font-size: 14px;
+	line-height: 1.55;
+	color: var(--text-muted);
+}
+body.elite-account-page .apex-account-auth-panel[hidden] {
+	display: none !important;
+}
+body.elite-account-page .apex-account-auth-card .woocommerce-form-login,
+body.elite-account-page .apex-account-auth-card .woocommerce-form-register {
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+	box-shadow: none;
+}
+body.elite-account-page .apex-account-auth-card .lost_password {
+	margin: 12px 0 0;
+	text-align: center;
+}
+body.elite-account-page .apex-account-auth-card .lost_password a {
+	color: var(--orange);
+	font-weight: 650;
+	text-decoration: none;
+}
+body.elite-account-page .apex-account-auth-card .lost_password a:hover {
+	color: var(--orange-dark);
+	text-decoration: underline;
+}
+body.elite-account-page .apex-account-auth-card .woocommerce-privacy-policy-text {
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--text-muted);
+}
+
+/* Password show/hide eye button */
+body.elite-account-page .woocommerce form .password-input,
+body.woocommerce-account .woocommerce form .password-input {
+	display: block;
+	position: relative;
+}
+body.elite-account-page .woocommerce form .password-input input.input-text,
+body.elite-account-page .woocommerce form .password-input input[type="password"],
+body.elite-account-page .woocommerce form .password-input input[type="text"],
+body.woocommerce-account .woocommerce form .password-input input.input-text,
+body.woocommerce-account .woocommerce form .password-input input[type="password"],
+body.woocommerce-account .woocommerce form .password-input input[type="text"] {
+	padding-right: 48px !important;
+	width: 100%;
+}
+body.elite-account-page .woocommerce form .show-password-input,
+body.woocommerce-account .woocommerce form .show-password-input,
+body.elite-account-page button.show-password-input,
+body.woocommerce-account button.show-password-input {
+	position: absolute !important;
+	top: 50% !important;
+	right: 10px !important;
+	left: auto !important;
+	transform: translateY(-50%);
+	width: 34px;
+	height: 34px;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 8px;
+	background-color: transparent !important;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") !important;
+	background-repeat: no-repeat !important;
+	background-position: center !important;
+	background-size: 20px 20px !important;
+	box-shadow: none !important;
+	cursor: pointer;
+	color: transparent !important;
+	font-size: 0 !important;
+	line-height: 0 !important;
+	text-indent: -9999px;
+	overflow: hidden;
+	z-index: 2;
+}
+body.elite-account-page .woocommerce form .show-password-input::before,
+body.elite-account-page .woocommerce form .show-password-input::after,
+body.woocommerce-account .woocommerce form .show-password-input::before,
+body.woocommerce-account .woocommerce form .show-password-input::after {
+	display: none !important;
+	content: none !important;
+}
+body.elite-account-page .woocommerce form .show-password-input:hover,
+body.woocommerce-account .woocommerce form .show-password-input:hover {
+	background-color: var(--gray-50) !important;
+}
+body.elite-account-page .woocommerce form .show-password-input.display-password,
+body.woocommerce-account .woocommerce form .show-password-input.display-password {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23ff6600' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94'/%3E%3Cpath d='M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a21.8 21.8 0 0 1-2.16 3.19'/%3E%3Cpath d='M14.12 14.12a3 3 0 0 1-4.24-4.24'/%3E%3Cpath d='M1 1l22 22'/%3E%3C/svg%3E") !important;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation {
+	background: var(--white);
+	border: 1px solid var(--gray-200);
+	border-radius: 12px;
+	padding: 16px 12px;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+	position: sticky;
+	top: 20px;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul {
+	list-style: none !important;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul::before,
+body.elite-account-page .woocommerce-MyAccount-navigation ul::after {
+	display: none !important;
+	content: none !important;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul li {
+	list-style: none !important;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul li::before,
+body.elite-account-page .woocommerce-MyAccount-navigation ul li::marker {
+	display: none !important;
+	content: none !important;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul li a {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: 8px;
+	color: var(--text-strong);
+	font-size: 14px;
+	font-weight: 650;
+	letter-spacing: .01em;
+	text-decoration: none;
+	border-left: 3px solid transparent;
+	transition: background .18s, color .18s, border-color .18s;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul li a::before {
+	content: "";
+	width: 18px;
+	height: 18px;
+	flex: 0 0 18px;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 18px 18px;
+	opacity: .85;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6'/%3E%3C/svg%3E");
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--dashboard a::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Crect x='3' y='3' width='7' height='9' rx='1'/%3E%3Crect x='14' y='3' width='7' height='5' rx='1'/%3E%3Crect x='14' y='12' width='7' height='9' rx='1'/%3E%3Crect x='3' y='16' width='7' height='5' rx='1'/%3E%3C/svg%3E");
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--orders a::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M6 2h12l1 4H5l1-4z'/%3E%3Cpath d='M5 6h14v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6z'/%3E%3Cpath d='M9 11h6M9 15h4'/%3E%3C/svg%3E");
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--downloads a::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v12'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M5 21h14'/%3E%3C/svg%3E");
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--edit-address a::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M12 21s7-5.3 7-12a7 7 0 1 0-14 0c0 6.7 7 12 7 12z'/%3E%3Ccircle cx='12' cy='9' r='2.5'/%3E%3C/svg%3E");
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--edit-account a::before,
+body.elite-account-page .woocommerce-MyAccount-navigation-link--payment-methods a::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6'/%3E%3C/svg%3E");
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--customer-logout a::before {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23b45309' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpath d='M16 17l5-5-5-5'/%3E%3Cpath d='M21 12H9'/%3E%3C/svg%3E");
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul li a:hover {
+	background: var(--gray-50);
+	color: var(--navy);
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul li.is-active a,
+body.elite-account-page .woocommerce-MyAccount-navigation ul li.is-active a:hover {
+	background: linear-gradient(135deg, var(--navy) 0%, #07233f 100%);
+	color: var(--white);
+	border-left-color: var(--orange);
+	box-shadow: 0 8px 18px rgba(0, 21, 41, 0.18);
+}
+body.elite-account-page .woocommerce-MyAccount-navigation ul li.is-active a::before {
+	opacity: 1;
+	filter: brightness(0) invert(1);
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--customer-logout {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid var(--gray-100);
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--customer-logout a {
+	color: #b45309;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--customer-logout.is-active a {
+	background: #fff7ed;
+	color: #9a3412;
+	box-shadow: none;
+	border-left-color: #f59e0b;
+}
+body.elite-account-page .woocommerce-MyAccount-navigation-link--customer-logout.is-active a::before {
+	filter: none;
+}
+body.elite-account-page .woocommerce-MyAccount-content {
+	background: var(--white);
+	border: 1px solid var(--gray-200);
+	border-radius: 12px;
+	padding: 28px 30px;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+	min-width: 0;
+}
+body.elite-account-page .woocommerce-MyAccount-content > p:first-child {
+	margin-top: 0;
+	padding: 16px 18px;
+	border-radius: 10px;
+	background: linear-gradient(135deg, #f8fafc 0%, #eef4fa 100%);
+	border: 1px solid var(--gray-100);
+	color: var(--text-muted);
+	font-size: 15px;
+	line-height: 1.65;
+}
+body.elite-account-page .woocommerce-MyAccount-content > p:first-child strong {
+	color: var(--navy);
+	font-weight: 800;
+}
+body.elite-account-page .woocommerce-MyAccount-content a {
+	color: var(--orange);
+	font-weight: 650;
+	text-decoration: none;
+}
+body.elite-account-page .woocommerce-MyAccount-content a:hover {
+	color: var(--orange-dark);
+	text-decoration: underline;
+}
+body.elite-account-page .woocommerce-MyAccount-content h2,
+body.elite-account-page .woocommerce-MyAccount-content h3,
+body.elite-account-page .woocommerce-Address-title h3,
+body.elite-account-page .woocommerce-EditAccountForm legend {
+	margin: 0 0 14px;
+	color: var(--navy);
+	font-size: 20px;
+	font-weight: 800;
+	letter-spacing: -.01em;
+}
+body.elite-account-page table.shop_table {
+	width: 100%;
+	border: 1px solid var(--gray-200);
+	border-radius: 10px;
+	border-collapse: separate;
+	border-spacing: 0;
+	overflow: hidden;
+	background: var(--white);
+	margin: 0;
+}
+body.elite-account-page table.shop_table th {
+	background: var(--gray-50);
+	color: var(--navy);
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--gray-200);
+	text-align: left;
+}
+body.elite-account-page table.shop_table td {
+	padding: 14px;
+	border-bottom: 1px solid var(--gray-100);
+	font-size: 14px;
+	color: var(--text-strong);
+	vertical-align: middle;
+}
+body.elite-account-page table.shop_table tr:last-child td {
+	border-bottom: 0;
+}
+body.elite-account-page table.shop_table .button,
+body.elite-account-page .woocommerce-MyAccount-content .button,
+body.elite-account-page .woocommerce-Button,
+body.elite-account-page .woocommerce-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 16px;
+	border: 0;
+	border-radius: 8px;
+	background: var(--orange);
+	color: var(--white) !important;
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	text-decoration: none !important;
+	cursor: pointer;
+	transition: background .2s, transform .2s;
+	box-shadow: 0 6px 14px rgba(255, 102, 0, .2);
+}
+body.elite-account-page table.shop_table .button:hover,
+body.elite-account-page .woocommerce-MyAccount-content .button:hover,
+body.elite-account-page .woocommerce-Button:hover,
+body.elite-account-page .woocommerce-button:hover {
+	background: var(--orange-dark);
+	transform: translateY(-1px);
+	color: var(--white) !important;
+}
+body.elite-account-page .apex-account-addresses-intro {
+	margin: 0 0 22px;
+	padding: 14px 16px;
+	border: 1px solid var(--gray-100);
+	border-radius: 10px;
+	background: linear-gradient(135deg, #f8fafc 0%, #eef4fa 100%);
+	color: var(--text-muted);
+	font-size: 14px;
+	line-height: 1.55;
+}
+body.elite-account-page .apex-account-addresses-grid,
+body.elite-account-page .woocommerce-Addresses {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+	width: 100%;
+	clear: both;
+}
+body.elite-account-page .apex-account-address-card,
+body.elite-account-page .woocommerce-Address {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	margin: 0 !important;
+	padding: 20px;
+	border: 1px solid var(--gray-200);
+	border-radius: 14px;
+	background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+	box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+	float: none !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+body.elite-account-page .apex-account-address-card__head,
+body.elite-account-page .woocommerce-Address-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+body.elite-account-page .apex-account-address-card__title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+body.elite-account-page .apex-account-address-card__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	flex: 0 0 38px;
+	border-radius: 10px;
+	background: rgba(255, 102, 0, 0.1);
+	color: var(--orange);
+}
+body.elite-account-page .apex-account-address-card__head h3,
+body.elite-account-page .woocommerce-Address-title h3 {
+	margin: 0;
+	color: var(--navy);
+	font-size: 17px;
+	font-weight: 800;
+	letter-spacing: -.01em;
+}
+body.elite-account-page .apex-account-address-card__action,
+body.elite-account-page .woocommerce-Address-title .edit {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 12px;
+	border: 1px solid rgba(255, 102, 0, 0.28);
+	border-radius: 8px;
+	background: #fff7ed;
+	color: var(--orange) !important;
+	font-size: 12px;
+	font-weight: 750;
+	letter-spacing: .02em;
+	text-decoration: none !important;
+	white-space: nowrap;
+	transition: background .18s, border-color .18s, color .18s;
+}
+body.elite-account-page .apex-account-address-card__action:hover,
+body.elite-account-page .woocommerce-Address-title .edit:hover {
+	background: var(--orange);
+	border-color: var(--orange);
+	color: var(--white) !important;
+}
+body.elite-account-page .apex-account-address-card__body,
+body.elite-account-page .woocommerce-Address address,
+body.elite-account-page .apex-account-address-card address {
+	flex: 1;
+	margin: 0;
+	padding: 16px 18px;
+	border: 1px dashed #d5deea;
+	border-radius: 10px;
+	background: #f8fafc;
+	font-style: normal;
+	color: var(--text-muted);
+	line-height: 1.7;
+	font-size: 14px;
+}
+body.elite-account-page .u-columns,
+body.elite-account-page .col2-set {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 24px;
+}
+body.elite-account-page .u-column1,
+body.elite-account-page .u-column2,
+body.elite-account-page .col-1,
+body.elite-account-page .col-2 {
+	float: none !important;
+	width: 100% !important;
+	max-width: none !important;
+}
+body.elite-account-page form.woocommerce-address-form,
+body.elite-account-page .woocommerce-ResetPassword {
+	background: var(--white);
+	border: 1px solid var(--gray-200);
+	border-radius: 12px;
+	padding: 24px 26px;
+	box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+}
+
+/* Account details / edit account */
+body.elite-account-page .woocommerce-EditAccountForm.apex-account-edit,
+body.elite-account-page form.apex-account-edit {
+	background: transparent;
+	border: 0;
+	padding: 0;
+	box-shadow: none;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+body.elite-account-page .apex-account-edit-card {
+	padding: 22px 22px 8px;
+	border: 1px solid var(--gray-200);
+	border-radius: 14px;
+	background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+	box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+body.elite-account-page .apex-account-edit-card__head {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	margin: 0 0 18px;
+}
+body.elite-account-page .apex-account-edit-card__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	flex: 0 0 40px;
+	border-radius: 10px;
+	background: rgba(255, 102, 0, 0.1);
+	color: var(--orange);
+}
+body.elite-account-page .apex-account-edit-card__head h3 {
+	margin: 0 0 4px;
+	color: var(--navy);
+	font-size: 18px;
+	font-weight: 800;
+}
+body.elite-account-page .apex-account-edit-card__head p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--text-muted);
+}
+body.elite-account-page .apex-account-edit-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0 16px;
+}
+body.elite-account-page .apex-account-edit-grid .form-row-first,
+body.elite-account-page .apex-account-edit-grid .form-row-last {
+	float: none !important;
+	width: 100% !important;
+}
+body.elite-account-page .apex-account-edit fieldset,
+body.elite-account-page .woocommerce-EditAccountForm fieldset {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+body.elite-account-page .apex-account-edit legend,
+body.elite-account-page .woocommerce-EditAccountForm legend {
+	display: none;
+}
+body.elite-account-page .apex-account-edit .form-row,
+body.elite-account-page .woocommerce-EditAccountForm .form-row {
+	margin: 0 0 16px;
+}
+body.elite-account-page .apex-account-edit label,
+body.elite-account-page .woocommerce-EditAccountForm label {
+	display: block;
+	margin: 0 0 6px;
+	color: var(--navy);
+	font-size: 13px;
+	font-weight: 700;
+}
+body.elite-account-page .apex-account-edit .input-text,
+body.elite-account-page .woocommerce-EditAccountForm .input-text {
+	width: 100%;
+	padding: 12px 14px;
+	border: 1px solid var(--gray-200);
+	border-radius: 8px;
+	background: #fbfdff;
+	color: var(--text-strong);
+	font-size: 15px;
+	line-height: 1.4;
+	transition: border-color .18s, box-shadow .18s;
+}
+body.elite-account-page .apex-account-edit .password-input .input-text {
+	padding-right: 48px;
+}
+body.elite-account-page .apex-account-edit .input-text:focus,
+body.elite-account-page .woocommerce-EditAccountForm .input-text:focus {
+	outline: none;
+	border-color: rgba(255, 102, 0, .55);
+	box-shadow: 0 0 0 3px rgba(255, 102, 0, .12);
+	background: var(--white);
+}
+body.elite-account-page .apex-account-edit em,
+body.elite-account-page .woocommerce-EditAccountForm em {
+	display: block;
+	margin-top: 6px;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--gray-500);
+	font-style: normal;
+}
+body.elite-account-page .apex-account-edit-submit {
+	margin: 0;
+	padding: 0;
+}
+body.elite-account-page .apex-account-edit-submit .button,
+body.elite-account-page .woocommerce-EditAccountForm .apex-account-edit-submit .button {
+	width: 100%;
+	margin: 0;
+	padding: 15px 20px;
+	border: 0;
+	border-radius: 10px;
+	background: var(--orange);
+	color: var(--white) !important;
+	font-size: 13px;
+	font-weight: 800;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	box-shadow: 0 8px 18px rgba(255, 102, 0, .22);
+	transition: background .18s, transform .18s;
+}
+body.elite-account-page .apex-account-edit-submit .button:hover {
+	background: var(--orange-dark);
+	transform: translateY(-1px);
+}
+@media (max-width: 700px) {
+	body.elite-account-page .apex-account-edit-grid {
+		grid-template-columns: 1fr;
+	}
+}
+body.elite-account-page .woocommerce form .form-row,
+body.elite-account-page .woocommerce-form-login .form-row,
+body.elite-account-page .woocommerce-form-register .form-row {
+	margin: 0 0 14px;
+}
+body.elite-account-page .woocommerce form .form-row label,
+body.elite-account-page .woocommerce-form-login label,
+body.elite-account-page .woocommerce-form-register label {
+	display: block;
+	margin: 0 0 6px;
+	color: var(--navy);
+	font-size: 13px;
+	font-weight: 700;
+}
+body.elite-account-page .woocommerce form .input-text,
+body.elite-account-page .woocommerce form textarea,
+body.elite-account-page .woocommerce form select,
+body.elite-account-page .woocommerce-form-login .input-text,
+body.elite-account-page .woocommerce-form-register .input-text {
+	width: 100%;
+	padding: 12px 14px;
+	border: 1px solid var(--gray-200);
+	border-radius: 8px;
+	background: #fbfdff;
+	color: var(--text-strong);
+	font-size: 15px;
+	line-height: 1.4;
+	transition: border-color .18s, box-shadow .18s;
+}
+body.elite-account-page .woocommerce form .input-text:focus,
+body.elite-account-page .woocommerce form textarea:focus,
+body.elite-account-page .woocommerce form select:focus,
+body.elite-account-page .woocommerce-form-login .input-text:focus,
+body.elite-account-page .woocommerce-form-register .input-text:focus {
+	outline: none;
+	border-color: rgba(255, 102, 0, .55);
+	box-shadow: 0 0 0 3px rgba(255, 102, 0, .12);
+	background: var(--white);
+}
+body.elite-account-page .woocommerce-form-login .woocommerce-form-login__submit,
+body.elite-account-page .woocommerce-form-register .woocommerce-form-register__submit,
+body.elite-account-page .woocommerce-EditAccountForm .woocommerce-Button,
+body.elite-account-page form.woocommerce-address-form .button,
+body.elite-account-page .woocommerce-ResetPassword .button {
+	width: 100%;
+	margin-top: 8px;
+	padding: 14px 18px;
+	font-size: 13px;
+}
+body.elite-account-page .woocommerce-form-login .woocommerce-form__label-for-checkbox,
+body.elite-account-page .lost_password {
+	font-size: 13px;
+	color: var(--text-muted);
+}
+body.elite-account-page mark,
+body.elite-account-page .woocommerce-Price-amount {
+	background: transparent;
+	color: var(--navy);
+	font-weight: 800;
+}
+body.elite-account-page .woocommerce-order-details,
+body.elite-account-page .woocommerce-customer-details {
+	margin-top: 22px;
+	padding-top: 8px;
+}
+body.elite-account-page .woocommerce-order-details__title {
+	color: var(--navy);
+	font-size: 18px;
+	font-weight: 800;
+}
+body.elite-account-page .woocommerce-customer-details::after,
+body.elite-account-page .woocommerce-columns--addresses::before,
+body.elite-account-page .woocommerce-columns--addresses::after,
+body.elite-account-page .col2-set.addresses::before,
+body.elite-account-page .col2-set.addresses::after,
+body.elite-checkout-page .woocommerce-customer-details::after,
+body.elite-checkout-page .woocommerce-columns--addresses::before,
+body.elite-checkout-page .woocommerce-columns--addresses::after {
+	display: none !important;
+	content: none !important;
+}
+
+/* Order view / thank-you address cards */
+body.elite-account-page .apex-order-addresses,
+body.elite-checkout-page .apex-order-addresses {
+	margin: 22px 0 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+body.elite-account-page .apex-order-addresses-grid,
+body.elite-checkout-page .apex-order-addresses-grid,
+body.elite-account-page .woocommerce-columns--addresses,
+body.elite-account-page .woocommerce-customer-details .col2-set,
+body.elite-account-page .woocommerce-customer-details .addresses,
+body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col2-set,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .addresses {
+	display: grid !important;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+	width: 100%;
+	clear: both;
+}
+body.elite-account-page .woocommerce-columns--addresses .woocommerce-column,
+body.elite-account-page .woocommerce-customer-details .col-1,
+body.elite-account-page .woocommerce-customer-details .col-2,
+body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses .woocommerce-column,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col-1,
+body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col-2 {
+	float: none !important;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+body.elite-account-page .apex-order-address-card,
+body.elite-checkout-page .apex-order-address-card {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	height: 100%;
+	padding: 18px;
+	border: 1px solid var(--gray-200);
+	border-radius: 14px;
+	background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+	box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+body.elite-account-page .apex-order-address-card__head,
+body.elite-checkout-page .apex-order-address-card__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+body.elite-account-page .apex-order-address-card__icon,
+body.elite-checkout-page .apex-order-address-card__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	flex: 0 0 36px;
+	border-radius: 10px;
+	background: rgba(255, 102, 0, 0.1);
+	color: var(--orange);
+}
+body.elite-account-page .apex-order-address-card__head .woocommerce-column__title,
+body.elite-checkout-page .apex-order-address-card__head .woocommerce-column__title,
+body.elite-account-page .apex-order-address-card .woocommerce-column__title,
+body.elite-checkout-page .apex-order-address-card .woocommerce-column__title {
+	margin: 0;
+	color: var(--navy);
+	font-size: 16px;
+	font-weight: 800;
+	letter-spacing: -.01em;
+}
+body.elite-account-page .apex-order-address-card__body,
+body.elite-checkout-page .apex-order-address-card__body,
+body.elite-account-page .apex-order-address-card address,
+body.elite-checkout-page .apex-order-address-card address {
+	flex: 1;
+	margin: 0;
+	padding: 14px 16px;
+	border: 1px solid #e6edf5;
+	border-radius: 10px;
+	background: #f8fafc;
+	font-style: normal;
+	font-size: 14px;
+	line-height: 1.7;
+	color: var(--text-muted);
+}
+body.elite-account-page .apex-order-address-card__body p,
+body.elite-checkout-page .apex-order-address-card__body p {
+	margin: 8px 0 0;
+}
+body.elite-account-page .apex-order-address-card__body .woocommerce-customer-details--phone,
+body.elite-account-page .apex-order-address-card__body .woocommerce-customer-details--email,
+body.elite-checkout-page .apex-order-address-card__body .woocommerce-customer-details--phone,
+body.elite-checkout-page .apex-order-address-card__body .woocommerce-customer-details--email {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid #e6edf5;
+	color: var(--text-strong);
+	font-weight: 600;
+}
+body.elite-account-page .apex-order-address-card__body .woocommerce-customer-details--phone::before,
+body.elite-checkout-page .apex-order-address-card__body .woocommerce-customer-details--phone::before {
+	content: "";
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23ff6600' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.81.36 1.6.68 2.34a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.74.32 1.53.55 2.34.68A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+body.elite-account-page .apex-order-address-card__body .woocommerce-customer-details--email::before,
+body.elite-checkout-page .apex-order-address-card__body .woocommerce-customer-details--email::before {
+	content: "";
+	width: 16px;
+	height: 16px;
+	flex: 0 0 16px;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%23ff6600' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z'/%3E%3Cpath d='m22 6-10 7L2 6'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Orders list — desktop table polish */
+body.elite-account-page table.woocommerce-orders-table,
+body.elite-account-page table.my_account_orders {
+	border-radius: 12px;
+	overflow: hidden;
+}
+body.elite-account-page table.my_account_orders .woocommerce-orders-table__cell-order-number a,
+body.elite-account-page table.woocommerce-orders-table .woocommerce-orders-table__cell-order-number a {
+	color: var(--orange);
+	font-weight: 800;
+	text-decoration: none;
+}
+body.elite-account-page table.my_account_orders .woocommerce-orders-table__cell-order-status,
+body.elite-account-page table.woocommerce-orders-table .woocommerce-orders-table__cell-order-status {
+	font-weight: 700;
+	color: var(--navy);
+}
+@media (max-width: 900px) {
+	body.elite-account-page .apex-account-layout {
+		grid-template-columns: 1fr;
+		gap: 18px;
+	}
+	body.elite-account-page .woocommerce-MyAccount-navigation {
+		position: static;
+		padding: 12px;
+	}
+	body.elite-account-page .woocommerce-MyAccount-navigation ul {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px;
+	}
+	body.elite-account-page .woocommerce-MyAccount-navigation-link--customer-logout {
+		grid-column: 1 / -1;
+		margin-top: 4px;
+		padding-top: 4px;
+	}
+	body.elite-account-page .woocommerce-MyAccount-content {
+		padding: 22px 18px;
+	}
+	body.elite-account-page .woocommerce-Addresses,
+	body.elite-account-page .apex-account-addresses-grid,
+	body.elite-account-page .apex-order-addresses-grid,
+	body.elite-account-page .u-columns,
+	body.elite-account-page .col2-set,
+	body.elite-account-page .woocommerce-columns--addresses,
+	body.elite-account-page .woocommerce-customer-details .col2-set,
+	body.elite-account-page .woocommerce-customer-details .addresses,
+	body.elite-checkout-page .apex-order-addresses-grid,
+	body.elite-checkout-page .woocommerce-order .woocommerce-columns--addresses,
+	body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .col2-set,
+	body.elite-checkout-page .woocommerce-order .woocommerce-customer-details .addresses {
+		grid-template-columns: 1fr;
+	}
+	body.elite-account-page .apex-account-address-card__head {
+		flex-wrap: wrap;
+	}
+
+	/* Orders list — mobile cards */
+	body.elite-account-page table.shop_table.my_account_orders,
+	body.elite-account-page table.woocommerce-orders-table {
+		display: block;
+		border: 0;
+		background: transparent;
+		overflow: visible;
+	}
+	body.elite-account-page table.shop_table.my_account_orders thead,
+	body.elite-account-page table.woocommerce-orders-table thead {
+		display: none;
+	}
+	body.elite-account-page table.shop_table.my_account_orders tbody,
+	body.elite-account-page table.woocommerce-orders-table tbody,
+	body.elite-account-page table.shop_table.my_account_orders tr,
+	body.elite-account-page table.woocommerce-orders-table tr {
+		display: block;
+		width: 100%;
+	}
+	body.elite-account-page table.shop_table.my_account_orders tr,
+	body.elite-account-page table.woocommerce-orders-table tr {
+		margin: 0 0 14px;
+		padding: 14px 16px;
+		border: 1px solid var(--gray-200);
+		border-radius: 12px;
+		background: var(--white);
+		box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+	}
+	body.elite-account-page table.shop_table.my_account_orders td,
+	body.elite-account-page table.woocommerce-orders-table td {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+		margin: 0;
+		padding: 10px 0;
+		border: 0;
+		border-bottom: 1px solid var(--gray-100);
+		text-align: right;
+		font-size: 14px;
+	}
+	body.elite-account-page table.shop_table.my_account_orders td:last-child,
+	body.elite-account-page table.woocommerce-orders-table td:last-child {
+		border-bottom: 0;
+		padding-bottom: 2px;
+	}
+	body.elite-account-page table.shop_table.my_account_orders td::before,
+	body.elite-account-page table.woocommerce-orders-table td::before {
+		content: attr(data-title);
+		flex: 0 0 auto;
+		color: var(--navy);
+		font-size: 12px;
+		font-weight: 800;
+		letter-spacing: .04em;
+		text-transform: uppercase;
+		text-align: left;
+	}
+	body.elite-account-page table.shop_table.my_account_orders td .button,
+	body.elite-account-page table.woocommerce-orders-table td .button {
+		min-width: 88px;
+	}
+}
+@media (max-width: 560px) {
+	body.elite-account-page .woocommerce-MyAccount-navigation ul {
+		grid-template-columns: 1fr;
+	}
+	.apex-account-main {
+		padding: 24px 0 56px;
+	}
 }
