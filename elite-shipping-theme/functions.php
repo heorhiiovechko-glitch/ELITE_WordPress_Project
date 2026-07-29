@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.118' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.143' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -60,6 +60,10 @@ if ( file_exists( $elite_live_search ) ) {
 $elite_quote_drawer = ELITE_SHIPPING_DIR . '/inc/quote-drawer.php';
 if ( file_exists( $elite_quote_drawer ) ) {
 	require_once $elite_quote_drawer;
+}
+$elite_wishlist = ELITE_SHIPPING_DIR . '/inc/wishlist.php';
+if ( file_exists( $elite_wishlist ) ) {
+	require_once $elite_wishlist;
 }
 $elite_cart_drawer = ELITE_SHIPPING_DIR . '/inc/cart-drawer.php';
 if ( file_exists( $elite_cart_drawer ) ) {
@@ -573,6 +577,7 @@ function elite_shipping_get_urls() {
 		'contact' => elite_shipping_get_page_url( 'contact-us', '/contact-us/' ),
 		'blog'    => elite_shipping_get_page_url( 'our-blog', '/our-blog/' ),
 		'faq'     => elite_shipping_get_page_url( 'faq', '/faq/' ),
+		'wishlist'=> elite_shipping_get_page_url( 'wishlist', '/wishlist/' ),
 		'account' => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ),
 		'policies' => function_exists( 'elite_shipping_get_policy_urls' ) ? elite_shipping_get_policy_urls() : array(),
 	);
@@ -590,6 +595,7 @@ function elite_shipping_get_core_pages_config() {
 		'our-blog'    => __( 'Our Blog', 'elite-shipping' ),
 		'get-a-quote' => __( 'Get a Quote', 'elite-shipping' ),
 		'faq'         => __( 'FAQ', 'elite-shipping' ),
+		'wishlist'    => __( 'Wishlist', 'elite-shipping' ),
 	);
 }
 
@@ -948,128 +954,42 @@ function elite_shipping_get_about_image_url( $filename ) {
 }
 
 /**
- * Default blog posts when WordPress posts are unavailable.
+ * Legacy placeholder — blog listings use real WordPress posts only.
  *
  * @return array<int, array<string, string>>
  */
 function elite_shipping_get_default_blog_posts() {
-	$author = 'Elite Shipping Containers';
-	$posts  = array(
-		array(
-			'slug'     => 'everything-you-need-to-know-about-high-cube-vs-standard-containers',
-			'title'    => 'Everything You Need to Know About High Cube vs Standard Containers',
-			'image'    => 'Untitled-design-5.webp',
-			'excerpt'  => 'When shopping for a shipping container, one of the first decisions you will face is choosing between a high cube and a standard unit.',
-			'date'     => 'June 24, 2025',
-			'datetime' => '2025-06-24',
-			'day'      => '24',
-			'month'    => 'Jun',
-		),
-		array(
-			'slug'     => 'the-growing-market-of-shipping-container-homes-in-the-us',
-			'title'    => 'The Growing Market of Shipping Container Homes in the UK',
-			'image'    => 'Untitled-design-4.webp',
-			'excerpt'  => 'In a world where housing is increasingly unaffordable, shipping container homes have emerged as an innovative and affordable alternative.',
-			'date'     => 'June 24, 2025',
-			'datetime' => '2025-06-24',
-			'day'      => '24',
-			'month'    => 'Jun',
-		),
-		array(
-			'slug'     => 'why-small-businesses-are-turning-to-shipping-containers-in-2025',
-			'title'    => 'Why Small Businesses Are Turning to Shipping Containers in 2025',
-			'image'    => 'Untitled-design-3-1.jpg',
-			'excerpt'  => 'Imagine starting your dream cafe, studio, or retail shop without the massive overhead of renting traditional space.',
-			'date'     => 'June 24, 2025',
-			'datetime' => '2025-06-24',
-			'day'      => '24',
-			'month'    => 'Jun',
-		),
-		array(
-			'slug'     => 'shipping-container-price-comparison-whats-trending-in-the-market',
-			'title'    => 'Shipping Container Price Comparison: What\'s Trending in the Market?',
-			'image'    => 'Untitled-design-2.webp',
-			'excerpt'  => 'Wondering how much a shipping container costs these days? Whether you are planning storage, a home office, or a build project, prices vary widely.',
-			'date'     => 'June 24, 2025',
-			'datetime' => '2025-06-24',
-			'day'      => '24',
-			'month'    => 'Jun',
-		),
-		array(
-			'slug'     => '5-things-to-know-before-buying-a-shipping-container',
-			'title'    => '5 Things to Know Before Buying a Shipping Container',
-			'image'    => 'Untitled-design-1.webp',
-			'excerpt'  => 'So, you are thinking about buying a shipping container? Whether it is for storage, a home office, or launching a side business, preparation matters.',
-			'date'     => 'June 24, 2025',
-			'datetime' => '2025-06-24',
-			'day'      => '24',
-			'month'    => 'Jun',
-		),
-		array(
-			'slug'     => '20ft-or-40ft-container-choosing-the-best-fit-for-your-needs',
-			'title'    => '20ft or 40ft Container: Choosing the Best Fit for Your Needs',
-			'image'    => 'Untitled-design.webp',
-			'excerpt'  => 'Looking to purchase or rent a shipping container but not sure whether a 20ft or 40ft unit is right for you? Here is what to consider.',
-			'date'     => 'June 24, 2025',
-			'datetime' => '2025-06-24',
-			'day'      => '24',
-			'month'    => 'Jun',
-		),
-		array(
-			'slug'     => 'new-vs-used-shipping-containers-which-one-is-right-for-you',
-			'title'    => 'New vs Used Shipping Containers: Which One Is Right for You?',
-			'image'    => 'blog_7.jpg',
-			'excerpt'  => 'Thinking about buying a shipping container but stuck between going new or used? Here is how to decide which option fits your budget and needs.',
-			'date'     => 'June 24, 2025',
-			'datetime' => '2025-06-24',
-			'day'      => '24',
-			'month'    => 'Jun',
-		),
-	);
-
-	$image_map = elite_shipping_get_blog_image_map();
-	$prepared  = array();
-
-	foreach ( $posts as $post ) {
-		$image_file = isset( $image_map[ $post['slug'] ] ) ? $image_map[ $post['slug'] ] : $post['image'];
-		$prepared[] = array(
-			'slug'     => $post['slug'],
-			'title'    => $post['title'],
-			'url'      => home_url( '/' . $post['slug'] . '/' ),
-			'image'    => elite_shipping_get_blog_image_url( $image_file ),
-			'excerpt'  => $post['excerpt'],
-			'date'     => $post['date'],
-			'datetime' => $post['datetime'],
-			'day'      => $post['day'],
-			'month'    => $post['month'],
-			'author'   => $author,
-		);
-	}
-
-	return $prepared;
+	return array();
 }
 
 /**
- * Blog posts for the Our Blog page.
+ * Post statuses used for front-end blog listings and single views.
+ * Includes scheduled ("future") posts so intentionally dated posts still appear.
+ *
+ * @return string[]
+ */
+function elite_shipping_get_blog_post_statuses() {
+	return array( 'publish', 'future' );
+}
+
+/**
+ * Blog posts for the Our Blog page (WordPress posts only).
  *
  * @param int $limit Number of posts.
  * @return array<int, array<string, string>>
  */
 function elite_shipping_get_blog_posts( $limit = 12 ) {
-	if ( function_exists( 'elite_shipping_blog_uses_cards_list' ) && elite_shipping_blog_uses_cards_list() ) {
-		$cards = elite_shipping_get_customizer_blog_cards();
-		if ( ! empty( $cards ) ) {
-			return array_slice( $cards, 0, max( 1, absint( $limit ) ) );
-		}
-	}
+	$limit = max( 1, absint( $limit ) );
 
 	$query = new WP_Query(
 		array(
-			'post_type'      => 'post',
-			'posts_per_page' => $limit,
-			'post_status'    => 'publish',
-			'orderby'        => 'date',
-			'order'          => 'DESC',
+			'post_type'           => 'post',
+			'posts_per_page'      => $limit,
+			'post_status'         => elite_shipping_get_blog_post_statuses(),
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
 		)
 	);
 
@@ -1097,11 +1017,43 @@ function elite_shipping_get_blog_posts( $limit = 12 ) {
 	}
 
 	if ( empty( $posts ) ) {
-		return elite_shipping_get_default_blog_posts();
+		return array();
 	}
 
 	return $posts;
 }
+
+/**
+ * Allow scheduled (future) blog posts to resolve on the front end.
+ *
+ * @param WP_Query $query Main query.
+ */
+function elite_shipping_include_future_posts_on_front( $query ) {
+	if ( is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	if ( $query->is_single() || $query->is_singular( 'post' ) ) {
+		$query->set( 'post_status', elite_shipping_get_blog_post_statuses() );
+	}
+}
+add_action( 'pre_get_posts', 'elite_shipping_include_future_posts_on_front' );
+
+/**
+ * Include scheduled posts in previous/next post navigation.
+ *
+ * @param string $where Adjacent post WHERE clause.
+ * @return string
+ */
+function elite_shipping_adjacent_post_where_include_future( $where ) {
+	return str_replace(
+		"p.post_status = 'publish'",
+		"p.post_status IN ('publish','future')",
+		(string) $where
+	);
+}
+add_filter( 'get_previous_post_where', 'elite_shipping_adjacent_post_where_include_future' );
+add_filter( 'get_next_post_where', 'elite_shipping_adjacent_post_where_include_future' );
 
 /**
  * Social share links for a blog post.
@@ -1179,36 +1131,16 @@ function elite_shipping_get_recent_blog_posts( $exclude_id = 0, $limit = 3 ) {
 	$limit = max( 1, absint( $limit ) );
 	$posts = array();
 
-	if ( function_exists( 'elite_shipping_blog_uses_cards_list' ) && elite_shipping_blog_uses_cards_list() ) {
-		$exclude_slug = is_string( $exclude_id ) ? sanitize_title( $exclude_id ) : '';
-		foreach ( elite_shipping_get_customizer_blog_cards() as $card ) {
-			if ( $exclude_slug && ! empty( $card['slug'] ) && $card['slug'] === $exclude_slug ) {
-				continue;
-			}
-			$posts[] = array(
-				'title'    => $card['title'],
-				'url'      => $card['url'],
-				'image'    => $card['image'],
-				'date'     => $card['date'],
-				'comments' => 0,
-			);
-			if ( count( $posts ) >= $limit ) {
-				return $posts;
-			}
-		}
-		if ( ! empty( $posts ) ) {
-			return $posts;
-		}
-	}
-
 	$query = new WP_Query(
 		array(
-			'post_type'      => 'post',
-			'posts_per_page' => $limit,
-			'post_status'    => 'publish',
-			'post__not_in'   => ( is_numeric( $exclude_id ) && $exclude_id ) ? array( absint( $exclude_id ) ) : array(),
-			'orderby'        => 'date',
-			'order'          => 'DESC',
+			'post_type'           => 'post',
+			'posts_per_page'      => $limit,
+			'post_status'         => elite_shipping_get_blog_post_statuses(),
+			'post__not_in'        => ( is_numeric( $exclude_id ) && $exclude_id ) ? array( absint( $exclude_id ) ) : array(),
+			'orderby'             => 'date',
+			'order'               => 'DESC',
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
 		)
 	);
 
@@ -1227,25 +1159,6 @@ function elite_shipping_get_recent_blog_posts( $exclude_id = 0, $limit = 3 ) {
 			);
 		}
 		wp_reset_postdata();
-	}
-
-	if ( empty( $posts ) ) {
-		$exclude_slug = ( is_numeric( $exclude_id ) && $exclude_id ) ? get_post_field( 'post_name', $exclude_id ) : '';
-		foreach ( elite_shipping_get_default_blog_posts() as $post ) {
-			if ( $exclude_slug && false !== strpos( $post['url'], '/' . $exclude_slug . '/' ) ) {
-				continue;
-			}
-			$posts[] = array(
-				'title'    => $post['title'],
-				'url'      => $post['url'],
-				'image'    => $post['image'],
-				'date'     => $post['date'],
-				'comments' => 0,
-			);
-			if ( count( $posts ) >= $limit ) {
-				break;
-			}
-		}
 	}
 
 	return $posts;

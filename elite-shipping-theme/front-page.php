@@ -21,8 +21,6 @@ $hero_desc        = get_theme_mod(
 );
 $hero_btn_primary_text = get_theme_mod( 'elite_hero_btn_primary_text', 'SHOP CONTAINERS' );
 $hero_btn_primary_url  = get_theme_mod( 'elite_hero_btn_primary_url', $urls['shop'] );
-$hero_btn_secondary_text = get_theme_mod( 'elite_hero_btn_secondary_text', 'EXPLORE SOLUTIONS' );
-$hero_btn_secondary_url  = get_theme_mod( 'elite_hero_btn_secondary_url', $urls['quote'] );
 
 $hero_stats = array(
 	array(
@@ -96,8 +94,10 @@ $hero_trust = array(
 			</h1>
 			<p class="apex-hero-desc"><?php echo wp_kses_post( $hero_desc ); ?></p>
 			<div class="apex-hero-btns">
-				<a class="elite-btn elite-btn-primary elite-btn-lg" href="<?php echo esc_url( $hero_btn_primary_url ); ?>"><?php echo esc_html( $hero_btn_primary_text ); ?></a>
-				<a class="elite-btn elite-btn-outline elite-btn-lg" href="<?php echo esc_url( $hero_btn_secondary_url ); ?>"><?php echo esc_html( $hero_btn_secondary_text ); ?></a>
+				<a class="elite-btn elite-btn-primary elite-btn-lg apex-hero-cta" href="<?php echo esc_url( $hero_btn_primary_url ); ?>">
+					<span><?php echo esc_html( $hero_btn_primary_text ); ?></span>
+					<svg class="apex-hero-cta-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+				</a>
 			</div>
 		</div>
 		<div class="apex-hero-stats">

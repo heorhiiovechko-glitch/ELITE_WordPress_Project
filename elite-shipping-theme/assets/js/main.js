@@ -909,7 +909,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     document.addEventListener('click', function (event) {
-      var button = event.target.closest('.apex-shop-product-add');
+      var button = event.target.closest('.apex-shop-product-add, .apex-wishlist-item-cart');
       if (!button || button.classList.contains('is-loading')) {
         return;
       }
@@ -955,6 +955,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
           }
           applyCartFragments(response.fragments);
+          if (window.eliteWishlistUI && typeof window.eliteWishlistUI.applyAfterAddToCart === 'function') {
+            window.eliteWishlistUI.applyAfterAddToCart(productId, response.fragments);
+          }
           showAddToCartToast('Successfully added product to cart');
         })
         .catch(function () {
@@ -965,6 +968,312 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   initShopProductAddToCart();
+
+  function initEliteWishlist() {
+    var config = window.eliteShippingWishlist;
+    if (!config || !config.ajaxUrl || !config.nonce) {
+      return;
+    }
+
+    var ids = Array.isArray(config.ids) ? config.ids.map(Number) : [];
+
+    function updateFabCount(count) {
+      var safeCount = Number(count) || 0;
+      document.querySelectorAll('.elite-wishlist-fab-count, [data-elite-wishlist-badge]').forEach(function (badge) {
+        badge.textContent = String(safeCount);
+        badge.classList.toggle('is-empty', !safeCount);
+      });
+      document.querySelectorAll('.elite-wishlist-fab').forEach(function (fab) {
+        var label = safeCount === 1
+          ? 'Wishlist, 1 item'
+          : 'Wishlist, ' + safeCount + ' items';
+        fab.setAttribute('aria-label', label);
+      });
+
+      var syncNode = document.querySelector('.elite-wishlist-sync');
+      if (syncNode) {
+        syncNode.setAttribute('data-count', String(safeCount));
+        syncNode.setAttribute('data-ids', ids.join('|'));
+      }
+    }
+
+    function updateCountLabel(count) {
+      var labelEl = document.querySelector('[data-elite-wishlist-count-label]');
+      if (!labelEl || !config.i18n) {
+        return;
+      }
+      var template = count === 1 ? (config.i18n.item || '%d item') : (config.i18n.items || '%d items');
+      labelEl.textContent = template.replace('%d', String(count));
+    }
+
+    function syncButtons(productId, inWishlist, label) {
+      document.querySelectorAll('.js-elite-wishlist-toggle[data-product_id="' + productId + '"]').forEach(function (btn) {
+        btn.classList.toggle('is-active', !!inWishlist);
+        btn.setAttribute('aria-label', label);
+        var tip = btn.querySelector('.apex-shop-product-add-tooltip');
+        if (tip) {
+          tip.textContent = label;
+        }
+        var text = btn.querySelector('.js-elite-wishlist-label');
+        if (text) {
+          text.textContent = label;
+        }
+      });
+    }
+
+    function renderEmptyState() {
+      var content = document.querySelector('[data-elite-wishlist-content]');
+      if (!content) {
+        return;
+      }
+      var shopUrl = (window.eliteShippingCartDrawer && window.eliteShippingCartDrawer.cartUrl)
+        ? window.eliteShippingCartDrawer.cartUrl.replace(/\/cart\/?$/, '/shop/')
+        : '/shop/';
+      content.innerHTML =
+        '<div class="apex-wishlist-empty">' +
+        '<p>' + (config.i18n.empty || 'Your wishlist is empty.') + '</p>' +
+        '<a class="apex-wishlist-empty-btn" href="' + shopUrl + '">' + (config.i18n.shop || 'Browse products') + '</a>' +
+        '</div>';
+
+      var clearBtn = document.querySelector('.js-elite-wishlist-clear');
+      if (clearBtn && clearBtn.parentNode) {
+        clearBtn.parentNode.removeChild(clearBtn);
+      }
+    }
+
+    function removeWishlistRow(productId) {
+      var row = document.querySelector('.apex-wishlist-item[data-product_id="' + productId + '"]');
+      if (!row) {
+        return;
+      }
+      row.classList.add('is-removing');
+      window.setTimeout(function () {
+        if (row.parentNode) {
+          row.parentNode.removeChild(row);
+        }
+        if (!document.querySelector('.apex-wishlist-item')) {
+          renderEmptyState();
+        }
+      }, 220);
+    }
+
+    function applyWishlistState(nextIds, removedProductId) {
+      ids = Array.isArray(nextIds) ? nextIds.map(Number) : [];
+      config.ids = ids;
+      updateFabCount(ids.length);
+      updateCountLabel(ids.length);
+
+      if (removedProductId) {
+        syncButtons(removedProductId, false, config.i18n.add || 'Add to wishlist');
+        removeWishlistRow(removedProductId);
+      }
+
+      document.querySelectorAll('.js-elite-wishlist-toggle[data-product_id]').forEach(function (btn) {
+        var pid = Number(btn.getAttribute('data-product_id'));
+        var active = ids.indexOf(pid) !== -1;
+        var label = active ? (config.i18n.remove || 'Remove from wishlist') : (config.i18n.add || 'Add to wishlist');
+        syncButtons(pid, active, label);
+      });
+    }
+
+    function parseIdsFromSyncNode(node) {
+      if (!node) {
+        return null;
+      }
+      var raw = node.getAttribute('data-ids') || '';
+      if (!raw) {
+        return [];
+      }
+      var parts = raw.indexOf('|') !== -1 ? raw.split('|') : raw.split(',');
+      return parts.map(function (value) {
+        return Number(value);
+      }).filter(Boolean);
+    }
+
+    function applyAfterAddToCart(productId, fragments) {
+      var nextIds = null;
+      var pid = Number(productId);
+
+      if (fragments && fragments['div.elite-wishlist-sync']) {
+        var wrap = document.createElement('div');
+        wrap.innerHTML = fragments['div.elite-wishlist-sync'];
+        nextIds = parseIdsFromSyncNode(wrap.querySelector('.elite-wishlist-sync'));
+      } else {
+        var syncNode = document.querySelector('.elite-wishlist-sync');
+        nextIds = parseIdsFromSyncNode(syncNode);
+      }
+
+      if (nextIds === null) {
+        nextIds = ids.filter(function (id) {
+          return id !== pid;
+        });
+      }
+
+      applyWishlistState(nextIds, pid);
+    }
+
+    window.eliteWishlistUI = {
+      applyAfterAddToCart: applyAfterAddToCart,
+      applyWishlistState: applyWishlistState,
+      refreshBadge: function () {
+        updateFabCount(ids.length);
+      }
+    };
+
+    if (window.jQuery) {
+      window.jQuery(document.body).on('added_to_cart', function (event, fragments, cartHash, button) {
+        var productId = button && button.length ? button.data('product_id') : null;
+        if (!productId && button && button.attr) {
+          productId = button.attr('data-product_id');
+        }
+        if (productId) {
+          applyAfterAddToCart(productId, fragments || {});
+        }
+      });
+
+      // WooCommerce fragment cache can overwrite badges — restore wishlist count after refresh.
+      window.jQuery(document.body).on('wc_fragments_refreshed wc_fragments_loaded', function () {
+        updateFabCount(ids.length);
+      });
+    }
+
+    // Guard against late fragment replaces after first paint.
+    window.setTimeout(function () {
+      updateFabCount(ids.length);
+    }, 500);
+    window.setTimeout(function () {
+      updateFabCount(ids.length);
+    }, 1500);
+
+    function toggleRequest(productId, button) {
+      if (button) {
+        button.classList.add('is-loading');
+      }
+
+      var body = new URLSearchParams();
+      body.append('action', 'elite_wishlist_toggle');
+      body.append('nonce', config.nonce);
+      body.append('product_id', String(productId));
+
+      return fetch(config.ajaxUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        },
+        body: body.toString()
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (payload) {
+          if (button) {
+            button.classList.remove('is-loading');
+          }
+          if (!payload || !payload.success || !payload.data) {
+            return null;
+          }
+
+          var data = payload.data;
+          ids = Array.isArray(data.ids) ? data.ids.map(Number) : ids;
+          config.ids = ids;
+          updateFabCount(data.count || 0);
+          updateCountLabel(data.count || 0);
+          syncButtons(data.product_id, data.in_wishlist, data.label || (data.in_wishlist ? config.i18n.remove : config.i18n.add));
+
+          if (typeof showAddToCartToast === 'function') {
+            showAddToCartToast(data.message || (data.in_wishlist ? config.i18n.added : config.i18n.removed));
+          }
+
+          return data;
+        })
+        .catch(function () {
+          if (button) {
+            button.classList.remove('is-loading');
+          }
+          return null;
+        });
+    }
+
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest('.js-elite-wishlist-toggle');
+      if (!button || button.classList.contains('is-loading')) {
+        return;
+      }
+
+      var productId = button.getAttribute('data-product_id');
+      if (!productId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      toggleRequest(productId, button).then(function (data) {
+        if (!data) {
+          return;
+        }
+
+        var row = button.closest('.apex-wishlist-item');
+        if (row && !data.in_wishlist) {
+          row.classList.add('is-removing');
+          window.setTimeout(function () {
+            if (row.parentNode) {
+              row.parentNode.removeChild(row);
+            }
+            if (!data.count) {
+              renderEmptyState();
+            }
+          }, 220);
+        }
+      });
+    }, true);
+
+    var clearBtn = document.querySelector('.js-elite-wishlist-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        if (clearBtn.classList.contains('is-loading')) {
+          return;
+        }
+        clearBtn.classList.add('is-loading');
+
+        var body = new URLSearchParams();
+        body.append('action', 'elite_wishlist_clear');
+        body.append('nonce', config.nonce);
+
+        fetch(config.ajaxUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          },
+          body: body.toString()
+        })
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (payload) {
+            clearBtn.classList.remove('is-loading');
+            if (!payload || !payload.success) {
+              return;
+            }
+            applyWishlistState([], null);
+            renderEmptyState();
+            if (typeof showAddToCartToast === 'function') {
+              showAddToCartToast(config.i18n.removed || 'Wishlist cleared.');
+            }
+          })
+          .catch(function () {
+            clearBtn.classList.remove('is-loading');
+          });
+      });
+    }
+
+    updateFabCount(ids.length);
+  }
+
+  initEliteWishlist();
 
   var shopFiltersToggle = document.querySelector('.apex-shop-filters-toggle');
   var shopSidebar = document.getElementById('apex-shop-sidebar');

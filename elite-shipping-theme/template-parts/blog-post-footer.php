@@ -4,6 +4,7 @@
  *
  * Optional $args for Customizer card detail pages:
  * - share_url, share_title, share_image
+ * - newer_url, newer_title
  * - older_url, older_title
  * - comments_mode: 'post' (default) | 'preview'
  *
@@ -21,6 +22,8 @@ $comments_mode = ! empty( $args['comments_mode'] ) ? (string) $args['comments_mo
 $share_url     = ! empty( $args['share_url'] ) ? (string) $args['share_url'] : '';
 $share_title   = ! empty( $args['share_title'] ) ? (string) $args['share_title'] : '';
 $share_image   = ! empty( $args['share_image'] ) ? (string) $args['share_image'] : '';
+$newer_url     = ! empty( $args['newer_url'] ) ? (string) $args['newer_url'] : '';
+$newer_title   = ! empty( $args['newer_title'] ) ? (string) $args['newer_title'] : '';
 $older_url     = ! empty( $args['older_url'] ) ? (string) $args['older_url'] : '';
 $older_title   = ! empty( $args['older_title'] ) ? (string) $args['older_title'] : '';
 
@@ -39,11 +42,20 @@ $share = $share_overrides
 
 $urls = elite_shipping_get_urls();
 
-if ( ! $older_url && 'preview' !== $comments_mode ) {
-	$prev_post = get_previous_post();
-	if ( $prev_post ) {
-		$older_url   = get_permalink( $prev_post );
-		$older_title = get_the_title( $prev_post );
+if ( 'preview' !== $comments_mode ) {
+	if ( ! $newer_url ) {
+		$next_post = get_next_post();
+		if ( $next_post ) {
+			$newer_url   = get_permalink( $next_post );
+			$newer_title = get_the_title( $next_post );
+		}
+	}
+	if ( ! $older_url ) {
+		$prev_post = get_previous_post();
+		if ( $prev_post ) {
+			$older_url   = get_permalink( $prev_post );
+			$older_title = get_the_title( $prev_post );
+		}
 	}
 }
 ?>
@@ -63,16 +75,32 @@ if ( ! $older_url && 'preview' !== $comments_mode ) {
 	</div>
 
 	<nav class="apex-blog-post-nav" aria-label="<?php esc_attr_e( 'Post navigation', 'elite-shipping' ); ?>">
+		<?php if ( $older_url && $older_title ) : ?>
+			<a class="apex-blog-post-nav-older" href="<?php echo esc_url( $older_url ); ?>">
+				<span class="apex-blog-post-nav-arrow" aria-hidden="true">&lsaquo;</span>
+				<span class="apex-blog-post-nav-text">
+					<span class="apex-blog-post-nav-label"><?php esc_html_e( 'Older', 'elite-shipping' ); ?></span>
+					<span class="apex-blog-post-nav-title"><?php echo esc_html( $older_title ); ?></span>
+				</span>
+			</a>
+		<?php else : ?>
+			<span class="apex-blog-post-nav-spacer" aria-hidden="true"></span>
+		<?php endif; ?>
+
 		<a class="apex-blog-post-nav-grid" href="<?php echo esc_url( $urls['blog'] ); ?>" aria-label="<?php esc_attr_e( 'Back to blog', 'elite-shipping' ); ?>">
 			<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>
 		</a>
 
-		<?php if ( $older_url && $older_title ) : ?>
-			<a class="apex-blog-post-nav-older" href="<?php echo esc_url( $older_url ); ?>">
-				<span class="apex-blog-post-nav-label"><?php esc_html_e( 'Older', 'elite-shipping' ); ?></span>
-				<span class="apex-blog-post-nav-title"><?php echo esc_html( $older_title ); ?></span>
+		<?php if ( $newer_url && $newer_title ) : ?>
+			<a class="apex-blog-post-nav-newer" href="<?php echo esc_url( $newer_url ); ?>">
+				<span class="apex-blog-post-nav-text">
+					<span class="apex-blog-post-nav-label"><?php esc_html_e( 'Newer', 'elite-shipping' ); ?></span>
+					<span class="apex-blog-post-nav-title"><?php echo esc_html( $newer_title ); ?></span>
+				</span>
 				<span class="apex-blog-post-nav-arrow" aria-hidden="true">&rsaquo;</span>
 			</a>
+		<?php else : ?>
+			<span class="apex-blog-post-nav-spacer" aria-hidden="true"></span>
 		<?php endif; ?>
 	</nav>
 

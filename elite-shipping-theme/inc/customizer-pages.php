@@ -1,6 +1,6 @@
 <?php
 /**
- * Theme Customizer — About, Contact, and Blog pages.
+ * Theme Customizer — About and Contact pages.
  *
  * @package Elite_Shipping
  */
@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Register About, Contact, and Blog Customizer panels.
+ * Register About and Contact Customizer panels.
  *
  * @param WP_Customize_Manager $wp_customize Customizer instance.
  */
@@ -662,186 +662,5 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 		)
 	);
 
-	/* ── Blog panel ── */
-	$wp_customize->add_panel(
-		'elite_blog',
-		array(
-			'title'       => __( 'Blog', 'elite-shipping' ),
-			'description' => __( 'Customize the Our Blog archive and single post chrome.', 'elite-shipping' ),
-			'priority'    => 127,
-		)
-	);
-
-	$wp_customize->add_section(
-		'elite_blog_archive_hero',
-		array(
-			'title'    => __( 'Archive hero', 'elite-shipping' ),
-			'panel'    => 'elite_blog',
-			'priority' => 10,
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_kicker',
-		array(
-			'label'   => __( 'Kicker', 'elite-shipping' ),
-			'section' => 'elite_blog_archive_hero',
-			'default' => 'OUR BLOG',
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_title',
-		array(
-			'label'   => __( 'Heading', 'elite-shipping' ),
-			'section' => 'elite_blog_archive_hero',
-			'default' => 'Our Blog',
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_desc',
-		array(
-			'label'    => __( 'Description', 'elite-shipping' ),
-			'section'  => 'elite_blog_archive_hero',
-			'type'     => 'textarea',
-			'default'  => 'Expert guides, market insights, and practical advice on buying, using, and modifying shipping containers across the UK.',
-			'sanitize' => 'wp_kses_post',
-		)
-	);
-	elite_shipping_add_image_setting(
-		$wp_customize,
-		'elite_blog_hero_image',
-		array(
-			'label'   => __( 'Background image', 'elite-shipping' ),
-			'section' => 'elite_blog_archive_hero',
-		)
-	);
-
-	$wp_customize->add_section(
-		'elite_blog_cards',
-		array(
-			'title'       => __( 'Post cards', 'elite-shipping' ),
-			'description' => __( 'Manage the blogs shown on the Blog page. Each card is prefilled from the current posts — edit title, date, image, introduction, and details, or click + to add more.', 'elite-shipping' ),
-			'panel'       => 'elite_blog',
-			'priority'    => 20,
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_card_cat',
-		array(
-			'label'   => __( 'Category label', 'elite-shipping' ),
-			'section' => 'elite_blog_cards',
-			'default' => 'Blog',
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_card_more',
-		array(
-			'label'   => __( 'Continue reading text', 'elite-shipping' ),
-			'section' => 'elite_blog_cards',
-			'default' => 'Continue reading',
-		)
-	);
-
-	if ( class_exists( 'Elite_Blog_Cards_List_Control' ) ) {
-		$wp_customize->add_setting(
-			'elite_blog_cards_list',
-			array(
-				'default'           => '[]',
-				'sanitize_callback' => 'elite_shipping_sanitize_blog_cards_list',
-				'transport'         => 'refresh',
-			)
-		);
-
-		$wp_customize->add_control(
-			new Elite_Blog_Cards_List_Control(
-				$wp_customize,
-				'elite_blog_cards_list',
-				array(
-					'label'       => __( 'Card list', 'elite-shipping' ),
-					'description' => __( 'No limit. Use the image and trash icons on each card. Open Details to edit the full article body.', 'elite-shipping' ),
-					'section'     => 'elite_blog_cards',
-					'priority'    => 30,
-				)
-			)
-		);
-	}
-
-	$wp_customize->add_section(
-		'elite_blog_single',
-		array(
-			'title'    => __( 'Single post', 'elite-shipping' ),
-			'panel'    => 'elite_blog',
-			'priority' => 30,
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_single_kicker',
-		array(
-			'label'   => __( 'Hero kicker', 'elite-shipping' ),
-			'section' => 'elite_blog_single',
-			'default' => 'OUR BLOG',
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_single_title',
-		array(
-			'label'   => __( 'Hero heading', 'elite-shipping' ),
-			'section' => 'elite_blog_single',
-			'default' => 'Our Blog',
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_single_desc',
-		array(
-			'label'    => __( 'Hero description', 'elite-shipping' ),
-			'section'  => 'elite_blog_single',
-			'type'     => 'textarea',
-			'default'  => 'Expert guides, market insights, and practical advice on buying, using, and modifying shipping containers across the UK.',
-			'sanitize' => 'wp_kses_post',
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_single_cat',
-		array(
-			'label'   => __( 'Category label', 'elite-shipping' ),
-			'section' => 'elite_blog_single',
-			'default' => 'Blog',
-		)
-	);
-
-	$wp_customize->add_section(
-		'elite_blog_sidebar',
-		array(
-			'title'    => __( 'Sidebar', 'elite-shipping' ),
-			'panel'    => 'elite_blog',
-			'priority' => 40,
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_sidebar_categories_title',
-		array(
-			'label'   => __( 'Categories heading', 'elite-shipping' ),
-			'section' => 'elite_blog_sidebar',
-			'default' => 'Categories',
-		)
-	);
-	elite_shipping_add_text_setting(
-		$wp_customize,
-		'elite_blog_sidebar_recent_title',
-		array(
-			'label'   => __( 'Recent posts heading', 'elite-shipping' ),
-			'section' => 'elite_blog_sidebar',
-			'default' => 'Recent Posts',
-		)
-	);
 }
 add_action( 'customize_register', 'elite_shipping_customize_register_pages', 20 );

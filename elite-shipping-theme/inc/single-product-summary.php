@@ -308,13 +308,18 @@ function elite_shipping_single_product_extras() {
 	$proof = elite_shipping_get_single_product_social_proof( $product->get_id() );
 	?>
 	<div class="apex-single-social-proof">
-		<p><?php echo esc_html( $proof['viewing'] ); ?></p>
-		<p><?php echo esc_html( $proof['sold'] ); ?></p>
+		<span class="apex-single-social-proof-item">
+			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+			<?php echo esc_html( $proof['viewing'] ); ?>
+		</span>
+		<span class="apex-single-social-proof-item">
+			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12L6 6z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg>
+			<?php echo esc_html( $proof['sold'] ); ?>
+		</span>
 	</div>
 
 	<div class="apex-single-trust-box">
 		<strong class="apex-single-trust-title"><?php esc_html_e( 'Guaranteed Safe Checkout', 'elite-shipping' ); ?></strong>
-		<hr class="apex-single-trust-divider">
 		<div class="apex-single-trust-body">
 			<img
 				class="apex-single-trust-payments-img"
@@ -359,15 +364,33 @@ function elite_shipping_single_product_actions() {
 	if ( ! $product instanceof WC_Product ) {
 		return;
 	}
+
+	$product_id  = $product->get_id();
+	$in_wishlist = function_exists( 'elite_shipping_is_product_in_wishlist' )
+		? elite_shipping_is_product_in_wishlist( $product_id )
+		: false;
+	$wishlist_href = function_exists( 'elite_shipping_get_add_to_wishlist_url' )
+		? elite_shipping_get_add_to_wishlist_url( $product_id )
+		: '#';
+	$wishlist_label = $in_wishlist
+		? __( 'Remove from wishlist', 'elite-shipping' )
+		: __( 'Add to wishlist', 'elite-shipping' );
+	$wishlist_class = 'apex-single-secondary-link js-elite-wishlist-toggle' . ( $in_wishlist ? ' is-active' : '' );
 	?>
 	<div class="apex-single-secondary-actions">
 		<a class="apex-single-secondary-link" href="#">
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M8 21H3v-5"/><path d="M16 21h5v-5"/><path d="M3 10h18"/></svg>
 			<?php esc_html_e( 'Add to compare', 'elite-shipping' ); ?>
 		</a>
-		<a class="apex-single-secondary-link" href="#">
+		<a
+			class="<?php echo esc_attr( $wishlist_class ); ?>"
+			href="<?php echo esc_url( $wishlist_href ); ?>"
+			data-product_id="<?php echo esc_attr( (string) $product_id ); ?>"
+			aria-label="<?php echo esc_attr( $wishlist_label ); ?>"
+			rel="nofollow"
+		>
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
-			<?php esc_html_e( 'Add to wishlist', 'elite-shipping' ); ?>
+			<span class="js-elite-wishlist-label"><?php echo esc_html( $wishlist_label ); ?></span>
 		</a>
 	</div>
 	<?php

@@ -796,42 +796,6 @@ function elite_shipping_get_seed_blog_cards_list_items() {
 		wp_reset_postdata();
 	}
 
-	if ( empty( $items ) && function_exists( 'elite_shipping_get_default_blog_posts' ) ) {
-		$image_map = function_exists( 'elite_shipping_get_blog_image_map' )
-			? elite_shipping_get_blog_image_map()
-			: array();
-
-		foreach ( elite_shipping_get_default_blog_posts() as $post ) {
-			$slug = sanitize_title( (string) ( $post['slug'] ?? $post['title'] ?? '' ) );
-			$date = (string) ( $post['datetime'] ?? '' );
-			if ( $date && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
-				$timestamp = strtotime( $date );
-				$date      = $timestamp ? gmdate( 'Y-m-d', $timestamp ) : '';
-			}
-
-			$image_file = '';
-			if ( $slug && isset( $image_map[ $slug ] ) ) {
-				$image_file = $image_map[ $slug ];
-			} elseif ( ! empty( $post['image'] ) && false === strpos( (string) $post['image'], '://' ) ) {
-				$image_file = sanitize_file_name( (string) $post['image'] );
-			}
-
-			$items[] = array(
-				'title'      => (string) ( $post['title'] ?? '' ),
-				'date'       => $date,
-				'image'      => 0,
-				'image_file' => $image_file,
-				'intro'      => (string) ( $post['excerpt'] ?? '' ),
-				'short_text' => '',
-				'details'    => array(
-					'paragraphs' => array(),
-					'faqs'       => array(),
-				),
-				'slug'       => $slug,
-			);
-		}
-	}
-
 	return elite_shipping_normalize_blog_cards_list_items( $items, true );
 }
 
@@ -914,10 +878,12 @@ function elite_shipping_sanitize_blog_cards_list( $value ) {
 /**
  * Whether a custom blog card list is configured.
  *
+ * Disabled: Blog is managed via WordPress Posts (Customize → Blog was removed).
+ *
  * @return bool
  */
 function elite_shipping_blog_uses_cards_list() {
-	return ! empty( elite_shipping_parse_blog_cards_list_theme_mod() );
+	return false;
 }
 
 /**

@@ -348,6 +348,52 @@ function elite_render_product_grid( $args = array(), $opts = array() ) {
 }
 
 /**
+ * Render hover wishlist control for shop product cards.
+ *
+ * @param WC_Product $product Product object.
+ */
+function elite_render_shop_product_wishlist_button( $product ) {
+	if ( ! $product instanceof WC_Product ) {
+		return;
+	}
+
+	$product_id  = $product->get_id();
+	$in_wishlist = function_exists( 'elite_shipping_is_product_in_wishlist' )
+		? elite_shipping_is_product_in_wishlist( $product_id )
+		: false;
+
+	$classes = array( 'apex-shop-product-wishlist', 'js-elite-wishlist-toggle' );
+	if ( $in_wishlist ) {
+		$classes[] = 'is-active';
+	}
+
+	$label = $in_wishlist
+		? __( 'Remove from wishlist', 'elite-shipping' )
+		: __( 'Add to wishlist', 'elite-shipping' );
+
+	$href = function_exists( 'elite_shipping_get_add_to_wishlist_url' )
+		? elite_shipping_get_add_to_wishlist_url( $product_id )
+		: '#';
+
+	$icon = '<svg class="apex-shop-product-wishlist-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+
+	$attrs = array(
+		'class'           => implode( ' ', $classes ),
+		'aria-label'      => $label,
+		'data-product_id' => (string) $product_id,
+		'rel'             => 'nofollow',
+	);
+
+	printf(
+		'<a href="%s" %s>%s<span class="apex-shop-product-add-tooltip" role="tooltip">%s</span></a>',
+		esc_url( $href ),
+		wc_implode_html_attributes( $attrs ),
+		$icon, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		esc_html( $label )
+	);
+}
+
+/**
  * Render hover add-to-cart control for shop product cards.
  *
  * @param WC_Product $product Product object.
@@ -405,7 +451,9 @@ function elite_shipping_enqueue_shop_card_add_to_cart() {
 		return;
 	}
 
-	if ( ! is_shop() && ! is_product_taxonomy() && ! is_product() ) {
+	$is_wishlist = is_page( 'wishlist' );
+
+	if ( ! is_shop() && ! is_product_taxonomy() && ! is_product() && ! $is_wishlist ) {
 		return;
 	}
 
@@ -440,22 +488,48 @@ function elite_render_shop_product_card( $product ) {
 	$category_label = elite_get_product_shop_category_label( $product );
 	$is_on_sale     = $product->is_on_sale();
 	$is_in_stock    = $product->is_in_stock();
+	$gallery_ids    = $product->get_gallery_image_ids();
+	$hover_image_id = ! empty( $gallery_ids[0] ) ? (int) $gallery_ids[0] : 0;
+	$has_hover_img  = $hover_image_id > 0;
 	$img            = $product->get_image(
 		'woocommerce_thumbnail',
 		array(
-			'class' => 'apex-shop-product-img',
+			'class' => 'apex-shop-product-img apex-shop-product-img--primary',
 		)
 	);
+	$hover_img      = $has_hover_img
+		? wp_get_attachment_image(
+			$hover_image_id,
+			'woocommerce_thumbnail',
+			false,
+			array(
+				'class'    => 'apex-shop-product-img apex-shop-product-img--secondary',
+				'alt'      => '',
+				'loading'  => 'lazy',
+				'decoding' => 'async',
+			)
+		)
+		: '';
 	?>
-	<article <?php wc_product_class( 'apex-shop-product-card', $product ); ?>>
-		<div class="apex-shop-product-media">
+	<article <?php wc_product_class( 'apex-shop-product-card' . ( $has_hover_img ? ' has-hover-image' : '' ), $product ); ?>>
+		<div class="apex-shop-product-media<?php echo $has_hover_img ? ' apex-shop-product-media--has-hover' : ''; ?>">
 			<a class="apex-shop-product-media-link" href="<?php echo esc_url( $url ); ?>">
 				<?php if ( $is_on_sale ) : ?>
 					<span class="apex-shop-product-badge apex-shop-product-badge--sale"><?php esc_html_e( 'Sale', 'elite-shipping' ); ?></span>
 				<?php endif; ?>
 				<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php
+				if ( $hover_img ) {
+					echo $hover_img; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+				}
+				?>
 			</a>
-			<?php elite_render_shop_product_add_button( $product ); ?>
+			<div class="apex-shop-product-actions">
+				<?php
+				elite_render_shop_product_wishlist_button( $product );
+				elite_render_shop_product_add_button( $product );
+				?>
+			</div>
 		</div>
 		<div class="apex-shop-product-body">
 			<p class="apex-shop-product-cat"><?php echo esc_html( $category_label ); ?></p>

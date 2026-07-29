@@ -149,6 +149,32 @@ function elite_shipping_render_cart_drawer_content() {
 }
 
 /**
+ * Floating wishlist button markup.
+ */
+function elite_shipping_render_wishlist_fab() {
+	if ( ! elite_shipping_cart_drawer_enabled() ) {
+		return;
+	}
+
+	$count = elite_shipping_get_wishlist_count();
+	$url   = elite_shipping_get_wishlist_url();
+	?>
+	<a
+		class="elite-wishlist-fab"
+		href="<?php echo esc_url( $url ); ?>"
+		aria-label="<?php echo esc_attr( sprintf( _n( 'Wishlist, %d item', 'Wishlist, %d items', $count, 'elite-shipping' ), $count ) ); ?>"
+	>
+		<span class="elite-cart-fab-shell" aria-hidden="true">
+			<svg class="elite-cart-fab-icon" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+				<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+			</svg>
+		</span>
+		<span class="elite-wishlist-fab-count<?php echo $count ? '' : ' is-empty'; ?>" data-elite-wishlist-badge="1" aria-hidden="true"><?php echo esc_html( (string) $count ); ?></span>
+	</a>
+	<?php
+}
+
+/**
  * Floating cart button markup.
  */
 function elite_shipping_render_cart_fab() {
@@ -166,12 +192,29 @@ function elite_shipping_render_cart_fab() {
 		aria-expanded="false"
 	>
 		<span class="elite-cart-fab-shell" aria-hidden="true">
-			<svg class="elite-cart-fab-icon" width="22" height="22" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true">
+			<svg class="elite-cart-fab-icon" width="26" height="26" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true">
 				<path d="M0 72C0 58.7 10.7 48 24 48L69.3 48C96.4 48 119.6 67.4 124.4 94L124.8 96L537.5 96C557.5 96 572.6 114.2 568.9 133.9L537.8 299.8C532.1 330.1 505.7 352 474.9 352L171.3 352L176.4 380.3C178.5 391.7 188.4 400 200 400L456 400C469.3 400 480 410.7 480 424C480 437.3 469.3 448 456 448L200.1 448C165.3 448 135.5 423.1 129.3 388.9L77.2 102.6C76.5 98.8 73.2 96 69.3 96L24 96C10.7 96 0 85.3 0 72zM160 528C160 501.5 181.5 480 208 480C234.5 480 256 501.5 256 528C256 554.5 234.5 576 208 576C181.5 576 160 554.5 160 528zM384 528C384 501.5 405.5 480 432 480C458.5 480 480 501.5 480 528C480 554.5 458.5 576 432 576C405.5 576 384 554.5 384 528zM336 142.4C322.7 142.4 312 153.1 312 166.4L312 200L278.4 200C265.1 200 254.4 210.7 254.4 224C254.4 237.3 265.1 248 278.4 248L312 248L312 281.6C312 294.9 322.7 305.6 336 305.6C349.3 305.6 360 294.9 360 281.6L360 248L393.6 248C406.9 248 417.6 237.3 417.6 224C417.6 210.7 406.9 200 393.6 200L360 200L360 166.4C360 153.1 349.3 142.4 336 142.4z"/>
 			</svg>
 		</span>
 		<span class="elite-cart-fab-count<?php echo $count ? '' : ' is-empty'; ?>" aria-hidden="true"><?php echo esc_html( (string) $count ); ?></span>
 	</button>
+	<?php
+}
+
+/**
+ * Floating action stack (cart + wishlist).
+ */
+function elite_shipping_render_float_actions() {
+	if ( ! elite_shipping_cart_drawer_enabled() ) {
+		return;
+	}
+	?>
+	<div class="elite-float-actions" aria-label="<?php esc_attr_e( 'Quick actions', 'elite-shipping' ); ?>">
+		<?php
+		elite_shipping_render_cart_fab();
+		elite_shipping_render_wishlist_fab();
+		?>
+	</div>
 	<?php
 }
 
@@ -195,7 +238,7 @@ function elite_shipping_render_cart_drawer() {
 		<?php elite_shipping_render_cart_drawer_content(); ?>
 	</aside>
 	<?php
-	elite_shipping_render_cart_fab();
+	elite_shipping_render_float_actions();
 }
 add_action( 'wp_footer', 'elite_shipping_render_cart_drawer', 25 );
 
