@@ -1,0 +1,102 @@
+[
+  {
+    "canonical": "Flat Pack Containers",
+    "merge_into": "Flat Pack Containers",
+    "duplicates": [
+      "Flat Pack Containers",
+      "Flat Pack Units",
+      "Flat Pack Cabins for Sale Flat Pack Units",
+      "Containers for Sale Flat Pack Cabins for Sale Flat Pack Containers Flat Pack Units"
+    ],
+    "note": "Bad import merged 4 names into one category string. All should be Flat Pack Containers."
+  },
+  {
+    "canonical": "Modified Shipping Containers",
+    "merge_into": "Modified Shipping Containers",
+    "duplicates": [
+      "Modified Containers",
+      "Modified Shipping Containers"
+    ],
+    "note": "Same product type; two names used interchangeably."
+  },
+  {
+    "canonical": "1-Trip Shipping Containers",
+    "merge_into": "1-Trip Shipping Containers",
+    "duplicates": [
+      "New Containers",
+      "New Shipping Containers",
+      "1-Trip Shipping Containers"
+    ],
+    "note": "All describe new / one-trip containers."
+  },
+  {
+    "canonical": "Used Shipping Containers",
+    "merge_into": "Used Shipping Containers",
+    "duplicates": [
+      "Used Shipping Containers",
+      "Refurbished Shipping Containers",
+      "Wind & Watertight-Cargo Worthy"
+    ],
+    "note": "Often assigned together on same product. Pick one primary used category per product."
+  },
+  {
+    "canonical": "Refrigerated Containers",
+    "merge_into": "Refrigerated Containers",
+    "duplicates": [
+      "Refrigerated Containers",
+      "Refrigerated Containers for sale",
+      "Up to -40° F Refrigerated Containers"
+    ],
+    "note": "Same category with extra wording or temperature detail."
+  },
+  {
+    "canonical": "Container Accessories",
+    "merge_into": "Container Accessories",
+    "duplicates": [
+      "Container Accessories",
+      "Accessories Container Accessories",
+      "Parts",
+      "Parts & Accessories"
+    ],
+    "note": "Parts and Parts & Accessories are duplicates of each other; accessory names are inconsistent."
+  },
+  {
+    "canonical": "Shipping Container Offices",
+    "merge_into": "Shipping Container Offices",
+    "duplicates": [
+      "Shipping Container Offices",
+      "Container Home Office"
+    ],
+    "note": "Both are office/workshop container products."
+  },
+  {
+    "canonical": "Cabins for Sale",
+    "merge_into": "Cabins for Sale",
+    "duplicates": [
+      "Cabins for Sale",
+      "Jackleg Cabins for Sale",
+      "Steel Cabins for Sale",
+      "Shipping Container Homes & Cabins"
+    ],
+    "note": "Sub-types of cabins; can stay as subcategories OR merge into Cabins for Sale."
+  },
+  {
+    "canonical": "Containers for Sale",
+    "merge_into": "Containers for Sale",
+    "duplicates": [
+      "Containers for Sale",
+      "Storage Containers for Sale"
+    ],
+    "note": "Very similar general storage/sale categories."
+  },
+  {
+    "canonical": "INVALID — remove",
+    "merge_into": null,
+    "duplicates": [
+      "Home",
+      "Uncategorized",
+      "Top Brand"
+    ],
+    "note": "Not real product categories. Reassign products then delete."
+  }
+]

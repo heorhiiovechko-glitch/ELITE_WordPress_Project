@@ -59,15 +59,24 @@ function elite_shipping_get_modifications_menu_items() {
 				'title'     => $default['title'],
 				'image_id'  => 0,
 				'image_url' => $default['image'] ?? '',
+				'url'       => function_exists( 'elite_shipping_get_mod_card_url' )
+					? elite_shipping_get_mod_card_url( 0, (string) $default['title'] )
+					: home_url( '/shop/' ),
 			);
 		}
 	}
 
 	$menu_items = array();
 	foreach ( $items as $item ) {
+		$url = ! empty( $item['url'] )
+			? (string) $item['url']
+			: ( function_exists( 'elite_shipping_get_mod_card_url' )
+				? elite_shipping_get_mod_card_url( (int) ( $item['category_id'] ?? 0 ), (string) ( $item['title'] ?? '' ) )
+				: home_url( '/shop/' ) );
+
 		$menu_items[] = array(
 			'name' => $item['title'],
-			'url'  => home_url( '/#modifications' ),
+			'url'  => $url,
 		);
 	}
 
@@ -306,6 +315,9 @@ function elite_render_home_mods_section() {
 				'title'     => $default['title'],
 				'image_id'  => 0,
 				'image_url' => $default['image'] ?? '',
+				'url'       => function_exists( 'elite_shipping_get_mod_card_url' )
+					? elite_shipping_get_mod_card_url( 0, (string) $default['title'] )
+					: home_url( '/shop/' ),
 			);
 		}
 	}
@@ -329,8 +341,13 @@ function elite_render_home_mods_section() {
 								if ( ! $image_url && ! empty( $item['image_id'] ) ) {
 									$image_url = (string) wp_get_attachment_image_url( (int) $item['image_id'], 'large' );
 								}
+								$card_url = ! empty( $item['url'] )
+									? (string) $item['url']
+									: ( function_exists( 'elite_shipping_get_mod_card_url' )
+										? elite_shipping_get_mod_card_url( (int) ( $item['category_id'] ?? 0 ), (string) ( $item['title'] ?? '' ) )
+										: home_url( '/shop/' ) );
 								?>
-								<article class="apex-mod-card">
+								<a class="apex-mod-card" href="<?php echo esc_url( $card_url ); ?>">
 									<div class="apex-mod-card__media">
 										<?php if ( $image_url ) : ?>
 											<img
@@ -347,7 +364,7 @@ function elite_render_home_mods_section() {
 									<div class="apex-mod-card__body">
 										<h3 class="apex-mod-card__title"><?php echo esc_html( $item['title'] ); ?></h3>
 									</div>
-								</article>
+								</a>
 							<?php endforeach; ?>
 						<?php endif; ?>
 					</div>
@@ -369,15 +386,20 @@ function elite_render_addon_card( $item ) {
 	$url = ! empty( $item['url'] ) ? $item['url'] : elite_shipping_resolve_addon_product_url( $item['title'] ?? '' );
 	?>
 	<article class="apex-addon-card">
-		<a class="apex-addon-media" href="<?php echo esc_url( $url ); ?>">
-			<img class="apex-addon-img" src="<?php echo esc_url( $item['image'] ); ?>" alt="<?php echo esc_attr( $item['title'] ); ?>" loading="lazy">
+		<a class="apex-addon-media" href="<?php echo esc_url( $url ); ?>" tabindex="-1" aria-hidden="true">
+			<img class="apex-addon-img" src="<?php echo esc_url( $item['image'] ); ?>" alt="" loading="lazy">
 		</a>
 		<div class="apex-addon-body">
 			<h3 class="apex-addon-name">
 				<a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $item['title'] ); ?></a>
 			</h3>
 			<div class="apex-addon-price"><?php echo wp_kses_post( $item['price'] ); ?></div>
-			<a class="apex-addon-link" href="<?php echo esc_url( $url ); ?>"><?php esc_html_e( 'VIEW DETAILS →', 'elite-shipping' ); ?></a>
+			<a class="apex-addon-link" href="<?php echo esc_url( $url ); ?>">
+				<span><?php esc_html_e( 'View details', 'elite-shipping' ); ?></span>
+				<svg class="apex-addon-link-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<path d="M5 12h12M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</a>
 		</div>
 	</article>
 	<?php
@@ -467,7 +489,7 @@ function elite_render_popular_product_card( $product, $index = 1 ) {
 			<h3 class="apex-product-name"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $category_label ); ?></a></h3>
 			<p class="apex-product-dims"><?php echo esc_html( elite_get_product_dims_label( $product ) ); ?></p>
 			<div class="apex-product-price apex-popular-price"><?php echo wp_kses_post( elite_format_bestseller_price( $product ) ); ?></div>
-			<div class="apex-stars" aria-hidden="true">★★★★★ <span>(128)</span></div>
+			<div class="apex-stars" aria-hidden="true">★★★★★ <span>(<?php echo esc_html( (string) elite_get_product_star_review_count( $product->get_id(), $index ) ); ?>)</span></div>
 		</div>
 	</article>
 	<?php

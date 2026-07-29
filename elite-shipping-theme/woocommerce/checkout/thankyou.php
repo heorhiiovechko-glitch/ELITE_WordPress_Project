@@ -41,7 +41,7 @@ defined( 'ABSPATH' ) || exit;
 					<p class="apex-thankyou-status-kicker"><?php esc_html_e( 'Order confirmed', 'elite-shipping' ); ?></p>
 					<h2 class="apex-thankyou-status-title"><?php echo esc_html__( 'Thank you. Your order has been received.', 'elite-shipping' ); ?></h2>
 					<p class="apex-thankyou-status-text">
-						<?php esc_html_e( 'A confirmation email is on its way. Our team will follow up with delivery details shortly.', 'elite-shipping' ); ?>
+						<?php esc_html_e( 'A confirmation email is on its way. Delivery details will follow once payment is confirmed.', 'elite-shipping' ); ?>
 					</p>
 				</div>
 			</div>

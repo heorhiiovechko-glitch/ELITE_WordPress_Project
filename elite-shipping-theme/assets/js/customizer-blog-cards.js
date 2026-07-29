@@ -112,6 +112,25 @@
     );
   }
 
+  function buildToggleButton(label) {
+    return iconButton('elite-blog-toggle', 'arrow-down-alt2', label || 'Toggle section');
+  }
+
+  function setCollapsedState($target, collapsed) {
+    $target.toggleClass('is-collapsed', collapsed);
+    $target.find('> .elite-blog-cards-list-item__top .elite-blog-toggle, > .elite-blog-paragraph__top .elite-blog-toggle').first()
+      .attr('aria-expanded', collapsed ? 'false' : 'true');
+  }
+
+  function togglePanel($button) {
+    var $paragraph = $button.closest('.elite-blog-paragraph');
+    var $target = $paragraph.length ? $paragraph : $button.closest('.elite-blog-cards-list-item');
+    if (!$target.length) {
+      return;
+    }
+    setCollapsedState($target, !$target.hasClass('is-collapsed'));
+  }
+
   function buildParagraphHtml(number) {
     return (
       '<div class="elite-blog-paragraph">' +
@@ -119,11 +138,16 @@
       '<span class="elite-blog-paragraph__num">Paragraph ' +
       String(number) +
       '</span>' +
+      '<div class="elite-blog-paragraph__actions">' +
+      buildToggleButton('Toggle paragraph') +
       iconButton('elite-blog-remove-paragraph', 'trash', 'Remove', 'elite-blog-cards-icon-btn--remove') +
       '</div>' +
+      '</div>' +
+      '<div class="elite-blog-paragraph__body">' +
       '<input type="text" class="elite-blog-paragraph__title" value="" placeholder="Paragraph title" aria-label="Paragraph title">' +
       buildParagraphToolbarHtml() +
       '<div class="elite-blog-paragraph__sections"></div>' +
+      '</div>' +
       '</div>'
     );
   }
@@ -210,14 +234,28 @@
     var items = [];
 
     $wrap.find('.elite-blog-cards-list-item').each(function () {
-      items.push({
-        title: $.trim($(this).find('.elite-blog-cards-list-item__title').val() || ''),
-        date: $.trim($(this).find('.elite-blog-cards-list-item__date').val() || ''),
-        image: parseInt($(this).find('.elite-blog-cards-list-item__image-id').val(), 10) || 0,
-        intro: $.trim($(this).find('.elite-blog-cards-list-item__intro').val() || ''),
-        short_text: $.trim($(this).find('.elite-blog-cards-list-item__short-text').val() || ''),
-        details: readDetails($(this))
-      });
+      var $row = $(this);
+      var title = $.trim($row.find('.elite-blog-cards-list-item__title').val() || '');
+      var slug = $.trim($row.find('.elite-blog-cards-list-item__slug').val() || '') || slugify(title);
+      var item = {
+        title: title,
+        date: $.trim($row.find('.elite-blog-cards-list-item__date').val() || ''),
+        image: parseInt($row.find('.elite-blog-cards-list-item__image-id').val(), 10) || 0,
+        intro: $.trim($row.find('.elite-blog-cards-list-item__intro').val() || ''),
+        short_text: $.trim($row.find('.elite-blog-cards-list-item__short-text').val() || ''),
+        details: readDetails($row)
+      };
+
+      if (slug) {
+        item.slug = slug;
+      }
+
+      var imageFile = $.trim($row.find('.elite-blog-cards-list-item__image-file').val() || '');
+      if (imageFile) {
+        item.image_file = imageFile;
+      }
+
+      items.push(item);
     });
 
     return items;
@@ -236,7 +274,10 @@
     }
 
     var title = $.trim($row.find('.elite-blog-cards-list-item__title').val() || '');
-    var slug = slugify(title);
+    var slug =
+      $.trim($row.find('.elite-blog-cards-list-item__slug').val() || '') ||
+      $.trim($row.attr('data-slug') || '') ||
+      slugify(title);
     if (!slug) {
       return;
     }
@@ -268,7 +309,7 @@
       $(this).attr('data-index', index);
       $(this)
         .find('.elite-blog-cards-list-item__num')
-        .text('Card ' + String(index + 1));
+        .text('Card' + String(index + 1));
     });
   }
 
@@ -306,7 +347,7 @@
       index +
       '">' +
       '<div class="elite-blog-cards-list-item__top">' +
-      '<span class="elite-blog-cards-list-item__num">Card ' +
+      '<span class="elite-blog-cards-list-item__num">Card' +
       (index + 1) +
       '</span>' +
       '<div class="elite-blog-cards-list-item__actions">' +
@@ -314,10 +355,14 @@
       dateValue +
       '" aria-label="Date">' +
       '<input type="hidden" class="elite-blog-cards-list-item__image-id" value="0">' +
+      '<input type="hidden" class="elite-blog-cards-list-item__image-file" value="">' +
+      '<input type="hidden" class="elite-blog-cards-list-item__slug" value="">' +
       iconButton('elite-blog-cards-select-image', 'format-image', 'Select image') +
+      buildToggleButton('Toggle card') +
       iconButton('elite-blog-cards-remove', 'trash', 'Remove', 'elite-blog-cards-icon-btn--remove') +
       '</div>' +
       '</div>' +
+      '<div class="elite-blog-cards-list-item__body">' +
       '<input type="text" class="elite-blog-cards-list-item__title" value="" placeholder="Title" aria-label="Title">' +
       '<textarea class="elite-blog-cards-list-item__intro" rows="3" placeholder="Introduction" aria-label="Introduction"></textarea>' +
       '<input type="text" class="elite-blog-cards-list-item__short-text" value="" placeholder="Short text" aria-label="Short text">' +
@@ -329,6 +374,7 @@
       '<button type="button" class="button button-secondary elite-blog-add-faq">Add new FAQ</button>' +
       '</div>' +
       '<div class="elite-blog-faqs"></div>' +
+      '</div>' +
       '</div>' +
       '</li>'
     );
@@ -365,6 +411,7 @@
         '';
 
       $row.find('.elite-blog-cards-list-item__image-id').val(String(imageId));
+      $row.find('.elite-blog-cards-list-item__image-file').val('');
       setImageButtonState($row.find('.elite-blog-cards-select-image'), imageUrl);
       syncSetting($wrap);
     });
@@ -399,6 +446,11 @@
     $wrap.on('click', '.elite-blog-cards-select-image', function (event) {
       event.preventDefault();
       openMediaPicker($(this).closest('.elite-blog-cards-list-item'), $wrap);
+    });
+
+    $wrap.on('click', '.elite-blog-toggle', function (event) {
+      event.preventDefault();
+      togglePanel($(this));
     });
 
     $wrap.on('focus', '.elite-blog-cards-list-item__title, .elite-blog-cards-list-item__intro, .elite-blog-paragraph__title', function () {
@@ -505,6 +557,14 @@
           renumberSmallTitles($(this));
         });
       });
+
+      // Seeded cards from the Blog page need to bind into the setting so edits Publish.
+      var setting = control.setting;
+      var current = setting ? String(setting.get() || '') : '';
+      var hasRows = $wrap.find('.elite-blog-cards-list-item').length > 0;
+      if (hasRows && (!current || current === '[]')) {
+        syncSetting($wrap);
+      }
     });
   });
 })(jQuery);

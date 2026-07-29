@@ -27,7 +27,7 @@ $who_sub    = elite_shipping_get_theme_mod_image_url( 'elite_about_who_image_sub
 
 $mission_kicker = get_theme_mod( 'elite_about_mission_kicker', 'OUR MISSION' );
 $mission_title  = get_theme_mod( 'elite_about_mission_title', 'Empowering You with Choice, Confidence & Convenience' );
-$mission_text   = get_theme_mod( 'elite_about_mission_text', 'Our mission is simple yet powerful: to offer a wide selection of shipping containers, unmatched service, and competitive prices. We strive to make every customer interaction stress-free, ensuring you get exactly what you need, when you need it — with complete peace of mind.' );
+$mission_text   = get_theme_mod( 'elite_about_mission_text', 'Our mission is simple yet powerful: to offer a wide selection of shipping containers, unmatched service, and competitive prices. We strive to make every customer interaction stress-free, ensuring you get exactly what you need, when you need it, with complete peace of mind.' );
 $mission_main   = elite_shipping_get_theme_mod_image_url( 'elite_about_mission_image_main', $about_fallback( 'about_3.webp' ) );
 $mission_sub    = elite_shipping_get_theme_mod_image_url( 'elite_about_mission_image_sub', $about_fallback( 'about_4.jpeg' ) );
 
@@ -63,11 +63,11 @@ $features_sub   = get_theme_mod( 'elite_about_features_sub', 'Quality, transpare
 $feature_defaults = array(
 	1 => array( 'Quality Assurance', 'Every container is rigorously inspected for long-lasting durability.' ),
 	2 => array( 'Vast Selection', 'From brand-new units to affordable used containers, we have options for every need.' ),
-	3 => array( 'Customer-Centric Service', 'Our expert team is with you at every step — from quote to delivery.' ),
-	4 => array( 'Transparent Pricing', 'No hidden fees — just honest, upfront costs every time.' ),
+	3 => array( 'Customer-Centric Service', 'Our expert team is with you at every step, from quote to delivery.' ),
+	4 => array( 'Transparent Pricing', 'No hidden fees, just honest, upfront costs every time.' ),
 	5 => array( 'Easy Online Experience', 'Shop confidently with a fast, secure, and intuitive digital process.' ),
 	6 => array( 'Secure Payments', 'Enjoy safe and seamless transactions through our trusted payment gateway.' ),
-	7 => array( 'UK Nationwide Delivery', 'We deliver across the United Kingdom — reliably and quickly.' ),
+	7 => array( 'UK Nationwide Delivery', 'We deliver across the United Kingdom, reliably and quickly.' ),
 	8 => array( '24/7 Support', 'Our friendly support team is ready around the clock to help you anytime.' ),
 );
 $features = array();

@@ -76,8 +76,36 @@ $hero_img   = elite_shipping_migrate_media_url( 'https://firstchoiceshippingcont
 									</div>
 									<div class="apex-policy-section__body">
 										<?php foreach ( $section['paragraphs'] as $paragraph ) : ?>
-											<p><?php echo esc_html( $paragraph ); ?></p>
+											<?php if ( false !== strpos( $paragraph, "\n" ) ) : ?>
+												<p class="apex-policy-section__address"><?php echo nl2br( esc_html( $paragraph ) ); ?></p>
+											<?php else : ?>
+												<p><?php echo esc_html( $paragraph ); ?></p>
+											<?php endif; ?>
 										<?php endforeach; ?>
+										<?php if ( ! empty( $section['list'] ) && is_array( $section['list'] ) ) : ?>
+											<ul class="apex-policy-section__list">
+												<?php foreach ( $section['list'] as $item ) : ?>
+													<li><?php echo esc_html( $item ); ?></li>
+												<?php endforeach; ?>
+											</ul>
+										<?php endif; ?>
+										<?php if ( ! empty( $section['paragraphs_after'] ) && is_array( $section['paragraphs_after'] ) ) : ?>
+											<?php foreach ( $section['paragraphs_after'] as $paragraph ) : ?>
+												<p><?php echo esc_html( $paragraph ); ?></p>
+											<?php endforeach; ?>
+										<?php endif; ?>
+										<?php if ( ! empty( $section['list_after'] ) && is_array( $section['list_after'] ) ) : ?>
+											<ul class="apex-policy-section__list">
+												<?php foreach ( $section['list_after'] as $item ) : ?>
+													<li><?php echo esc_html( $item ); ?></li>
+												<?php endforeach; ?>
+											</ul>
+										<?php endif; ?>
+										<?php if ( ! empty( $section['paragraphs_final'] ) && is_array( $section['paragraphs_final'] ) ) : ?>
+											<?php foreach ( $section['paragraphs_final'] as $paragraph ) : ?>
+												<p><?php echo esc_html( $paragraph ); ?></p>
+											<?php endforeach; ?>
+										<?php endif; ?>
 									</div>
 								</section>
 							<?php endforeach; ?>

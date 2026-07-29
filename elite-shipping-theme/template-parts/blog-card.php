@@ -34,7 +34,7 @@ if ( empty( $post['title'] ) || empty( $post['url'] ) ) {
 			<time datetime="<?php echo esc_attr( $post['datetime'] ); ?>"><?php echo esc_html( $post['date'] ); ?></time>
 		</div>
 		<?php
-		$card_excerpt = ! empty( $post['short_text'] ) ? $post['short_text'] : ( $post['excerpt'] ?? '' );
+		$card_excerpt = ! empty( $post['excerpt'] ) ? $post['excerpt'] : ( $post['short_text'] ?? '' );
 		if ( ! empty( $card_excerpt ) ) :
 			?>
 			<p class="apex-blog-card-excerpt"><?php echo esc_html( $card_excerpt ); ?></p>

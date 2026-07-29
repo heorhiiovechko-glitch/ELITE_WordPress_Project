@@ -161,6 +161,22 @@ function elite_get_product_shop_category_label( $product ) {
 }
 
 /**
+ * Display review count for popular product star ratings.
+ *
+ * Uses a stable pool so each product keeps the same number on reload.
+ *
+ * @param int $product_id Product ID.
+ * @param int $index      Optional card index fallback.
+ * @return int
+ */
+function elite_get_product_star_review_count( $product_id, $index = 0 ) {
+	$counts = array( 128, 112, 129, 87, 42, 156, 94, 203, 67, 118, 145, 76, 91, 134, 58, 171, 83, 102, 147, 63 );
+	$slot   = ( absint( $product_id ) + absint( $index ) ) % count( $counts );
+
+	return $counts[ $slot ];
+}
+
+/**
  * Render browse category cards.
  *
  * @param int $limit Maximum categories to show. 0 = no limit (uses full display list).
@@ -318,7 +334,7 @@ function elite_render_product_grid( $args = array(), $opts = array() ) {
 				<?php elseif ( 'popular' === $mode ) : ?>
 					<p class="apex-product-dims"><?php echo esc_html( elite_get_product_dims_label( $product ) ); ?></p>
 					<div class="apex-product-price apex-popular-price"><?php echo wp_kses_post( elite_format_bestseller_price( $product ) ); ?></div>
-					<div class="apex-stars" aria-hidden="true">★★★★★ <span>(128)</span></div>
+					<div class="apex-stars" aria-hidden="true">★★★★★ <span>(<?php echo esc_html( (string) elite_get_product_star_review_count( $product->get_id(), $index ) ); ?>)</span></div>
 				<?php else : ?>
 					<a class="apex-view-link" href="<?php echo esc_url( $url ); ?>">VIEW DETAILS →</a>
 				<?php endif; ?>
@@ -330,6 +346,84 @@ function elite_render_product_grid( $args = array(), $opts = array() ) {
 	echo '</div>';
 	wp_reset_postdata();
 }
+
+/**
+ * Render hover add-to-cart control for shop product cards.
+ *
+ * @param WC_Product $product Product object.
+ */
+function elite_render_shop_product_add_button( $product ) {
+	if ( ! $product instanceof WC_Product || ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+		return;
+	}
+
+	$args = array(
+		'quantity'   => 1,
+		'class'      => implode(
+			' ',
+			array_filter(
+				array(
+					'apex-shop-product-add',
+					'button',
+					'product_type_' . $product->get_type(),
+					$product->is_purchasable() && $product->is_in_stock() ? 'add_to_cart_button' : '',
+					$product->supports( 'ajax_add_to_cart' ) && $product->is_purchasable() && $product->is_in_stock() ? 'ajax_add_to_cart' : '',
+				)
+			)
+		),
+		'attributes' => array(
+			'data-product_id'  => $product->get_id(),
+			'data-product_sku' => $product->get_sku(),
+			'aria-label'       => $product->add_to_cart_description(),
+			'rel'              => 'nofollow',
+		),
+	);
+
+	$icon = '<svg class="apex-shop-product-add-icon" width="18" height="18" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><path d="M0 72C0 58.7 10.7 48 24 48L69.3 48C96.4 48 119.6 67.4 124.4 94L124.8 96L537.5 96C557.5 96 572.6 114.2 568.9 133.9L537.8 299.8C532.1 330.1 505.7 352 474.9 352L171.3 352L176.4 380.3C178.5 391.7 188.4 400 200 400L456 400C469.3 400 480 410.7 480 424C480 437.3 469.3 448 456 448L200.1 448C165.3 448 135.5 423.1 129.3 388.9L77.2 102.6C76.5 98.8 73.2 96 69.3 96L24 96C10.7 96 0 85.3 0 72zM160 528C160 501.5 181.5 480 208 480C234.5 480 256 501.5 256 528C256 554.5 234.5 576 208 576C181.5 576 160 554.5 160 528zM384 528C384 501.5 405.5 480 432 480C458.5 480 480 501.5 480 528C480 554.5 458.5 576 432 576C405.5 576 384 554.5 384 528zM336 142.4C322.7 142.4 312 153.1 312 166.4L312 200L278.4 200C265.1 200 254.4 210.7 254.4 224C254.4 237.3 265.1 248 278.4 248L312 248L312 281.6C312 294.9 322.7 305.6 336 305.6C349.3 305.6 360 294.9 360 281.6L360 248L393.6 248C406.9 248 417.6 237.3 417.6 224C417.6 210.7 406.9 200 393.6 200L360 200L360 166.4C360 153.1 349.3 142.4 336 142.4z"/></svg>';
+
+	echo apply_filters( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		'woocommerce_loop_add_to_cart_link',
+		sprintf(
+			'<a href="%s" data-quantity="%s" class="%s" %s>%s<span class="apex-shop-product-add-tooltip" role="tooltip">%s</span></a>',
+			esc_url( $product->add_to_cart_url() ),
+			esc_attr( $args['quantity'] ),
+			esc_attr( $args['class'] ),
+			wc_implode_html_attributes( $args['attributes'] ),
+			$icon,
+			esc_html__( 'Add to cart', 'elite-shipping' )
+		),
+		$product,
+		$args
+	);
+}
+
+/**
+ * Enqueue WooCommerce AJAX add-to-cart for shop cards.
+ */
+function elite_shipping_enqueue_shop_card_add_to_cart() {
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return;
+	}
+
+	if ( ! is_shop() && ! is_product_taxonomy() && ! is_product() ) {
+		return;
+	}
+
+	wp_enqueue_script( 'wc-cart-fragments' );
+
+	$ajax_url = class_exists( 'WC_AJAX' )
+		? WC_AJAX::get_endpoint( 'add_to_cart' )
+		: home_url( '/?wc-ajax=add_to_cart' );
+
+	wp_localize_script(
+		'elite-shipping-main',
+		'eliteShippingAddToCart',
+		array(
+			'ajaxUrl' => $ajax_url,
+		)
+	);
+}
+add_action( 'wp_enqueue_scripts', 'elite_shipping_enqueue_shop_card_add_to_cart', 25 );
 
 /**
  * Render a single shop-style product card.
@@ -354,12 +448,15 @@ function elite_render_shop_product_card( $product ) {
 	);
 	?>
 	<article <?php wc_product_class( 'apex-shop-product-card', $product ); ?>>
-		<a class="apex-shop-product-media" href="<?php echo esc_url( $url ); ?>">
-			<?php if ( $is_on_sale ) : ?>
-				<span class="apex-shop-product-badge apex-shop-product-badge--sale"><?php esc_html_e( 'Sale', 'elite-shipping' ); ?></span>
-			<?php endif; ?>
-			<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-		</a>
+		<div class="apex-shop-product-media">
+			<a class="apex-shop-product-media-link" href="<?php echo esc_url( $url ); ?>">
+				<?php if ( $is_on_sale ) : ?>
+					<span class="apex-shop-product-badge apex-shop-product-badge--sale"><?php esc_html_e( 'Sale', 'elite-shipping' ); ?></span>
+				<?php endif; ?>
+				<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</a>
+			<?php elite_render_shop_product_add_button( $product ); ?>
+		</div>
 		<div class="apex-shop-product-body">
 			<p class="apex-shop-product-cat"><?php echo esc_html( $category_label ); ?></p>
 			<h3 class="apex-shop-product-title"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title ); ?></a></h3>

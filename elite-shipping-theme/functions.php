@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.74' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.118' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -53,9 +53,25 @@ $elite_container_checkout = ELITE_SHIPPING_DIR . '/inc/container-checkout.php';
 if ( file_exists( $elite_container_checkout ) ) {
 	require_once $elite_container_checkout;
 }
+$elite_live_search = ELITE_SHIPPING_DIR . '/inc/live-search.php';
+if ( file_exists( $elite_live_search ) ) {
+	require_once $elite_live_search;
+}
+$elite_quote_drawer = ELITE_SHIPPING_DIR . '/inc/quote-drawer.php';
+if ( file_exists( $elite_quote_drawer ) ) {
+	require_once $elite_quote_drawer;
+}
+$elite_cart_drawer = ELITE_SHIPPING_DIR . '/inc/cart-drawer.php';
+if ( file_exists( $elite_cart_drawer ) ) {
+	require_once $elite_cart_drawer;
+}
 $elite_policy_pages = ELITE_SHIPPING_DIR . '/inc/policy-pages.php';
 if ( file_exists( $elite_policy_pages ) ) {
 	require_once $elite_policy_pages;
+}
+$elite_faq_page = ELITE_SHIPPING_DIR . '/inc/faq-page.php';
+if ( file_exists( $elite_faq_page ) ) {
+	require_once $elite_faq_page;
 }
 $elite_live_chat = ELITE_SHIPPING_DIR . '/inc/live-chat.php';
 if ( file_exists( $elite_live_chat ) ) {
@@ -146,6 +162,17 @@ function elite_shipping_enqueue_assets() {
 		array(),
 		$js_ver,
 		true
+	);
+
+	wp_localize_script(
+		'elite-shipping-main',
+		'eliteShippingLiveSearch',
+		array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'elite_live_search' ),
+			'action'  => 'elite_live_product_search',
+			'minChars' => 2,
+		)
 	);
 }
 
@@ -545,6 +572,7 @@ function elite_shipping_get_urls() {
 		'about'   => elite_shipping_get_page_url( 'about-us', '/about-us/' ),
 		'contact' => elite_shipping_get_page_url( 'contact-us', '/contact-us/' ),
 		'blog'    => elite_shipping_get_page_url( 'our-blog', '/our-blog/' ),
+		'faq'     => elite_shipping_get_page_url( 'faq', '/faq/' ),
 		'account' => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ),
 		'policies' => function_exists( 'elite_shipping_get_policy_urls' ) ? elite_shipping_get_policy_urls() : array(),
 	);
@@ -561,6 +589,7 @@ function elite_shipping_get_core_pages_config() {
 		'contact-us'  => __( 'Contact Us', 'elite-shipping' ),
 		'our-blog'    => __( 'Our Blog', 'elite-shipping' ),
 		'get-a-quote' => __( 'Get a Quote', 'elite-shipping' ),
+		'faq'         => __( 'FAQ', 'elite-shipping' ),
 	);
 }
 
@@ -1004,6 +1033,7 @@ function elite_shipping_get_default_blog_posts() {
 	foreach ( $posts as $post ) {
 		$image_file = isset( $image_map[ $post['slug'] ] ) ? $image_map[ $post['slug'] ] : $post['image'];
 		$prepared[] = array(
+			'slug'     => $post['slug'],
 			'title'    => $post['title'],
 			'url'      => home_url( '/' . $post['slug'] . '/' ),
 			'image'    => elite_shipping_get_blog_image_url( $image_file ),
@@ -1558,15 +1588,19 @@ function elite_shipping_render_contact_form() {
 add_action( 'admin_post_elite_contact_form', 'elite_shipping_handle_contact_form' );
 add_action( 'admin_post_nopriv_elite_contact_form', 'elite_shipping_handle_contact_form' );
 function elite_shipping_handle_contact_form() {
-	$redirect = elite_shipping_get_page_url( 'contact-us', '/contact-us/' );
+	$from_drawer = isset( $_POST['elite_contact_source'] ) && 'drawer' === sanitize_key( wp_unslash( $_POST['elite_contact_source'] ) );
+	$referer     = wp_get_referer();
+	$redirect    = ( $from_drawer && $referer ) ? remove_query_arg( array( 'quote', 'contact', 'contact_data' ), $referer ) : elite_shipping_get_page_url( 'contact-us', '/contact-us/' );
+	$error_key   = $from_drawer ? 'quote' : 'contact';
+	$success_key = $from_drawer ? 'quote' : 'contact';
 
 	if ( ! isset( $_POST['elite_contact_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['elite_contact_nonce'] ) ), 'elite_contact_form' ) ) {
-		wp_safe_redirect( add_query_arg( 'contact', 'error', $redirect ) );
+		wp_safe_redirect( add_query_arg( $error_key, 'error', $redirect ) );
 		exit;
 	}
 
 	if ( ! empty( $_POST['elite_contact_company'] ) ) {
-		wp_safe_redirect( add_query_arg( 'contact', 'sent', $redirect ) );
+		wp_safe_redirect( add_query_arg( $success_key, 'sent', $redirect ) );
 		exit;
 	}
 
@@ -1601,7 +1635,7 @@ function elite_shipping_handle_contact_form() {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'contact'      => 'error',
+					$error_key     => 'error',
 					'contact_data' => $key,
 				),
 				$redirect
@@ -1638,7 +1672,7 @@ function elite_shipping_handle_contact_form() {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'contact'      => 'error',
+					$error_key     => 'error',
 					'contact_data' => $key,
 				),
 				$redirect
@@ -1647,7 +1681,7 @@ function elite_shipping_handle_contact_form() {
 		exit;
 	}
 
-	wp_safe_redirect( add_query_arg( 'contact', 'sent', $redirect ) );
+	wp_safe_redirect( add_query_arg( $success_key, 'sent', $redirect ) );
 	exit;
 }
 
@@ -1676,7 +1710,7 @@ function elite_shipping_get_about_testimonials() {
 		array(
 			'service' => 'Flat Pack Units',
 			'name'    => 'David T.',
-			'quote'   => 'We assembled the flat pack unit within hours. It was simple, strong, and stylish — thank you Elite Shipping Containers!',
+			'quote'   => 'We assembled the flat pack unit within hours. It was simple, strong, and stylish, thank you Elite Shipping Containers!',
 		),
 		array(
 			'service' => 'Cabins for Sale',

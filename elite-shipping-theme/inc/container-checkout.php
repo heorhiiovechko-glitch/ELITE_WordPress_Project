@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'ELITE_CONTAINER_VAT_PERCENT', 20 );
 define( 'ELITE_CONTAINER_FLAT_SHIPPING_COST', 237 );
+define( 'ELITE_ACCESSORY_FLAT_SHIPPING_COST', 25 );
 
 /**
  * Display label for container flat delivery.
@@ -19,6 +20,15 @@ define( 'ELITE_CONTAINER_FLAT_SHIPPING_COST', 237 );
  */
 function elite_shipping_container_delivery_fee_label() {
 	return __( 'Container Delivery Fee', 'elite-shipping' );
+}
+
+/**
+ * Display label for accessory flat delivery.
+ *
+ * @return string
+ */
+function elite_shipping_accessory_delivery_fee_label() {
+	return __( 'Accessory Delivery', 'elite-shipping' );
 }
 
 /**
@@ -124,6 +134,30 @@ function elite_shipping_cart_has_containers() {
 	foreach ( WC()->cart->get_cart() as $cart_item ) {
 		$product = $cart_item['data'] ?? null;
 		if ( $product instanceof WC_Product && elite_shipping_is_container_product( $product ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Whether the cart contains at least one accessory (non-container) product.
+ *
+ * @return bool
+ */
+function elite_shipping_cart_has_accessories() {
+	if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+		return false;
+	}
+
+	foreach ( WC()->cart->get_cart() as $cart_item ) {
+		$product = $cart_item['data'] ?? null;
+		if ( ! $product instanceof WC_Product || ! $product->needs_shipping() || $product->is_downloadable() ) {
+			continue;
+		}
+
+		if ( ! elite_shipping_is_container_product( $product ) ) {
 			return true;
 		}
 	}
@@ -293,6 +327,40 @@ function elite_shipping_apply_container_flat_shipping( $rates, $package ) {
 add_filter( 'woocommerce_package_rates', 'elite_shipping_apply_container_flat_shipping', 100, 2 );
 
 /**
+ * Apply flat accessory delivery when the cart includes accessories only.
+ *
+ * @param array<string, WC_Shipping_Rate> $rates   Package rates.
+ * @param array<string, mixed>            $package Shipping package.
+ * @return array<string, WC_Shipping_Rate>
+ */
+function elite_shipping_apply_accessory_flat_shipping( $rates, $package ) {
+	unset( $package );
+
+	if ( elite_shipping_cart_has_containers() || ! elite_shipping_cart_has_accessories() || ! class_exists( 'WC_Shipping_Rate' ) ) {
+		return $rates;
+	}
+
+	$cost  = (float) apply_filters( 'elite_shipping_accessory_flat_shipping_cost', ELITE_ACCESSORY_FLAT_SHIPPING_COST );
+	$label = (string) apply_filters(
+		'elite_shipping_accessory_flat_shipping_label',
+		elite_shipping_accessory_delivery_fee_label()
+	);
+
+	$rate = new WC_Shipping_Rate(
+		'elite_accessory_delivery',
+		$label,
+		$cost,
+		array(),
+		'elite_accessory_delivery'
+	);
+
+	return array(
+		'elite_accessory_delivery' => $rate,
+	);
+}
+add_filter( 'woocommerce_package_rates', 'elite_shipping_apply_accessory_flat_shipping', 99, 2 );
+
+/**
  * Shipping totals row heading for container carts.
  *
  * @param string               $name           Default package name.
@@ -307,6 +375,10 @@ function elite_shipping_container_shipping_package_name( $name, $package_index, 
 		return elite_shipping_container_delivery_fee_label();
 	}
 
+	if ( elite_shipping_cart_has_accessories() ) {
+		return elite_shipping_accessory_delivery_fee_label();
+	}
+
 	return $name;
 }
 add_filter( 'woocommerce_shipping_package_name', 'elite_shipping_container_shipping_package_name', 20, 3 );
@@ -319,14 +391,21 @@ add_filter( 'woocommerce_shipping_package_name', 'elite_shipping_container_shipp
  * @return string
  */
 function elite_shipping_container_shipping_method_full_label( $label, $method ) {
-	if ( ! elite_shipping_cart_has_containers() || ! is_object( $method ) ) {
+	if ( ! is_object( $method ) ) {
 		return $label;
 	}
 
 	$method_id = method_exists( $method, 'get_method_id' ) ? (string) $method->get_method_id() : '';
 	$rate_id   = isset( $method->id ) ? (string) $method->id : '';
 
-	if ( 'elite_container_delivery' !== $method_id && 'elite_container_delivery' !== $rate_id && false === strpos( $rate_id, 'elite_container_delivery' ) ) {
+	$is_container_rate = elite_shipping_cart_has_containers()
+		&& ( 'elite_container_delivery' === $method_id || 'elite_container_delivery' === $rate_id || false !== strpos( $rate_id, 'elite_container_delivery' ) );
+
+	$is_accessory_rate = elite_shipping_cart_has_accessories()
+		&& ! elite_shipping_cart_has_containers()
+		&& ( 'elite_accessory_delivery' === $method_id || 'elite_accessory_delivery' === $rate_id || false !== strpos( $rate_id, 'elite_accessory_delivery' ) );
+
+	if ( ! $is_container_rate && ! $is_accessory_rate ) {
 		return $label;
 	}
 
@@ -395,6 +474,27 @@ function elite_shipping_container_rate_label( $label, $key ) {
 	return $label;
 }
 add_filter( 'woocommerce_rate_label', 'elite_shipping_container_rate_label', 20, 2 );
+
+/**
+ * Remove "via" from shipping total on order details / thank-you pages.
+ *
+ * @param array<string, array{label:string,value:string}> $total_rows Order total rows.
+ * @param WC_Order                                        $order      Order.
+ * @param string                                          $tax_display Tax display mode.
+ * @return array<string, array{label:string,value:string}>
+ */
+function elite_shipping_order_item_totals_remove_shipping_via( $total_rows, $order, $tax_display ) {
+	unset( $order, $tax_display );
+
+	if ( empty( $total_rows['shipping']['value'] ) ) {
+		return $total_rows;
+	}
+
+	$total_rows['shipping']['value'] = preg_replace( '/\s+via\s+/i', ' ', (string) $total_rows['shipping']['value'] );
+
+	return $total_rows;
+}
+add_filter( 'woocommerce_get_order_item_totals', 'elite_shipping_order_item_totals_remove_shipping_via', 20, 3 );
 
 /**
  * Default new customers to UK for tax and shipping calculation.

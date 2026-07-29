@@ -25,13 +25,53 @@
     );
   }
 
+  function sortedChoiceEntries(choices) {
+    return Object.keys(choices || {})
+      .map(function (key) {
+        return {
+          id: parseInt(key, 10) || 0,
+          label: choices[key]
+        };
+      })
+      .filter(function (item) {
+        return item.id > 0;
+      })
+      .sort(function (a, b) {
+        return a.label.localeCompare(b.label, undefined, { sensitivity: 'base', numeric: true });
+      });
+  }
+
+  function buildSelectOptions(categoryId, choices) {
+    var options = '<option value="0">— Select category —</option>';
+
+    sortedChoiceEntries(choices).forEach(function (item) {
+      var selected = item.id === categoryId ? ' selected' : '';
+      options +=
+        '<option value="' +
+        item.id +
+        '"' +
+        selected +
+        '>' +
+        $('<div>').text(item.label).html() +
+        '</option>';
+    });
+
+    return options;
+  }
+
   function readRows($wrap) {
     var items = [];
 
     $wrap.find('.elite-mods-list-item').each(function () {
+      var $row = $(this);
+      var $select = $row.find('.elite-mods-list-item__select');
+      var categoryId = parseInt($select.val(), 10) || 0;
+      var title = categoryId > 0 ? $.trim($select.find('option:selected').text() || '') : '';
+
       items.push({
-        title: $.trim($(this).find('.elite-mods-list-item__title').val() || ''),
-        image: parseInt($(this).find('.elite-mods-list-item__image-id').val(), 10) || 0
+        category_id: categoryId,
+        title: title,
+        image: parseInt($row.find('.elite-mods-list-item__image-id').val(), 10) || 0
       });
     });
 
@@ -71,24 +111,6 @@
     }
   }
 
-  function buildRowHtml(index) {
-    return (
-      '<li class="elite-mods-list-item" data-index="' +
-      index +
-      '">' +
-      '<span class="elite-mods-list-item__num">' +
-      (index + 1) +
-      '.</span>' +
-      '<input type="text" class="elite-mods-list-item__title" value="" placeholder="Card title" aria-label="Card title">' +
-      '<input type="hidden" class="elite-mods-list-item__image-id" value="0">' +
-      '<div class="elite-mods-list-item__actions">' +
-      iconButton('elite-mods-select-image', 'format-image', 'Select image') +
-      iconButton('elite-mods-remove', 'trash', 'Remove', 'elite-mods-icon-btn--remove') +
-      '</div>' +
-      '</li>'
-    );
-  }
-
   function setImageButtonState($button, imageUrl) {
     if (imageUrl) {
       $button
@@ -101,6 +123,50 @@
         .css('background-image', '')
         .attr('aria-label', 'Select image');
     }
+  }
+
+  function applyCategoryImage($row, categoryId, categoryImages) {
+    var imageId = categoryId > 0 ? parseInt(categoryImages[categoryId], 10) || 0 : 0;
+    var $button = $row.find('.elite-mods-select-image');
+
+    $row.find('.elite-mods-list-item__image-id').val(String(imageId));
+    $row.find('.elite-mods-list-item__category-id').val(String(categoryId));
+
+    if (imageId > 0 && wp.media && wp.media.attachment) {
+      var attachment = wp.media.attachment(imageId);
+      attachment.fetch().then(function () {
+        setImageButtonState($button, attachment.get('url') || '');
+      }).catch(function () {
+        setImageButtonState($button, '');
+      });
+      return;
+    }
+
+    setImageButtonState($button, '');
+  }
+
+  function buildRowHtml(index, categoryId, choices) {
+    return (
+      '<li class="elite-mods-list-item" data-index="' +
+      index +
+      '">' +
+      '<span class="elite-mods-list-item__num">' +
+      (index + 1) +
+      '.</span>' +
+      '<select class="elite-mods-list-item__select" aria-label="Category">' +
+      buildSelectOptions(categoryId, choices) +
+      '</select>' +
+      '<input type="hidden" class="elite-mods-list-item__title" value="">' +
+      '<input type="hidden" class="elite-mods-list-item__category-id" value="' +
+      categoryId +
+      '">' +
+      '<input type="hidden" class="elite-mods-list-item__image-id" value="0">' +
+      '<div class="elite-mods-list-item__actions">' +
+      iconButton('elite-mods-select-image', 'format-image', 'Select image') +
+      iconButton('elite-mods-remove', 'trash', 'Remove', 'elite-mods-icon-btn--remove') +
+      '</div>' +
+      '</li>'
+    );
   }
 
   function openMediaPicker($row, $wrap) {
@@ -124,7 +190,7 @@
     frame.open();
   }
 
-  function bindControl($wrap) {
+  function bindControl($wrap, choices, categoryImages) {
     if (!$wrap.length || $wrap.data('eliteModsBound')) {
       return;
     }
@@ -137,7 +203,7 @@
       var $list = $wrap.find('.elite-mods-list-items');
       var index = $list.find('.elite-mods-list-item').length;
 
-      $list.append(buildRowHtml(index));
+      $list.append(buildRowHtml(index, 0, choices));
       toggleEmptyState($wrap);
       syncSetting($wrap);
     });
@@ -151,7 +217,13 @@
       syncSetting($wrap);
     });
 
-    $wrap.on('input change', '.elite-mods-list-item__title', function () {
+    $wrap.on('change', '.elite-mods-list-item__select', function () {
+      var $row = $(this).closest('.elite-mods-list-item');
+      var categoryId = parseInt($(this).val(), 10) || 0;
+      var title = categoryId > 0 ? $.trim($(this).find('option:selected').text() || '') : '';
+
+      $row.find('.elite-mods-list-item__title').val(title);
+      applyCategoryImage($row, categoryId, categoryImages);
       syncSetting($wrap);
     });
 
@@ -161,10 +233,17 @@
     });
   }
 
+  function initControl(control) {
+    var $wrap = control.container.find('.elite-mods-list-control');
+    var choices = control.params.choices || {};
+    var categoryImages = control.params.categoryImages || {};
+
+    bindControl($wrap, choices, categoryImages);
+  }
+
   wp.customize.bind('ready', function () {
     wp.customize.control(SETTING_ID, function (control) {
-      var $wrap = control.container.find('.elite-mods-list-control');
-      bindControl($wrap);
+      initControl(control);
     });
   });
 })(jQuery);

@@ -43,7 +43,7 @@ $search_url              = home_url( '/' );
 					<svg class="elite-topbar-ico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.2 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1l-2.2 2.2z"/></svg>
 					<?php echo esc_html( $contact['phone'] ); ?>
 				</a>
-				<a class="elite-topbar-quote" href="<?php echo esc_url( $urls['quote'] ); ?>">
+				<a class="elite-topbar-quote js-elite-quote-drawer-open" href="<?php echo esc_url( $urls['quote'] ); ?>">
 					Get a Quote
 				</a>
 			</div>
@@ -78,7 +78,7 @@ $search_url              = home_url( '/' );
 						<?php if ( ! empty( $modification_menu_items ) ) : ?>
 							<span class="elite-nav-dropdown-divider" role="separator" aria-hidden="true"></span>
 						<?php endif; ?>
-						<a role="menuitem" class="elite-nav-dropdown-cta" href="<?php echo esc_url( $urls['quote'] ); ?>"><?php esc_html_e( 'Get a Quote', 'elite-shipping' ); ?></a>
+						<a role="menuitem" class="elite-nav-dropdown-cta js-elite-quote-drawer-open" href="<?php echo esc_url( $urls['quote'] ); ?>"><?php esc_html_e( 'Get a Quote', 'elite-shipping' ); ?></a>
 						<a role="menuitem" href="<?php echo esc_url( $urls['contact'] ); ?>"><?php esc_html_e( 'Contact Us', 'elite-shipping' ); ?></a>
 					</div>
 				</div>
@@ -88,10 +88,43 @@ $search_url              = home_url( '/' );
 				<a class="<?php echo esc_attr( elite_shipping_nav_class( 'contact' ) ); ?>" href="<?php echo esc_url( $urls['contact'] ); ?>">CONTACT</a>
 			</nav>
 			<div class="elite-header-actions">
-				<button type="button" class="elite-search-btn" aria-label="Search">
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
-				</button>
-				<a class="elite-btn elite-btn-primary elite-header-quote" href="<?php echo esc_url( $urls['quote'] ); ?>">GET A QUOTE</a>
+				<div class="elite-header-search" id="elite-header-search">
+					<form class="elite-header-search-form" action="<?php echo esc_url( $search_url ); ?>" method="get" role="search">
+						<div class="elite-header-search-shell">
+							<div class="elite-header-search-panel">
+								<input
+									class="elite-header-search-input elite-live-search-input"
+									type="text"
+									name="s"
+									placeholder="<?php esc_attr_e( 'Search products…', 'elite-shipping' ); ?>"
+									autocomplete="off"
+									inputmode="search"
+									enterkeyhint="search"
+									aria-label="<?php esc_attr_e( 'Search for products', 'elite-shipping' ); ?>"
+									aria-controls="elite-header-live-search"
+									aria-expanded="false"
+									aria-autocomplete="list"
+								>
+								<?php if ( class_exists( 'WooCommerce' ) ) : ?>
+									<input type="hidden" name="post_type" value="product">
+								<?php endif; ?>
+								<button type="button" class="elite-live-search-clear elite-header-search-clear" hidden aria-label="<?php esc_attr_e( 'Clear search', 'elite-shipping' ); ?>">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+								</button>
+							</div>
+							<button type="button" class="elite-header-search-trigger" aria-label="<?php esc_attr_e( 'Search products', 'elite-shipping' ); ?>" aria-expanded="false" aria-controls="elite-header-live-search">
+								<svg class="elite-header-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+									<circle cx="11" cy="11" r="6.75" stroke="currentColor" stroke-width="2"/>
+									<path d="M16.75 16.75L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+							</button>
+						</div>
+					</form>
+					<div class="elite-live-search-results elite-header-live-search" id="elite-header-live-search" hidden>
+						<ul class="elite-live-search-list" role="listbox" aria-label="<?php esc_attr_e( 'Product search results', 'elite-shipping' ); ?>"></ul>
+					</div>
+				</div>
+				<button type="button" class="elite-btn elite-btn-primary elite-header-quote js-elite-quote-drawer-open"><?php esc_html_e( 'GET A QUOTE', 'elite-shipping' ); ?></button>
 				<button type="button" class="elite-menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="elite-mobile-nav">
 					<span class="elite-menu-toggle-bar" aria-hidden="true"></span>
 					<span class="elite-menu-toggle-bar" aria-hidden="true"></span>
@@ -107,16 +140,24 @@ $search_url              = home_url( '/' );
 		<div class="elite-mobile-nav-search">
 			<form class="elite-mobile-nav-search-form" action="<?php echo esc_url( $search_url ); ?>" method="get" role="search">
 				<input
-					class="elite-mobile-nav-search-input"
-					type="search"
+					class="elite-mobile-nav-search-input elite-live-search-input"
+					type="text"
 					name="s"
 					placeholder="Search for products"
 					autocomplete="off"
+					inputmode="search"
+					enterkeyhint="search"
 					aria-label="Search for products"
+					aria-controls="elite-mobile-nav-live-search"
+					aria-expanded="false"
+					aria-autocomplete="list"
 				>
 				<?php if ( class_exists( 'WooCommerce' ) ) : ?>
 					<input type="hidden" name="post_type" value="product">
 				<?php endif; ?>
+				<button type="button" class="elite-live-search-clear elite-mobile-nav-search-clear" hidden aria-label="<?php esc_attr_e( 'Clear search', 'elite-shipping' ); ?>">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+				</button>
 				<button type="submit" class="elite-mobile-nav-search-submit" aria-label="Search">
 					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3-3"/></svg>
 				</button>
@@ -126,12 +167,18 @@ $search_url              = home_url( '/' );
 			</button>
 		</div>
 
-		<div class="elite-mobile-nav-tabs" role="tablist" aria-label="Mobile menu sections">
-			<button type="button" class="elite-mobile-nav-tab is-active" role="tab" aria-selected="true" aria-controls="elite-mobile-nav-menu" data-tab="menu">MENU</button>
-			<button type="button" class="elite-mobile-nav-tab" role="tab" aria-selected="false" aria-controls="elite-mobile-nav-categories" data-tab="categories">CATEGORIES</button>
+		<div class="elite-mobile-nav-live-search elite-live-search-results" id="elite-mobile-nav-live-search" hidden>
+			<p class="elite-mobile-nav-live-search-status screen-reader-text" aria-live="polite"></p>
+			<ul class="elite-live-search-list elite-mobile-nav-live-search-list" role="listbox" aria-label="<?php esc_attr_e( 'Product search results', 'elite-shipping' ); ?>"></ul>
 		</div>
 
-		<div class="elite-mobile-nav-panels">
+		<div class="elite-mobile-nav-body">
+			<div class="elite-mobile-nav-tabs" role="tablist" aria-label="Mobile menu sections">
+				<button type="button" class="elite-mobile-nav-tab is-active" role="tab" aria-selected="true" aria-controls="elite-mobile-nav-menu" data-tab="menu">MENU</button>
+				<button type="button" class="elite-mobile-nav-tab" role="tab" aria-selected="false" aria-controls="elite-mobile-nav-categories" data-tab="categories">CATEGORIES</button>
+			</div>
+
+			<div class="elite-mobile-nav-panels">
 			<nav class="elite-mobile-nav-panel is-active" id="elite-mobile-nav-menu" role="tabpanel" data-panel="menu" aria-label="Menu links">
 				<a class="<?php echo esc_attr( elite_shipping_nav_class( 'home' ) ); ?>" href="<?php echo esc_url( home_url( '/' ) ); ?>">HOME</a>
 				<div class="elite-mobile-nav-group">
@@ -154,7 +201,7 @@ $search_url              = home_url( '/' );
 						<?php foreach ( $modification_menu_items as $item ) : ?>
 							<a href="<?php echo esc_url( $item['url'] ); ?>"><?php echo esc_html( $item['name'] ); ?></a>
 						<?php endforeach; ?>
-						<a class="elite-mobile-nav-submenu-cta" href="<?php echo esc_url( $urls['quote'] ); ?>"><?php esc_html_e( 'Get a Quote', 'elite-shipping' ); ?></a>
+						<a class="elite-mobile-nav-submenu-cta js-elite-quote-drawer-open" href="<?php echo esc_url( $urls['quote'] ); ?>"><?php esc_html_e( 'Get a Quote', 'elite-shipping' ); ?></a>
 						<a href="<?php echo esc_url( $urls['contact'] ); ?>"><?php esc_html_e( 'Contact Us', 'elite-shipping' ); ?></a>
 					</div>
 				</div>
@@ -180,5 +227,6 @@ $search_url              = home_url( '/' );
 					<a href="<?php echo esc_url( $category['url'] ); ?>"><?php echo esc_html( $category_name ); ?></a>
 				<?php endforeach; ?>
 			</nav>
+			</div>
 		</div>
 	</aside>

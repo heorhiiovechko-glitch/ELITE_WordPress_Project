@@ -154,7 +154,7 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 			'label'    => __( 'Description', 'elite-shipping' ),
 			'section'  => 'elite_about_mission',
 			'type'     => 'textarea',
-			'default'  => 'Our mission is simple yet powerful: to offer a wide selection of shipping containers, unmatched service, and competitive prices. We strive to make every customer interaction stress-free, ensuring you get exactly what you need, when you need it — with complete peace of mind.',
+			'default'  => 'Our mission is simple yet powerful: to offer a wide selection of shipping containers, unmatched service, and competitive prices. We strive to make every customer interaction stress-free, ensuring you get exactly what you need, when you need it, with complete peace of mind.',
 			'sanitize' => 'wp_kses_post',
 		)
 	);
@@ -296,11 +296,11 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 	$feature_defaults = array(
 		1 => array( 'Quality Assurance', 'Every container is rigorously inspected for long-lasting durability.' ),
 		2 => array( 'Vast Selection', 'From brand-new units to affordable used containers, we have options for every need.' ),
-		3 => array( 'Customer-Centric Service', 'Our expert team is with you at every step — from quote to delivery.' ),
-		4 => array( 'Transparent Pricing', 'No hidden fees — just honest, upfront costs every time.' ),
+		3 => array( 'Customer-Centric Service', 'Our expert team is with you at every step, from quote to delivery.' ),
+		4 => array( 'Transparent Pricing', 'No hidden fees, just honest, upfront costs every time.' ),
 		5 => array( 'Easy Online Experience', 'Shop confidently with a fast, secure, and intuitive digital process.' ),
 		6 => array( 'Secure Payments', 'Enjoy safe and seamless transactions through our trusted payment gateway.' ),
-		7 => array( 'UK Nationwide Delivery', 'We deliver across the United Kingdom — reliably and quickly.' ),
+		7 => array( 'UK Nationwide Delivery', 'We deliver across the United Kingdom, reliably and quickly.' ),
 		8 => array( '24/7 Support', 'Our friendly support team is ready around the clock to help you anytime.' ),
 	);
 	foreach ( $feature_defaults as $i => $defaults ) {
@@ -722,7 +722,7 @@ function elite_shipping_customize_register_pages( $wp_customize ) {
 		'elite_blog_cards',
 		array(
 			'title'       => __( 'Post cards', 'elite-shipping' ),
-			'description' => __( 'Build unlimited blog cards. Add a card, then set title, date, image, introduction, and details.', 'elite-shipping' ),
+			'description' => __( 'Manage the blogs shown on the Blog page. Each card is prefilled from the current posts — edit title, date, image, introduction, and details, or click + to add more.', 'elite-shipping' ),
 			'panel'       => 'elite_blog',
 			'priority'    => 20,
 		)

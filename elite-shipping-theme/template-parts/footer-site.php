@@ -71,7 +71,7 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 			<div class="apex-footer-col">
 				<h4>SUPPORT</h4>
 				<ul>
-					<li><a href="<?php echo esc_url( $urls['account'] ); ?>">Track Order</a></li>
+					<li><a href="<?php echo esc_url( $urls['faq'] ); ?>"><?php esc_html_e( 'FAQ', 'elite-shipping' ); ?></a></li>
 					<?php if ( function_exists( 'elite_shipping_get_policy_footer_links' ) ) : ?>
 						<?php foreach ( elite_shipping_get_policy_footer_links() as $policy_link ) : ?>
 							<li><a href="<?php echo esc_url( $policy_link['url'] ); ?>"><?php echo esc_html( $policy_link['label'] ); ?></a></li>

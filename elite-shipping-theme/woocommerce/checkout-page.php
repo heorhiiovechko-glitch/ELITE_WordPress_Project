@@ -33,7 +33,7 @@ $hero_img    = ELITE_SHIPPING_URI . '/assets/images/image_c.jpg';
 			<p class="apex-page-hero-desc">
 				<?php
 				echo $is_thankyou
-					? esc_html__( 'Your order has been received. We will be in touch shortly with delivery details.', 'elite-shipping' )
+					? esc_html__( 'Your order has been received. Delivery details will follow after payment confirmation.', 'elite-shipping' )
 					: esc_html__( 'Enter your details below to secure your container. Fast UK delivery and trusted payment options.', 'elite-shipping' );
 				?>
 			</p>
