@@ -73,8 +73,9 @@ $feature_defaults = array(
 $features = array();
 foreach ( $feature_defaults as $i => $defaults ) {
 	$features[] = array(
-		get_theme_mod( 'elite_about_feature_' . $i . '_title', $defaults[0] ),
-		get_theme_mod( 'elite_about_feature_' . $i . '_text', $defaults[1] ),
+		'title' => get_theme_mod( 'elite_about_feature_' . $i . '_title', $defaults[0] ),
+		'text'  => get_theme_mod( 'elite_about_feature_' . $i . '_text', $defaults[1] ),
+		'icon'  => elite_shipping_get_about_feature_icon( $i ),
 	);
 }
 
@@ -163,17 +164,29 @@ $cta_secondary_url  = get_theme_mod( 'elite_about_cta_secondary_url', $urls['con
 
 	<section class="apex-about-features">
 		<div class="elite-container">
-			<div class="apex-about-features-panel">
-				<h2><?php echo esc_html( $features_title ); ?></h2>
-				<p class="apex-about-features-sub"><?php echo esc_html( $features_sub ); ?></p>
-				<div class="apex-about-features-grid">
-					<?php foreach ( $features as $feature ) : ?>
-						<div class="apex-about-feature">
-							<strong><?php echo esc_html( $feature[0] ); ?></strong>
-							<span><?php echo esc_html( $feature[1] ); ?></span>
-						</div>
-					<?php endforeach; ?>
+			<div class="apex-about-features-head">
+				<h2 class="apex-about-features-title"><?php echo esc_html( $features_title ); ?></h2>
+				<div class="apex-about-features-divider" aria-hidden="true">
+					<span class="apex-about-features-divider-line"></span>
+					<span class="apex-about-features-divider-star">
+						<?php echo function_exists( 'elite_shipping_get_star_icon_svg' ) ? elite_shipping_get_star_icon_svg( 18 ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</span>
+					<span class="apex-about-features-divider-line"></span>
 				</div>
+				<?php if ( $features_sub ) : ?>
+					<p class="apex-about-features-sub"><?php echo esc_html( $features_sub ); ?></p>
+				<?php endif; ?>
+			</div>
+			<div class="apex-about-features-grid">
+				<?php foreach ( $features as $feature ) : ?>
+					<article class="apex-about-feature-card">
+						<div class="apex-about-feature-icon" aria-hidden="true">
+							<?php echo $feature['icon']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG markup from theme helper. ?>
+						</div>
+						<h3 class="apex-about-feature-title"><?php echo esc_html( $feature['title'] ); ?></h3>
+						<p class="apex-about-feature-text"><?php echo esc_html( $feature['text'] ); ?></p>
+					</article>
+				<?php endforeach; ?>
 			</div>
 		</div>
 	</section>
@@ -206,18 +219,72 @@ $cta_secondary_url  = get_theme_mod( 'elite_about_cta_secondary_url', $urls['con
 
 	<section class="apex-about-testimonials">
 		<div class="elite-container">
-			<h2><?php echo esc_html( $testimonials_title ); ?></h2>
-			<div class="apex-about-testimonials-grid">
-				<?php foreach ( $testimonials as $item ) : ?>
-					<article class="apex-about-testimonial">
-						<span class="apex-about-testimonial-service"><?php echo esc_html( $item['service'] ); ?></span>
-						<h3><?php echo esc_html( $item['name'] ); ?> <span class="apex-about-verified">Verified</span></h3>
-						<div class="apex-about-stars" aria-hidden="true">★★★★★</div>
-						<p>&ldquo;<?php echo esc_html( $item['quote'] ); ?>&rdquo;</p>
-						<span class="apex-about-country">United Kingdom</span>
-					</article>
-				<?php endforeach; ?>
+			<div class="apex-about-testimonials-head">
+				<div class="apex-about-testimonials-kicker" aria-hidden="true">
+					<span class="apex-about-testimonials-kicker-line"></span>
+					<span class="apex-about-testimonials-kicker-text"><?php esc_html_e( 'TESTIMONIAL', 'elite-shipping' ); ?></span>
+					<span class="apex-about-testimonials-kicker-line"></span>
+				</div>
+				<h2 class="apex-about-testimonials-title"><?php echo esc_html( $testimonials_title ); ?></h2>
+				<div class="apex-about-testimonials-rating">
+					<span class="apex-about-testimonials-rating-score">4.9</span>
+					<span class="apex-about-testimonials-rating-stars" aria-hidden="true">
+						<?php
+						if ( function_exists( 'elite_shipping_get_star_icon_svg' ) ) {
+							echo str_repeat( elite_shipping_get_star_icon_svg( 15 ), 5 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						}
+						?>
+					</span>
+					<span class="apex-about-testimonials-rating-label"><?php esc_html_e( 'Trusted Rating', 'elite-shipping' ); ?></span>
+					<span class="apex-about-testimonials-rating-count"><?php esc_html_e( '200+ verified reviews', 'elite-shipping' ); ?></span>
+				</div>
 			</div>
+
+			<div class="apex-about-testimonials-slider" data-about-testimonials>
+				<div class="apex-about-testimonials-viewport" tabindex="0" aria-label="<?php esc_attr_e( 'Customer testimonials', 'elite-shipping' ); ?>">
+					<div class="apex-about-testimonials-track">
+						<?php foreach ( $testimonials as $index => $item ) : ?>
+							<div class="apex-about-testimonial-slide">
+								<article
+									class="apex-about-testimonial-card"
+									style="--avatar-color: <?php echo esc_attr( elite_shipping_get_testimonial_avatar_color( $index + 1 ) ); ?>"
+								>
+									<div class="apex-about-testimonial-top">
+										<div class="apex-about-testimonial-avatar" aria-hidden="true">
+											<?php echo esc_html( elite_shipping_get_testimonial_initial( $item['name'] ) ); ?>
+										</div>
+										<div class="apex-about-testimonial-meta">
+											<h3><?php echo esc_html( $item['name'] ); ?></h3>
+											<span class="apex-about-testimonial-via"><?php esc_html_e( 'Verified Customer', 'elite-shipping' ); ?></span>
+											<div class="apex-about-testimonial-stars" aria-hidden="true">
+												<?php
+												if ( function_exists( 'elite_shipping_get_star_icon_svg' ) ) {
+													echo str_repeat( elite_shipping_get_star_icon_svg( 13 ), 5 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+												}
+												?>
+											</div>
+										</div>
+									</div>
+									<span class="apex-about-testimonial-divider" aria-hidden="true"></span>
+									<p class="apex-about-testimonial-copy">&ldquo;<?php echo esc_html( $item['quote'] ); ?>&rdquo;</p>
+									<span class="apex-about-testimonial-foot"><?php echo esc_html( $item['service'] ); ?> · <?php esc_html_e( 'United Kingdom', 'elite-shipping' ); ?></span>
+								</article>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				</div>
+
+				<div class="apex-about-testimonials-controls">
+					<button type="button" class="apex-about-testimonials-arrow apex-about-testimonials-prev" aria-label="<?php esc_attr_e( 'Previous testimonials', 'elite-shipping' ); ?>">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+					</button>
+					<div class="apex-about-testimonials-dots" aria-hidden="true"></div>
+					<button type="button" class="apex-about-testimonials-arrow apex-about-testimonials-next" aria-label="<?php esc_attr_e( 'Next testimonials', 'elite-shipping' ); ?>">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+					</button>
+				</div>
+			</div>
+
 			<div class="apex-about-cta">
 				<a class="elite-btn elite-btn-primary elite-btn-lg" href="<?php echo esc_url( $cta_primary_url ); ?>"><?php echo esc_html( $cta_primary_text ); ?></a>
 				<a class="elite-btn elite-btn-outline-orange elite-btn-lg" href="<?php echo esc_url( $cta_secondary_url ); ?>"><?php echo esc_html( $cta_secondary_text ); ?></a>

@@ -677,7 +677,7 @@ function elite_shipping_customize_register( $wp_customize ) {
 		'elite_home_popular',
 		array(
 			'title'       => __( 'Paragraph 6', 'elite-shipping' ),
-			'description' => __( 'Choose up to 5 WooCommerce products. Leave on Automatic to show the 5 most recent products.', 'elite-shipping' ),
+			'description' => __( 'Choose up to 10 WooCommerce products. Leave on Automatic to show the 10 most recent products.', 'elite-shipping' ),
 			'panel'       => 'elite_home',
 			'priority'    => 50,
 		)
@@ -712,7 +712,7 @@ function elite_shipping_customize_register( $wp_customize ) {
 		)
 	);
 
-	for ( $slot = 1; $slot <= 5; $slot++ ) {
+	for ( $slot = 1; $slot <= 10; $slot++ ) {
 		$setting_id = 'elite_popular_product_' . $slot;
 		$wp_customize->add_setting(
 			$setting_id,

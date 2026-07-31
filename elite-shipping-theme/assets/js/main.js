@@ -754,6 +754,114 @@ document.addEventListener('DOMContentLoaded', function () {
 
   initQuoteDrawer();
 
+  function initAboutTestimonialsCarousel() {
+    var root = document.querySelector('[data-about-testimonials]');
+    if (!root) {
+      return;
+    }
+
+    var viewport = root.querySelector('.apex-about-testimonials-viewport');
+    var track = root.querySelector('.apex-about-testimonials-track');
+    var prev = root.querySelector('.apex-about-testimonials-prev');
+    var next = root.querySelector('.apex-about-testimonials-next');
+    var dotsWrap = root.querySelector('.apex-about-testimonials-dots');
+    if (!viewport || !track || !prev || !next || !dotsWrap) {
+      return;
+    }
+
+    var slides = Array.prototype.slice.call(track.querySelectorAll('.apex-about-testimonial-slide'));
+    var cards = Array.prototype.slice.call(track.querySelectorAll('.apex-about-testimonial-card'));
+    if (!slides.length || !cards.length) {
+      return;
+    }
+
+    function cardsPerView() {
+      if (window.innerWidth <= 640) {
+        return 1;
+      }
+      if (window.innerWidth <= 1024) {
+        return 2;
+      }
+      return 4;
+    }
+
+    function pageCount() {
+      return Math.max(1, Math.ceil(cards.length / cardsPerView()));
+    }
+
+    function scrollStep() {
+      var slide = slides[0];
+      if (!slide) {
+        return viewport.clientWidth;
+      }
+      var gap = parseFloat(getComputedStyle(track).gap) || 16;
+      return slide.getBoundingClientRect().width + gap;
+    }
+
+    function getCurrentPage() {
+      var step = scrollStep();
+      if (step <= 0) {
+        return 0;
+      }
+      return Math.round(viewport.scrollLeft / (step * cardsPerView()));
+    }
+
+    function renderDots() {
+      dotsWrap.innerHTML = '';
+      var total = pageCount();
+      var current = getCurrentPage();
+
+      for (var i = 0; i < total; i += 1) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'apex-about-testimonials-dot' + (i === current ? ' is-active' : '');
+        dot.setAttribute('aria-label', 'Go to testimonial page ' + (i + 1));
+        dot.addEventListener('click', function (pageIndex) {
+          return function () {
+            viewport.scrollTo({
+              left: pageIndex * scrollStep() * cardsPerView(),
+              behavior: 'smooth'
+            });
+          };
+        }(i));
+        dotsWrap.appendChild(dot);
+      }
+    }
+
+    function updateDots() {
+      var current = getCurrentPage();
+      dotsWrap.querySelectorAll('.apex-about-testimonials-dot').forEach(function (dot, index) {
+        dot.classList.toggle('is-active', index === current);
+      });
+    }
+
+    prev.addEventListener('click', function () {
+      viewport.scrollBy({
+        left: -scrollStep() * cardsPerView(),
+        behavior: 'smooth'
+      });
+    });
+
+    next.addEventListener('click', function () {
+      viewport.scrollBy({
+        left: scrollStep() * cardsPerView(),
+        behavior: 'smooth'
+      });
+    });
+
+    viewport.addEventListener('scroll', function () {
+      window.requestAnimationFrame(updateDots);
+    }, { passive: true });
+
+    window.addEventListener('resize', function () {
+      renderDots();
+    });
+
+    renderDots();
+  }
+
+  initAboutTestimonialsCarousel();
+
   function initCartDrawer() {
     var drawer = document.getElementById('elite-cart-drawer');
     var overlay = document.getElementById('elite-cart-drawer-overlay');
@@ -1666,35 +1774,44 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
-    var height = Math.round(width * 2 / 3);
-
-    gallery.dataset.slideWidth = String(width);
     gallery.classList.add('apex-gallery-ready');
 
     frame.style.width = width + 'px';
-    frame.style.height = height + 'px';
     frame.style.maxWidth = width + 'px';
     frame.style.overflowX = 'hidden';
     frame.style.overflowY = 'hidden';
+    frame.style.border = '0';
+    frame.style.boxShadow = 'none';
+
+    // Size slides to the content box so borders never clip the left/right edges.
+    var slideWidth = Math.max(1, Math.round(frame.clientWidth || width));
+    var slideHeight = Math.round(slideWidth * 2 / 3);
+    var verticalChrome = Math.max(0, frame.offsetHeight - frame.clientHeight);
+    frame.style.height = (slideHeight + verticalChrome) + 'px';
+    slideHeight = Math.max(1, Math.round(frame.clientHeight || slideHeight));
+    slideWidth = Math.max(1, Math.round(frame.clientWidth || slideWidth));
+
+    gallery.dataset.slideWidth = String(slideWidth);
 
     track.style.display = 'flex';
     track.style.flexDirection = 'row';
     track.style.flexWrap = 'nowrap';
     track.style.alignItems = 'stretch';
-    track.style.height = height + 'px';
-    track.style.width = (width * slides.length) + 'px';
+    track.style.height = slideHeight + 'px';
+    track.style.width = (slideWidth * slides.length) + 'px';
     track.style.marginLeft = '0';
     track.style.transform = 'none';
     track.style.transition = 'none';
 
     slides.forEach(function (slide) {
-      slide.style.flex = '0 0 ' + width + 'px';
-      slide.style.width = width + 'px';
-      slide.style.minWidth = width + 'px';
-      slide.style.maxWidth = width + 'px';
-      slide.style.height = height + 'px';
+      slide.style.flex = '0 0 ' + slideWidth + 'px';
+      slide.style.width = slideWidth + 'px';
+      slide.style.minWidth = slideWidth + 'px';
+      slide.style.maxWidth = slideWidth + 'px';
+      slide.style.height = slideHeight + 'px';
       slide.style.float = 'none';
-      slide.style.display = 'block';
+      slide.style.display = 'grid';
+      slide.style.placeItems = 'center';
       slide.style.visibility = 'visible';
       slide.style.opacity = '1';
       slide.style.position = 'relative';

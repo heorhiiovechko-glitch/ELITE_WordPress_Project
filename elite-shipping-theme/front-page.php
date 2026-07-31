@@ -21,6 +21,8 @@ $hero_desc        = get_theme_mod(
 );
 $hero_btn_primary_text = get_theme_mod( 'elite_hero_btn_primary_text', 'SHOP CONTAINERS' );
 $hero_btn_primary_url  = get_theme_mod( 'elite_hero_btn_primary_url', $urls['shop'] );
+$hero_btn_secondary_text = get_theme_mod( 'elite_hero_btn_secondary_text', 'EXPLORE SOLUTIONS' );
+$hero_btn_secondary_url  = get_theme_mod( 'elite_hero_btn_secondary_url', $urls['quote'] );
 
 $hero_stats = array(
 	array(
@@ -94,29 +96,26 @@ $hero_trust = array(
 			</h1>
 			<p class="apex-hero-desc"><?php echo wp_kses_post( $hero_desc ); ?></p>
 			<div class="apex-hero-btns">
-				<a class="elite-btn elite-btn-primary elite-btn-lg apex-hero-cta" href="<?php echo esc_url( $hero_btn_primary_url ); ?>">
-					<span><?php echo esc_html( $hero_btn_primary_text ); ?></span>
-					<svg class="apex-hero-cta-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-				</a>
+				<a class="elite-btn elite-btn-primary elite-btn-lg" href="<?php echo esc_url( $hero_btn_primary_url ); ?>"><?php echo esc_html( $hero_btn_primary_text ); ?></a>
 			</div>
 		</div>
 		<div class="apex-hero-stats">
 			<?php foreach ( $hero_stats as $stat ) : ?>
 				<div class="apex-stat">
 					<?php if ( 'shield' === $stat['icon'] ) : ?>
-						<svg class="apex-stat-ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+						<svg class="apex-stat-ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
 							<path d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z"/>
 							<path d="M8.5 12.5l2.5 2.5 5-5" stroke-linecap="round" stroke-linejoin="round"/>
 						</svg>
 					<?php elseif ( 'box' === $stat['icon'] ) : ?>
-						<svg class="apex-stat-ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+						<svg class="apex-stat-ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
 							<rect x="2" y="7" width="20" height="14" rx="1.5"/>
 							<path d="M2 12h20"/>
 							<path d="M7 7V5"/>
 							<path d="M17 7V5"/>
 						</svg>
 					<?php else : ?>
-						<svg class="apex-stat-ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+						<svg class="apex-stat-ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
 							<circle cx="12" cy="8" r="3.5"/>
 							<path d="M5.5 20v-1a6.5 6.5 0 0 1 13 0v1"/>
 						</svg>
@@ -136,13 +135,13 @@ $hero_trust = array(
 					<?php foreach ( $hero_trust as $trust ) : ?>
 						<div class="apex-trust-item">
 							<?php if ( 'iso' === $trust['icon'] ) : ?>
-								<svg class="apex-trust-ico" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+								<svg class="apex-trust-ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
 									<circle cx="12" cy="12" r="9"/>
 									<path d="M12 3l6.5 3v5c0 3.8-2.6 7.2-6.5 8-3.9-.8-6.5-4.2-6.5-8V6L12 3z"/>
 									<path d="M8.5 12.5l2.5 2.5 5-5" stroke-linecap="round" stroke-linejoin="round"/>
 								</svg>
 							<?php elseif ( 'delivery' === $trust['icon'] ) : ?>
-								<svg class="apex-trust-ico" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+								<svg class="apex-trust-ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
 									<rect x="2" y="7" width="20" height="14" rx="1.5"/>
 									<path d="M8 21V11"/>
 									<path d="M16 21V11"/>
@@ -151,7 +150,7 @@ $hero_trust = array(
 									<path d="M8 4h8"/>
 								</svg>
 							<?php elseif ( 'network' === $trust['icon'] ) : ?>
-								<svg class="apex-trust-ico" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+								<svg class="apex-trust-ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
 									<circle cx="8" cy="8" r="3"/>
 									<circle cx="16" cy="8" r="3"/>
 									<circle cx="12" cy="16" r="3"/>
@@ -159,7 +158,7 @@ $hero_trust = array(
 									<path d="M13.8 9.8l-1.8 3.4"/>
 								</svg>
 							<?php else : ?>
-								<svg class="apex-trust-ico" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+								<svg class="apex-trust-ico" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
 									<path d="M4 14v3a2 2 0 0 0 2 2h1"/>
 									<path d="M20 14v3a2 2 0 0 1-2 2h-1"/>
 									<path d="M4 14a8 8 0 0 1 16 0"/>

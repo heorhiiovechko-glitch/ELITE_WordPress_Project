@@ -161,6 +161,21 @@ function elite_get_product_shop_category_label( $product ) {
 }
 
 /**
+ * Star icon SVG (Elementor eicon-star).
+ *
+ * @param int $size Pixel width/height.
+ * @return string
+ */
+function elite_shipping_get_star_icon_svg( $size = 14 ) {
+	$size = max( 8, absint( $size ) );
+
+	return sprintf(
+		'<svg class="elite-star-icon" width="%1$d" height="%1$d" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M450 75L338 312 88 350C46 354 25 417 58 450L238 633 196 896C188 942 238 975 275 954L500 837 725 954C767 975 813 942 804 896L763 633 942 450C975 417 954 358 913 350L663 312 550 75C529 33 471 33 450 75Z"/></svg>',
+		$size
+	);
+}
+
+/**
  * Display review count for popular product star ratings.
  *
  * Uses a stable pool so each product keeps the same number on reload.
@@ -174,6 +189,25 @@ function elite_get_product_star_review_count( $product_id, $index = 0 ) {
 	$slot   = ( absint( $product_id ) + absint( $index ) ) % count( $counts );
 
 	return $counts[ $slot ];
+}
+
+/**
+ * Render popular-card star rating row.
+ *
+ * @param int $product_id Product ID.
+ * @param int $index      Card index.
+ */
+function elite_render_popular_star_rating( $product_id, $index = 0 ) {
+	$count = elite_get_product_star_review_count( $product_id, $index );
+	$star  = elite_shipping_get_star_icon_svg( 14 );
+	?>
+	<div class="apex-stars" aria-label="<?php echo esc_attr( sprintf( __( 'Rated 5 out of 5 from %d reviews', 'elite-shipping' ), $count ) ); ?>">
+		<span class="apex-stars-icons" aria-hidden="true">
+			<?php echo str_repeat( $star, 5 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		</span>
+		<span class="apex-stars-count">(<?php echo esc_html( (string) $count ); ?>)</span>
+	</div>
+	<?php
 }
 
 /**
@@ -316,9 +350,9 @@ function elite_render_product_grid( $args = array(), $opts = array() ) {
 		?>
 		<article class="apex-product-card <?php echo 'popular' === $mode ? 'apex-popular-card' : ''; ?><?php echo 'bestseller' === $mode ? ' apex-product-card--bestseller' : ''; ?>">
 			<?php if ( 'popular' === $mode && 1 === $index ) : ?>
-				<span class="apex-best-badge">Best Seller</span>
+				<span class="apex-best-badge"><?php esc_html_e( 'Best Seller', 'elite-shipping' ); ?></span>
 			<?php endif; ?>
-			<a class="apex-product-media<?php echo 'bestseller' === $mode ? ' apex-product-media--cover' : ''; ?><?php echo 'popular' === $mode ? ' apex-product-media--popular' : ''; ?>" href="<?php echo esc_url( $url ); ?>">
+			<a class="apex-product-media<?php echo 'bestseller' === $mode ? ' apex-product-media--cover' : ''; ?><?php echo 'popular' === $mode ? ' apex-product-media--popular' : ''; ?>" href="<?php echo esc_url( $url ); ?>"<?php echo 'popular' === $mode ? ' tabindex="-1" aria-hidden="true"' : ''; ?>>
 				<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; ?>
 				<?php if ( 'bestseller' === $mode && $size_badge ) : ?>
 					<span class="apex-size-badge"><?php echo esc_html( $size_badge ); ?></span>
@@ -333,8 +367,10 @@ function elite_render_product_grid( $args = array(), $opts = array() ) {
 					</div>
 				<?php elseif ( 'popular' === $mode ) : ?>
 					<p class="apex-product-dims"><?php echo esc_html( elite_get_product_dims_label( $product ) ); ?></p>
-					<div class="apex-product-price apex-popular-price"><?php echo wp_kses_post( elite_format_bestseller_price( $product ) ); ?></div>
-					<div class="apex-stars" aria-hidden="true">★★★★★ <span>(<?php echo esc_html( (string) elite_get_product_star_review_count( $product->get_id(), $index ) ); ?>)</span></div>
+					<div class="apex-popular-card-foot">
+						<div class="apex-product-price apex-popular-price"><?php echo wp_kses_post( elite_format_bestseller_price( $product ) ); ?></div>
+						<?php elite_render_popular_star_rating( $product->get_id(), $index ); ?>
+					</div>
 				<?php else : ?>
 					<a class="apex-view-link" href="<?php echo esc_url( $url ); ?>">VIEW DETAILS →</a>
 				<?php endif; ?>
@@ -512,6 +548,9 @@ function elite_render_shop_product_card( $product ) {
 		: '';
 	?>
 	<article <?php wc_product_class( 'apex-shop-product-card' . ( $has_hover_img ? ' has-hover-image' : '' ), $product ); ?>>
+		<div class="apex-shop-product-header">
+			<span class="apex-shop-product-header-label"><?php echo esc_html( $category_label ); ?></span>
+		</div>
 		<div class="apex-shop-product-media<?php echo $has_hover_img ? ' apex-shop-product-media--has-hover' : ''; ?>">
 			<a class="apex-shop-product-media-link" href="<?php echo esc_url( $url ); ?>">
 				<?php if ( $is_on_sale ) : ?>
@@ -532,7 +571,6 @@ function elite_render_shop_product_card( $product ) {
 			</div>
 		</div>
 		<div class="apex-shop-product-body">
-			<p class="apex-shop-product-cat"><?php echo esc_html( $category_label ); ?></p>
 			<h3 class="apex-shop-product-title"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $title ); ?></a></h3>
 			<div class="apex-shop-product-meta">
 				<div class="apex-shop-product-price"><?php echo wp_kses_post( $product->get_price_html() ); ?></div>

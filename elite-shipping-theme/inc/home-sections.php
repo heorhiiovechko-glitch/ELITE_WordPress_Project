@@ -186,14 +186,52 @@ function elite_shipping_get_theme_mod_image_url( $setting, $fallback = '' ) {
  * @param int $limit Max products.
  * @return int[]
  */
-function elite_shipping_get_popular_product_ids( $limit = 5 ) {
+/**
+ * Product IDs picked for Popular Products.
+ *
+ * @param int $limit Max products.
+ * @return int[]
+ */
+function elite_shipping_get_popular_product_ids( $limit = 10 ) {
 	$limit  = max( 1, absint( $limit ) );
 	$picked = array();
 
-	for ( $slot = 1; $slot <= 5; $slot++ ) {
+	for ( $slot = 1; $slot <= 10; $slot++ ) {
 		$product_id = absint( get_theme_mod( 'elite_popular_product_' . $slot, 0 ) );
 		if ( $product_id > 0 && ! in_array( $product_id, $picked, true ) ) {
 			$picked[] = $product_id;
+		}
+		if ( count( $picked ) >= $limit ) {
+			break;
+		}
+	}
+
+	if ( count( $picked ) < $limit && class_exists( 'WooCommerce' ) ) {
+		$query = new WP_Query(
+			array(
+				'post_type'              => 'product',
+				'posts_per_page'         => $limit - count( $picked ),
+				'post_status'            => 'publish',
+				'orderby'                => 'date',
+				'order'                  => 'DESC',
+				'post__not_in'           => $picked,
+				'fields'                 => 'ids',
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		if ( ! empty( $query->posts ) ) {
+			foreach ( $query->posts as $product_id ) {
+				$product_id = absint( $product_id );
+				if ( $product_id > 0 && ! in_array( $product_id, $picked, true ) ) {
+					$picked[] = $product_id;
+				}
+				if ( count( $picked ) >= $limit ) {
+					break;
+				}
+			}
 		}
 	}
 
@@ -480,16 +518,18 @@ function elite_render_popular_product_card( $product, $index = 1 ) {
 	?>
 	<article class="apex-product-card apex-popular-card">
 		<?php if ( 1 === $index ) : ?>
-			<span class="apex-best-badge">Best Seller</span>
+			<span class="apex-best-badge"><?php esc_html_e( 'Best Seller', 'elite-shipping' ); ?></span>
 		<?php endif; ?>
-		<a class="apex-product-media apex-product-media--popular" href="<?php echo esc_url( $url ); ?>">
+		<a class="apex-product-media apex-product-media--popular" href="<?php echo esc_url( $url ); ?>" tabindex="-1" aria-hidden="true">
 			<?php echo $img ? $img : '<div class="apex-product-ph"></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		</a>
 		<div class="apex-product-body">
 			<h3 class="apex-product-name"><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $category_label ); ?></a></h3>
 			<p class="apex-product-dims"><?php echo esc_html( elite_get_product_dims_label( $product ) ); ?></p>
-			<div class="apex-product-price apex-popular-price"><?php echo wp_kses_post( elite_format_bestseller_price( $product ) ); ?></div>
-			<div class="apex-stars" aria-hidden="true">★★★★★ <span>(<?php echo esc_html( (string) elite_get_product_star_review_count( $product->get_id(), $index ) ); ?>)</span></div>
+			<div class="apex-popular-card-foot">
+				<div class="apex-product-price apex-popular-price"><?php echo wp_kses_post( elite_format_bestseller_price( $product ) ); ?></div>
+				<?php elite_render_popular_star_rating( $product->get_id(), $index ); ?>
+			</div>
 		</div>
 	</article>
 	<?php
@@ -504,41 +544,23 @@ function elite_render_home_popular_track() {
 		return;
 	}
 
-	$product_ids = elite_shipping_get_popular_product_ids( 5 );
+	$product_ids = elite_shipping_get_popular_product_ids( 10 );
 	echo '<div class="apex-grid apex-popular-track" id="elite-home-popular-track">';
 
-	if ( ! empty( $product_ids ) ) {
-		$index = 0;
-		foreach ( $product_ids as $product_id ) {
-			$product = wc_get_product( $product_id );
-			if ( ! $product || ! $product->is_visible() ) {
-				continue;
-			}
-			++$index;
-			elite_render_popular_product_card( $product, $index );
-		}
-	} else {
-		$query = new WP_Query(
-			array(
-				'post_type'      => 'product',
-				'posts_per_page' => 5,
-				'post_status'    => 'publish',
-				'orderby'        => 'date',
-				'order'          => 'DESC',
-			)
-		);
+	if ( empty( $product_ids ) ) {
+		echo '<p class="apex-empty">' . esc_html__( 'No products found.', 'elite-shipping' ) . '</p>';
+		echo '</div>';
+		return;
+	}
 
-		$index = 0;
-		while ( $query->have_posts() ) {
-			$query->the_post();
-			$product = wc_get_product( get_the_ID() );
-			if ( ! $product ) {
-				continue;
-			}
-			++$index;
-			elite_render_popular_product_card( $product, $index );
+	$index = 0;
+	foreach ( $product_ids as $product_id ) {
+		$product = wc_get_product( $product_id );
+		if ( ! $product || ! $product->is_visible() ) {
+			continue;
 		}
-		wp_reset_postdata();
+		++$index;
+		elite_render_popular_product_card( $product, $index );
 	}
 
 	echo '</div>';
@@ -563,7 +585,81 @@ function elite_render_home_popular_section() {
 				<?php elite_render_home_popular_track(); ?>
 				<button type="button" class="apex-arrow apex-arrow-next" aria-label="Next">›</button>
 			</div>
+			<?php elite_render_home_popular_trustbar(); ?>
 		</div>
 	</section>
+	<?php
+}
+
+/**
+ * Trust features bar under Popular Products.
+ */
+function elite_render_home_popular_trustbar() {
+	$items = array(
+		array(
+			'icon'  => 'price',
+			'title' => __( 'Best Prices', 'elite-shipping' ),
+			'text'  => __( 'Competitive pricing guaranteed', 'elite-shipping' ),
+		),
+		array(
+			'icon'  => 'delivery',
+			'title' => __( 'Fast Delivery', 'elite-shipping' ),
+			'text'  => __( 'On-time delivery worldwide', 'elite-shipping' ),
+		),
+		array(
+			'icon'  => 'secure',
+			'title' => __( 'Secure Payment', 'elite-shipping' ),
+			'text'  => __( 'Safe & trusted transactions', 'elite-shipping' ),
+		),
+		array(
+			'icon'  => 'support',
+			'title' => __( 'Expert Support', 'elite-shipping' ),
+			'text'  => __( '24/7 customer assistance', 'elite-shipping' ),
+		),
+	);
+	?>
+	<div class="apex-trustbar apex-trustbar--popular" aria-label="<?php esc_attr_e( 'Shopping benefits', 'elite-shipping' ); ?>">
+		<div class="apex-trustbar-band">
+			<div class="apex-trustbar-row">
+				<?php foreach ( $items as $item ) : ?>
+					<div class="apex-trustbar-item">
+						<?php if ( 'price' === $item['icon'] ) : ?>
+							<svg class="apex-trustbar-ico" width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+								<path d="M18 14h12l4 6v14a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V20l4-6z" stroke="currentColor" stroke-width="2.2"/>
+								<path d="M14 20h20" stroke="currentColor" stroke-width="2.2"/>
+								<circle class="tb-accent" cx="24" cy="30" r="5" stroke="currentColor" stroke-width="2.2" fill="none"/>
+								<path class="tb-accent" d="M22 30l1.6 1.6L27 28" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						<?php elseif ( 'delivery' === $item['icon'] ) : ?>
+							<svg class="apex-trustbar-ico" width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+								<path d="M6 30h22V16H6v14z" stroke="currentColor" stroke-width="2.2"/>
+								<path d="M28 22h8l4 5v3h-12v-8z" stroke="currentColor" stroke-width="2.2"/>
+								<circle cx="14" cy="34" r="3.5" stroke="currentColor" stroke-width="2.2"/>
+								<circle class="tb-accent" cx="34" cy="34" r="3.5" stroke="currentColor" stroke-width="2.2"/>
+								<path d="M4 18h-2M6 14H3M9 11H5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+							</svg>
+						<?php elseif ( 'secure' === $item['icon'] ) : ?>
+							<svg class="apex-trustbar-ico" width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+								<rect x="10" y="16" width="28" height="20" rx="3" stroke="currentColor" stroke-width="2.2"/>
+								<path d="M10 24h28" stroke="currentColor" stroke-width="2.2"/>
+								<path class="tb-accent" d="M16 32h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+								<path class="tb-accent" d="M34 10v6M31 13h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+							</svg>
+						<?php else : ?>
+							<svg class="apex-trustbar-ico" width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+								<circle cx="24" cy="24" r="14" stroke="currentColor" stroke-width="2.2"/>
+								<circle class="tb-accent" cx="24" cy="20" r="4" stroke="currentColor" stroke-width="2.2"/>
+								<path class="tb-accent" d="M16 34c1.8-5 5-7.5 8-7.5s6.2 2.5 8 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+							</svg>
+						<?php endif; ?>
+						<div class="apex-trustbar-copy">
+							<strong><?php echo esc_html( $item['title'] ); ?></strong>
+							<span><?php echo esc_html( $item['text'] ); ?></span>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</div>
 	<?php
 }

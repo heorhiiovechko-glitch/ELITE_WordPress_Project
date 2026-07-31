@@ -133,11 +133,23 @@ function elite_shipping_get_policy_pages_config() {
 					'heading'    => __( '6. Delivery Charges', 'elite-shipping' ),
 					'paragraphs' => array(
 						__( 'Delivery charges are clearly displayed before checkout.', 'elite-shipping' ),
-						__( 'Unless otherwise agreed in writing:', 'elite-shipping' ),
-						__( 'Standard Container Delivery Fee: £237 per order', 'elite-shipping' ),
-						__( 'Additional charges may apply for:', 'elite-shipping' ),
+						__( 'Unless otherwise agreed in writing, container delivery fees are charged per container by size/category:', 'elite-shipping' ),
 					),
 					'list'       => array(
+						__( '8ft — £135', 'elite-shipping' ),
+						__( '10ft — £175', 'elite-shipping' ),
+						__( '16ft — £195', 'elite-shipping' ),
+						__( '20ft — £210', 'elite-shipping' ),
+						__( '30ft — £225', 'elite-shipping' ),
+						__( '40ft — £240', 'elite-shipping' ),
+						__( '45ft — £250', 'elite-shipping' ),
+						__( '1-Trip Shipping Containers — £240', 'elite-shipping' ),
+						__( 'Shipping Container Pool — £225', 'elite-shipping' ),
+					),
+					'paragraphs_after' => array(
+						__( 'Additional charges may apply for:', 'elite-shipping' ),
+					),
+					'list_after' => array(
 						__( 'Remote or offshore locations', 'elite-shipping' ),
 						__( 'Crane hire', 'elite-shipping' ),
 						__( 'Hiab or specialist lifting equipment', 'elite-shipping' ),
@@ -145,7 +157,7 @@ function elite_shipping_get_policy_pages_config() {
 						__( 'Failed delivery attempts', 'elite-shipping' ),
 						__( 'Customer-requested re-delivery', 'elite-shipping' ),
 					),
-					'paragraphs_after' => array(
+					'paragraphs_final' => array(
 						__( 'Accessory-only orders may be shipped using standard parcel delivery services, with shipping costs calculated during checkout.', 'elite-shipping' ),
 					),
 				),

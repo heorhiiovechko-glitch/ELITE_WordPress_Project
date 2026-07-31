@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.143' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.214' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -53,6 +53,10 @@ $elite_container_checkout = ELITE_SHIPPING_DIR . '/inc/container-checkout.php';
 if ( file_exists( $elite_container_checkout ) ) {
 	require_once $elite_container_checkout;
 }
+$elite_product_stock = ELITE_SHIPPING_DIR . '/inc/product-stock.php';
+if ( file_exists( $elite_product_stock ) ) {
+	require_once $elite_product_stock;
+}
 $elite_live_search = ELITE_SHIPPING_DIR . '/inc/live-search.php';
 if ( file_exists( $elite_live_search ) ) {
 	require_once $elite_live_search;
@@ -60,6 +64,10 @@ if ( file_exists( $elite_live_search ) ) {
 $elite_quote_drawer = ELITE_SHIPPING_DIR . '/inc/quote-drawer.php';
 if ( file_exists( $elite_quote_drawer ) ) {
 	require_once $elite_quote_drawer;
+}
+$elite_site_owner_auth = ELITE_SHIPPING_DIR . '/inc/site-owner-auth.php';
+if ( file_exists( $elite_site_owner_auth ) ) {
+	require_once $elite_site_owner_auth;
 }
 $elite_wishlist = ELITE_SHIPPING_DIR . '/inc/wishlist.php';
 if ( file_exists( $elite_wishlist ) ) {
@@ -124,7 +132,7 @@ add_action( 'wp_enqueue_scripts', 'elite_shipping_enqueue_assets', 20 );
 function elite_shipping_enqueue_assets() {
 	wp_enqueue_style(
 		'elite-google-fonts',
-		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap',
+		'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap',
 		array(),
 		null
 	);
@@ -954,7 +962,29 @@ function elite_shipping_get_about_image_url( $filename ) {
 }
 
 /**
- * Legacy placeholder — blog listings use real WordPress posts only.
+ * SVG icon for About page feature cards.
+ *
+ * @param int $index Feature index (1-8).
+ * @return string
+ */
+function elite_shipping_get_about_feature_icon( $index ) {
+	$icons = array(
+		1 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>',
+		2 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+		3 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M17 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
+		4 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/></svg>',
+		5 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8"/><path d="M12 18v2"/></svg>',
+		6 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+		7 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 17h4"/><path d="M3 7h13v8H7l-4 4V7z"/><path d="M16 10h2l3 3v2h-5V10z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="17.5" cy="17.5" r="1.5"/></svg>',
+		8 => '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>',
+	);
+
+	$index = absint( $index );
+
+	return isset( $icons[ $index ] ) ? $icons[ $index ] : $icons[1];
+}
+
+/**
  *
  * @return array<int, array<string, string>>
  */
@@ -1639,7 +1669,38 @@ function elite_shipping_get_about_testimonials() {
 }
 
 /**
- * Fetch WooCommerce product categories.
+ * Initial letter for testimonial avatar circles.
+ *
+ * @param string $name Person name.
+ * @return string
+ */
+function elite_shipping_get_testimonial_initial( $name ) {
+	$name = trim( wp_strip_all_tags( (string) $name ) );
+	if ( '' === $name ) {
+		return 'E';
+	}
+
+	$parts = preg_split( '/\s+/', $name );
+	if ( ! empty( $parts[1] ) ) {
+		return strtoupper( function_exists( 'mb_substr' ) ? mb_substr( $parts[1], 0, 1, 'UTF-8' ) : substr( $parts[1], 0, 1 ) );
+	}
+
+	return strtoupper( function_exists( 'mb_substr' ) ? mb_substr( $name, 0, 1, 'UTF-8' ) : substr( $name, 0, 1 ) );
+}
+
+/**
+ * Avatar accent colors for testimonial cards.
+ *
+ * @param int $index Card index.
+ * @return string
+ */
+function elite_shipping_get_testimonial_avatar_color( $index ) {
+	$colors = array( '#22c55e', '#8b5cf6', '#d97706', '#0ea5e9', '#ec4899', '#64748b' );
+
+	return $colors[ ( absint( $index ) - 1 ) % count( $colors ) ];
+}
+
+/**
  *
  * @param array $args Optional get_terms arguments.
  * @return WP_Term[]

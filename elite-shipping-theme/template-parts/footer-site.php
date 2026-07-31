@@ -28,6 +28,12 @@ $footer_categories = elite_shipping_get_footer_product_categories();
 						</a>
 					</li>
 					<li>
+						<a href="<?php echo esc_url( 'mailto:' . $contact['email'] ); ?>">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/></svg>
+							<?php echo esc_html( $contact['email'] ); ?>
+						</a>
+					</li>
+					<li>
 						<a href="<?php echo esc_url( $contact['address_url'] ); ?>" target="_blank" rel="noopener noreferrer">
 							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
 							<?php echo esc_html( $contact['address'] ); ?>

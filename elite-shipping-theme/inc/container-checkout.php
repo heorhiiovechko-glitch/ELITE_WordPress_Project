@@ -1,6 +1,6 @@
 <?php
 /**
- * Container checkout rules — 20% VAT and flat £237 delivery.
+ * Container checkout rules — 20% VAT and per-category delivery fees.
  *
  * @package Elite_Shipping
  */
@@ -10,8 +10,158 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'ELITE_CONTAINER_VAT_PERCENT', 20 );
-define( 'ELITE_CONTAINER_FLAT_SHIPPING_COST', 237 );
+define( 'ELITE_CONTAINER_FLAT_SHIPPING_COST', 237 ); // Fallback when size/category is unknown.
 define( 'ELITE_ACCESSORY_FLAT_SHIPPING_COST', 25 );
+
+/**
+ * Shipping cost by container category / size key.
+ *
+ * @return array<string, float>
+ */
+function elite_shipping_get_category_shipping_costs() {
+	return apply_filters(
+		'elite_shipping_category_shipping_costs',
+		array(
+			'1-trip' => 240.0,
+			'pool'   => 225.0,
+			'45ft'   => 250.0,
+			'40ft'   => 240.0,
+			'30ft'   => 225.0,
+			'20ft'   => 210.0,
+			'16ft'   => 195.0,
+			'10ft'   => 175.0,
+			'8ft'    => 135.0,
+		)
+	);
+}
+
+/**
+ * Match a shipping cost key from category/product text.
+ *
+ * @param string $haystack Category names, slugs, or product title.
+ * @return string|null Cost key (e.g. 20ft) or null.
+ */
+function elite_shipping_match_container_shipping_key( $haystack ) {
+	$text = strtolower( trim( (string) $haystack ) );
+
+	if ( '' === $text ) {
+		return null;
+	}
+
+	// Named categories (take priority over size when present).
+	if ( preg_match( '/\b(?:1[\s-]?trip|one[\s-]?trip)\b/i', $text ) ) {
+		return '1-trip';
+	}
+
+	if ( false !== strpos( $text, 'pool' ) ) {
+		return 'pool';
+	}
+
+	// Largest sizes first so "8ft x 10ft" resolves to 10ft.
+	$sizes = array( '45', '40', '30', '20', '16', '10', '8' );
+
+	foreach ( $sizes as $size ) {
+		if ( preg_match( '/\b' . preg_quote( $size, '/' ) . '\s*(?:ft|foot|feet)\b/i', $text ) ) {
+			return $size . 'ft';
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Resolve per-container delivery cost for a product from its categories / title.
+ *
+ * @param WC_Product|int|null $product Product object or ID.
+ * @return float
+ */
+function elite_shipping_get_container_shipping_cost_for_product( $product ) {
+	$costs   = elite_shipping_get_category_shipping_costs();
+	$default = (float) apply_filters( 'elite_shipping_container_flat_shipping_cost', ELITE_CONTAINER_FLAT_SHIPPING_COST );
+
+	if ( is_numeric( $product ) ) {
+		$product = wc_get_product( (int) $product );
+	}
+
+	if ( ! $product instanceof WC_Product ) {
+		return $default;
+	}
+
+	$category_haystacks = array();
+	$terms              = wp_get_post_terms( $product->get_id(), 'product_cat' );
+
+	if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+		foreach ( $terms as $term ) {
+			if ( elite_shipping_is_accessory_category( $term ) ) {
+				continue;
+			}
+			$category_haystacks[] = $term->name . ' ' . $term->slug;
+		}
+	}
+
+	$special_keys = array( '1-trip', 'pool' );
+	$matched_key  = null;
+
+	// Prefer named categories (e.g. 1-Trip) over size categories on the same product.
+	foreach ( $category_haystacks as $haystack ) {
+		$key = elite_shipping_match_container_shipping_key( $haystack );
+		if ( null !== $key && in_array( $key, $special_keys, true ) && isset( $costs[ $key ] ) ) {
+			$matched_key = $key;
+			break;
+		}
+	}
+
+	if ( null === $matched_key ) {
+		$haystacks = array_merge( $category_haystacks, array( $product->get_name() ) );
+		foreach ( $haystacks as $haystack ) {
+			$key = elite_shipping_match_container_shipping_key( $haystack );
+			if ( null !== $key && isset( $costs[ $key ] ) ) {
+				$matched_key = $key;
+				break;
+			}
+		}
+	}
+
+	if ( null !== $matched_key && isset( $costs[ $matched_key ] ) ) {
+		return (float) apply_filters(
+			'elite_shipping_container_category_shipping_cost',
+			$costs[ $matched_key ],
+			$matched_key,
+			$product
+		);
+	}
+
+	return $default;
+}
+
+/**
+ * Total container delivery cost for cart / package contents (per unit × qty).
+ *
+ * @param array<string, mixed>|null $package Optional shipping package.
+ * @return float
+ */
+function elite_shipping_get_cart_container_shipping_cost( $package = null ) {
+	$total = 0.0;
+	$items = array();
+
+	if ( is_array( $package ) && ! empty( $package['contents'] ) && is_array( $package['contents'] ) ) {
+		$items = $package['contents'];
+	} elseif ( function_exists( 'WC' ) && WC()->cart ) {
+		$items = WC()->cart->get_cart();
+	}
+
+	foreach ( $items as $cart_item ) {
+		$product = $cart_item['data'] ?? null;
+		if ( ! $product instanceof WC_Product || ! elite_shipping_is_container_product( $product ) ) {
+			continue;
+		}
+
+		$qty    = max( 1, (int) ( $cart_item['quantity'] ?? 1 ) );
+		$total += elite_shipping_get_container_shipping_cost_for_product( $product ) * $qty;
+	}
+
+	return (float) apply_filters( 'elite_shipping_cart_container_shipping_cost', $total, $package );
+}
 
 /**
  * Display label for container flat delivery.
@@ -293,20 +443,18 @@ function elite_shipping_container_vat_fallback_rates( $rates, $args ) {
 add_filter( 'woocommerce_find_rates', 'elite_shipping_container_vat_fallback_rates', 20, 2 );
 
 /**
- * Apply flat container delivery when the cart includes containers.
+ * Apply per-category container delivery when the cart includes containers.
  *
  * @param array<string, WC_Shipping_Rate> $rates   Package rates.
  * @param array<string, mixed>            $package Shipping package.
  * @return array<string, WC_Shipping_Rate>
  */
 function elite_shipping_apply_container_flat_shipping( $rates, $package ) {
-	unset( $package );
-
 	if ( ! elite_shipping_cart_has_containers() || ! class_exists( 'WC_Shipping_Rate' ) ) {
 		return $rates;
 	}
 
-	$cost  = (float) apply_filters( 'elite_shipping_container_flat_shipping_cost', ELITE_CONTAINER_FLAT_SHIPPING_COST );
+	$cost  = elite_shipping_get_cart_container_shipping_cost( is_array( $package ) ? $package : null );
 	$label = (string) apply_filters(
 		'elite_shipping_container_flat_shipping_label',
 		elite_shipping_container_delivery_fee_label()
