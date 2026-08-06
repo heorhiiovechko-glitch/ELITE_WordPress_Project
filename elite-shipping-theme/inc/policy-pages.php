@@ -105,10 +105,18 @@ function elite_shipping_get_policy_pages_config() {
 					),
 					'list'       => array(
 						__( 'In-stock containers: 2–7 business days', 'elite-shipping' ),
-						__( 'Modified or customised containers: Delivery timeframe provided upon order confirmation.', 'elite-shipping' ),
 						__( 'Remote locations: May require additional transit time.', 'elite-shipping' ),
 					),
 					'paragraphs_after' => array(
+						__( 'Modified & Customised Shipping Containers – Estimated Delivery Times', 'elite-shipping' ),
+					),
+					'list_after' => array(
+						__( 'Minor Modifications: 7–14 working days', 'elite-shipping' ),
+						__( 'Medium Modifications: 2–4 weeks', 'elite-shipping' ),
+						__( 'Fully Customised Containers: 4–8 weeks', 'elite-shipping' ),
+						__( 'Large Bespoke Projects: 8–12 weeks', 'elite-shipping' ),
+					),
+					'paragraphs_final' => array(
 						__( 'If unexpected delays occur, we will contact you as soon as reasonably possible.', 'elite-shipping' ),
 					),
 				),
@@ -848,26 +856,28 @@ function elite_shipping_get_policy_pages_config() {
 			),
 			'sections' => array(
 				array(
-					'heading'    => __( '1. Payment Methods We Accept', 'elite-shipping' ),
+					'heading'    => __( '1. Payment Methods', 'elite-shipping' ),
 					'paragraphs' => array(
-						__( 'We offer secure and convenient payment options to make ordering as easy as possible.', 'elite-shipping' ),
-						__( 'Depending on availability, you can pay using:', 'elite-shipping' ),
+						__( 'We want every order to be simple, secure, and straightforward. That’s why we offer trusted payment options designed to give you peace of mind when shopping with us.', 'elite-shipping' ),
+						__( 'Our primary payment method is Bank Transfer (Bank Account). Our bank account details will be displayed on the checkout page, allowing you to complete your payment securely.', 'elite-shipping' ),
+						__( 'Depending on availability, we also accept:', 'elite-shipping' ),
 					),
 					'list'       => array(
+						__( 'Bank Transfer (Bank Account) – Our primary payment method', 'elite-shipping' ),
 						__( 'Debit or credit card', 'elite-shipping' ),
 						__( 'PayPal', 'elite-shipping' ),
-						__( 'Bank transfer (BACS) for selected orders', 'elite-shipping' ),
+						__( 'Bank Transfer (BACS) for eligible orders', 'elite-shipping' ),
 					),
 					'paragraphs_after' => array(
 						__( 'For security and operational reasons, we do not accept:', 'elite-shipping' ),
 					),
 					'list_after' => array(
-						__( 'Cash on delivery', 'elite-shipping' ),
+						__( 'Cash on delivery (COD)', 'elite-shipping' ),
 						__( 'Personal cheques', 'elite-shipping' ),
 						__( 'Money orders', 'elite-shipping' ),
 					),
 					'paragraphs_final' => array(
-						__( 'The available payment options for your order will always be shown during checkout.', 'elite-shipping' ),
+						__( 'The payment methods available for your order will always be displayed during checkout.', 'elite-shipping' ),
 					),
 				),
 				array(

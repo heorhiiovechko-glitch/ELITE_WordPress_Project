@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ELITE_SHIPPING_VERSION', '1.9.216' );
+define( 'ELITE_SHIPPING_VERSION', '1.9.220' );
 define( 'ELITE_SHIPPING_URI', get_template_directory_uri() );
 define( 'ELITE_SHIPPING_DIR', get_template_directory() );
 define( 'ELITE_COMPANY_NAME', 'Elite Shipping Containers' );
@@ -64,10 +64,6 @@ if ( file_exists( $elite_live_search ) ) {
 $elite_quote_drawer = ELITE_SHIPPING_DIR . '/inc/quote-drawer.php';
 if ( file_exists( $elite_quote_drawer ) ) {
 	require_once $elite_quote_drawer;
-}
-$elite_site_owner_auth = ELITE_SHIPPING_DIR . '/inc/site-owner-auth.php';
-if ( file_exists( $elite_site_owner_auth ) ) {
-	require_once $elite_site_owner_auth;
 }
 $elite_wishlist = ELITE_SHIPPING_DIR . '/inc/wishlist.php';
 if ( file_exists( $elite_wishlist ) ) {
